@@ -25,15 +25,6 @@ export const signUpUser = async (req, res) => {
 
     // console.log(data);
 
-    // Adding user in the mongodb
-    const user = {
-      email: data.user.email,
-      auth_uid: data.user.id,
-      display_name: data.user.user_metadata.display_name,
-    };
-
-    await User.create(user);
-
     return res.status(201).json({ message: "User created successfully. Verify the email to complete the registration." });
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -57,28 +48,50 @@ export const loginUser = async (req, res) => {
       return res.status(400).json({ error: error.message });
     }
 
-    return res.status(200).json({ session: data.session });
+    // Adding user in the mongodb for the first time
+    const user = {
+      email: data.user.email,
+      auth_uid: data.user.id,
+      display_name: data.user.user_metadata.display_name,
+    };
+
+    const userExists = await User.findOne({ email: user.email });
+
+    if (!userExists) {
+      await User.create(user);
+    }
+
+    // Store access token in secure cookie
+    res.cookie("access_token", data.session.access_token, {
+      httpOnly: true,   // cannot be accessed by JS (secure)
+      secure: false,     // only over HTTPS (set false for localhost dev)
+      sameSite: "Strict",
+      maxAge: 60 * 60 * 1000 // 1 hour
+    });
+
+    return res.status(200).json({ message: "User logged in successfully." });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
 
 export const logoutUser = async (req, res) => {
-    const token = req.headers["authorization"]?.split(" ")[1];
+  const token = req.cookies.access_token || req.headers["authorization"]?.split(" ")[1];
 
-    if (!token) {
-        return res.status(401).json({ error: "Missing authorization header" });
-    }
+  if (!token) {
+    return res.status(400).json({ error: "No token provided." });
+  }
 
-    try {
-        const { error } = await supabase.auth.signOut({ JWT: token });
+  try {
+      const { error } = await supabase.auth.signOut({ JWT: token });
 
-        if (error) {
-            return res.status(400).json({ error: error.message });
-        }
+      if (error) {
+          return res.status(400).json({ error: error.message });
+      }
 
-        return res.status(200).json({ message: "User logged out successfully." });
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
-    }
+      res.clearCookie("access_token");
+      return res.status(200).json({ message: "User logged out successfully." });
+  } catch (error) {
+      return res.status(500).json({ error: error.message });
+  }
 };

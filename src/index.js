@@ -4,10 +4,12 @@ import 'dotenv/config';
 import cors from 'cors';
 import connectDB from './lib/mongo-connection.js';
 import authRoutes from './routes/auth.route.js';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors({
     origin: 'http://localhost:5001'
 }));
