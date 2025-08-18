@@ -1,4 +1,4 @@
-import User from '../models/User.model.js';
+import User from '../models/Users.model.js';
 import supabase from "../lib/supabase-client.js";
 
 export const signUpUser = async (req, res) => {
@@ -57,8 +57,11 @@ export const loginUser = async (req, res) => {
 
     const userExists = await User.findOne({ email: user.email });
 
+    let user_id = userExists ? userExists._id.toString() : null;
+
     if (!userExists) {
-      await User.create(user);
+      const newUser = await User.create(user);
+      user_id = newUser._id.toString();
     }
 
     // Store access token in secure cookie
@@ -69,8 +72,16 @@ export const loginUser = async (req, res) => {
       maxAge: 60 * 60 * 1000 // 1 hour
     });
 
+    res.cookie("user_id", user_id, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "Strict",
+      maxAge: 60 * 60 * 1000 // 1 hour
+    });
+
     return res.status(200).json({ message: "User logged in successfully." });
   } catch (error) {
+    console.error("Login error:", error);
     return res.status(500).json({ error: error.message });
   }
 };
@@ -90,6 +101,7 @@ export const logoutUser = async (req, res) => {
       }
 
       res.clearCookie("access_token");
+      res.clearCookie("user_id");
       return res.status(200).json({ message: "User logged out successfully." });
   } catch (error) {
       return res.status(500).json({ error: error.message });
