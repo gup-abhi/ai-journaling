@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const aiInsightsSchema = new mongoose.Schema({
+const aiInsightSchema = new mongoose.Schema({
   user_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
@@ -20,8 +20,7 @@ const aiInsightsSchema = new mongoose.Schema({
     required: true
   },
   key_themes: {
-    type: String,
-    required: true
+    type: String
   },
   ai_model_version:{
     type: String
@@ -32,6 +31,6 @@ const aiInsightsSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-const AiInsights = mongoose.model("AiInsights", aiInsightsSchema);
+const AiInsight = mongoose.model("AiInsight", aiInsightSchema);
 
-export default AiInsights;
+export default AiInsight;

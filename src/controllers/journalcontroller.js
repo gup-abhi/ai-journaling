@@ -1,5 +1,6 @@
 import JournalEntry from '../models/JournalEntries.model.js';
 import { countWords } from '../util/countWords.js';
+import storeAiInsight from '../util/storeAiInsights.js';
 
 export const createJournalEntry = async (req, res) => {
   const { content, entry_date } = req.body;
@@ -19,7 +20,16 @@ export const createJournalEntry = async (req, res) => {
     });
 
     await newEntry.save();
-    return res.status(201).json({ message: "Journal entry created successfully.", entry: newEntry });
+    res.status(201).json({ message: "Journal entry created successfully.", entry: newEntry });
+
+    process.nextTick(() => {
+      storeAiInsight(req, res, {
+        user_id: newEntry.user_id,
+        journal_entry_id: newEntry._id,
+        content: newEntry.content
+      });
+    });
+    
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
