@@ -26,7 +26,8 @@ export const createJournalEntry = async (req, res) => {
       storeAiInsight(req, res, {
         user_id: newEntry.user_id,
         journal_entry_id: newEntry._id,
-        content: newEntry.content
+        content: newEntry.content,
+        processed_at: newEntry.entry_date
       });
     });
     

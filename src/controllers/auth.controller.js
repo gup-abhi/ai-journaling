@@ -69,14 +69,14 @@ export const loginUser = async (req, res) => {
       httpOnly: true,   // cannot be accessed by JS (secure)
       secure: false,     // only over HTTPS (set false for localhost dev)
       sameSite: "Strict",
-      maxAge: 60 * 60 * 1000 // 1 hour
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
     res.cookie("user_id", user_id, {
       httpOnly: true,
       secure: false,
       sameSite: "Strict",
-      maxAge: 60 * 60 * 1000 // 1 hour
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
     return res.status(200).json({ message: "User logged in successfully." });

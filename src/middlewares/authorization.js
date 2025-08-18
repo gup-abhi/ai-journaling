@@ -11,7 +11,7 @@ export const validateToken = async (req, res, next) => {
     }
 
     if (!token) {
-      return res.status(401).json({ error: "No token provided" });
+      return res.status(401).json({ error: "No token provided, try re-logging in" });
     }
 
     const { data, error } = await supabase.auth.getUser(token);

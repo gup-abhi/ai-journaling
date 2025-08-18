@@ -26,8 +26,7 @@ const aiInsightSchema = new mongoose.Schema({
     type: String
   },
   processed_at: {
-    type: Date,
-    default: Date.now
+    type: Date
   }
 }, { timestamps: true });
 

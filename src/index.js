@@ -5,6 +5,7 @@ import cors from 'cors';
 import connectDB from './lib/mongo-connection.js';
 import authRoutes from './routes/auth.route.js';
 import journalRoutes from './routes/journal.route.js';
+import aiInsightRoutes from './routes/aiinsight.route.js';
 import cookieParser from 'cookie-parser';
 
 const app = express();
@@ -21,6 +22,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/journal', journalRoutes);
+app.use('/api/v1/ai-insights', aiInsightRoutes);
 
 const server = http.createServer(app);
 
