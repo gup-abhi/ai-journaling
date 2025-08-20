@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
-import { useAuthStore } from '@/store/auth.store'
+import { useAuthStore } from '@/stores/auth.store'
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
 	const isAuthenticated = sessionStorage.getItem('isAuthenticated') === 'true';

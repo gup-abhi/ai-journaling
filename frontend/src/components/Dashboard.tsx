@@ -4,7 +4,7 @@ import { Button } from './ui/button'
 import { Card, CardContent, CardHeader } from './ui/card'
 import { Badge } from './ui/badge'
 import { Shield, LogOut, Mic, PenTool, Brain, TrendingUp, Calendar, Plus } from 'lucide-react'
-import { useAuthStore } from '@/store/auth.store'
+import { useAuthStore } from '@/stores/auth.store'
 
 export function Dashboard() {
   const navigate = useNavigate()
