@@ -85,15 +85,15 @@ export const getTotalMonthJournalEntries = async (req, res) => {
     // Start of next month (e.g., Sep 1 00:00:00)
     const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
 
-    const totalMonthEntries = await JournalEntry.countDocuments({
+    const totalMonthlyEntries = await JournalEntry.countDocuments({
       user_id: req.cookies.user_id,
       entry_date: {
         $gte: startOfMonth,
         $lt: startOfNextMonth,
       },
     })
-    
-    return res.status(200).json({ totalMonthEntries })
+
+    return res.status(200).json({ totalMonthlyEntries })
   } catch (error) {
     console.error(error)
     return res.status(500).json({ error: 'Internal Server Error' })

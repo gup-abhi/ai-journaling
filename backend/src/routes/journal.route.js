@@ -7,7 +7,7 @@ const router = express.Router();
 router.post("/", validateToken, createJournalEntry);
 router.get("/", validateToken, getJournalEntries);
 router.get("/total-entries", validateToken, getTotalJournalEntries);
-router.get("/total-month-entries", validateToken, getTotalMonthJournalEntries);
+router.get("/total-monthly-entries", validateToken, getTotalMonthJournalEntries);
 router.get("/:id", validateToken, getJournalEntryById);
 
 export default router;
