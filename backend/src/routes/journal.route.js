@@ -1,6 +1,6 @@
 import express from 'express';
 import { validateToken } from '../middlewares/authorization.js';
-import { createJournalEntry, getJournalEntries, getJournalEntryById } from '../controllers/journalcontroller.js';
+import { createJournalEntry, getJournalEntries, getJournalEntryById } from '../controllers/journal.controller.js';
 
 const router = express.Router();
 
