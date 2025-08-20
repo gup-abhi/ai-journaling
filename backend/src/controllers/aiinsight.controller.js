@@ -112,20 +112,44 @@ export const getSentimentTrends = async (req, res) => {
 
 export const getSentimentTrendsByJournalId = async (req, res) => {
     const { user_id } = req.cookies;
-    const { journal_id } = req.params;
-
-    if (!journal_id) {
-        return res.status(400).json({ error: "ID is required" });
-    }
-
     try {
-        const trend = await AiInsight.findOne({ user_id: new mongoose.Types.ObjectId(user_id), journal_entry_id: new mongoose.Types.ObjectId(journal_id) });
-        
+        const trend = await AiInsight.aggregate([
+            {
+                $match: {
+                    user_id: new mongoose.Types.ObjectId(user_id),
+                },
+            },
+        ]);
+
         if (!trend) {
             return res.status(404).json({ error: "Trend not found" });
         }
 
         return res.status(200).json({ trend });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+
+export const getOverallSentiment = async (req, res) => {
+    try {
+        const overallSentiment = await AiInsight.aggregate([
+            {
+                $match: {
+                    user_id: new mongoose.Types.ObjectId(req.cookies.user_id),
+                },
+            },
+            {
+                $group: {
+                    _id: null, // Grouping by null to get overall sentiment
+                    averageSentiment: { $avg: '$sentiment_score' },
+                },
+            },
+        ]);
+
+        return res.status(200).json({ overallSentiment: overallSentiment[0]?.averageSentiment * 100 || 0 });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: "Internal Server Error" });
