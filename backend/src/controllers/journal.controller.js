@@ -32,7 +32,7 @@ export const createJournalEntry = async (req, res) => {
     });
     
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
@@ -42,7 +42,7 @@ export const getJournalEntries = async (req, res) => {
     const entries = await JournalEntry.find({ user_id: req.cookies.user_id }).sort({ entry_date: -1 });
     return res.status(200).json({ entries });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 }
 
@@ -58,6 +58,44 @@ export const getJournalEntryById = async (req, res) => {
 
         return res.status(200).json({ entry });
     } catch (error) {
-        return res.status(500).json({ error: error.message });
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 };
+
+
+export const getTotalJournalEntries = async (req, res) => {
+  try {
+    const totalEntries = await JournalEntry.countDocuments({ user_id: req.cookies.user_id });
+    console.log('Total journal entries:', totalEntries);
+    return res.status(200).json({ totalEntries });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+export const getTotalMonthJournalEntries = async (req, res) => {
+  try {
+    const now = new Date()
+
+    // Start of current month (e.g., Aug 1 00:00:00)
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+
+    // Start of next month (e.g., Sep 1 00:00:00)
+    const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+
+    const totalMonthEntries = await JournalEntry.countDocuments({
+      user_id: req.cookies.user_id,
+      entry_date: {
+        $gte: startOfMonth,
+        $lt: startOfNextMonth,
+      },
+    })
+    
+    return res.status(200).json({ totalMonthEntries })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({ error: 'Internal Server Error' })
+  }
+}
