@@ -1,39 +1,35 @@
+import axios, { AxiosError } from 'axios'
+import type { AxiosResponse } from 'axios'
+
 export const API_BASE = 'http://localhost:5001/api/v1'
 
-export type JsonRecord = Record<string, unknown>
+export const api = axios.create({
+  baseURL: API_BASE,
+  withCredentials: true,
+  headers: {
+    // Do not force Content-Type on GET; axios sets it for JSON bodies automatically
+  },
+})
 
-export async function apiRequest(path: string, init: RequestInit = {}) {
+api.interceptors.request.use((config) => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
-
-  const headers = new Headers(init.headers || {})
-  const method = (init.method || 'GET').toString().toUpperCase()
-  const hasBody = !!init.body
-
-  // Only set JSON content-type when sending a body
-  if (hasBody && !headers.has('Content-Type')) {
-    headers.set('Content-Type', 'application/json')
+  if (token && config.headers && !config.headers['Authorization']) {
+    config.headers['Authorization'] = `Bearer ${token}`
   }
-  if (token && !headers.has('Authorization')) headers.set('Authorization', `Bearer ${token}`)
+  return config
+})
 
-  const response = await fetch(`${API_BASE}${path}`, {
-    credentials: 'include',
-    ...init,
-    headers,
-    method,
-  })
-  return response
-}
+export type ApiResult<T> = { ok: true; status: number; data: T } | { ok: false; status: number; error: string }
 
-export async function parseJson<T = any>(response: Response): Promise<{ ok: boolean; status: number; data: T | null; error: string | null }>{
-  let payload: any = null
+export async function safeRequest<T = any>(promise: Promise<AxiosResponse<T>>): Promise<ApiResult<T>> {
   try {
-    payload = await response.json()
-  } catch (_) {
-    payload = null
+    const res = await promise
+    return { ok: true, status: res.status, data: res.data }
+  } catch (err) {
+    const e = err as AxiosError<any>
+    const status = e.response?.status ?? 0
+    const data = e.response?.data as any
+    const message = (data && (data.message || data.error)) || e.message || 'Request failed'
+    return { ok: false, status, error: String(message) }
   }
-  if (response.ok) {
-    return { ok: true, status: response.status, data: payload as T, error: null }
-  }
-  const message = (payload && (payload.message || payload.error)) || `Request failed with status ${response.status}`
-  return { ok: false, status: response.status, data: null, error: String(message) }
 }

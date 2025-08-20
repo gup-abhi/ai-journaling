@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { apiRequest, parseJson } from '@/lib/api'
+import { api, safeRequest } from '@/lib/api'
 
 export type AuthUser = {
 	id?: string
@@ -42,62 +42,36 @@ export const useAuthStore = create<AuthState>((set) => ({
 
 	signUp: async (payload) => {
 		set({ isLoading: true, error: null })
-		try {
-			const res = await apiRequest('/auth/signup', {
-				method: 'POST',
-				body: JSON.stringify(payload),
-			})
-			const parsed = await parseJson<any>(res)
-			if (!parsed.ok) {
-				set({ error: parsed.error || 'Sign up failed' })
-				return { ok: false }
-			}
-			return { ok: true, message: 'Verification email sent. Please check your inbox to verify before signing in.' }
-		} catch (e: any) {
-			set({ error: e?.message || 'Sign up failed' })
+		const res = await safeRequest(api.post('/auth/signup', payload))
+		if (!res.ok) {
+			set({ isLoading: false, error: res.error })
 			return { ok: false }
-		} finally {
-			set({ isLoading: false })
 		}
+		set({ isLoading: false })
+		return { ok: true, message: 'Verification email sent. Please check your inbox to verify before signing in.' }
 	},
 
 	signIn: async (payload) => {
 		set({ isLoading: true, error: null })
-		try {
-			const res = await apiRequest('/auth/login', {
-				method: 'POST',
-				body: JSON.stringify(payload),
-			})
-			const parsed = await parseJson<any>(res)
-			if (!parsed.ok) {
-				set({ error: parsed.error || 'Sign in failed' })
-				return { ok: false }
-			}
-			if (typeof window !== 'undefined') {
-				localStorage.setItem(AUTH_FLAG_KEY, '1')
-			}
-			set({ isAuthenticated: true })
-			return { ok: true }
-		} catch (e: any) {
-			set({ error: e?.message || 'Sign in failed' })
+		const res = await safeRequest(api.post('/auth/login', payload))
+		if (!res.ok) {
+			set({ isLoading: false, error: res.error })
 			return { ok: false }
-		} finally {
-			set({ isLoading: false })
 		}
+		if (typeof window !== 'undefined') {
+			localStorage.setItem(AUTH_FLAG_KEY, '1')
+		}
+		set({ isLoading: false, isAuthenticated: true })
+		return { ok: true }
 	},
 
 	signOut: async () => {
-		try {
-			await apiRequest('/auth/logout', { method: 'GET' })
-		} catch (_) {
-			// ignore network/logout errors; still clear local
-		} finally {
-			if (typeof window !== 'undefined') {
-				localStorage.removeItem(AUTH_TOKEN_KEY)
-				localStorage.removeItem(AUTH_USER_KEY)
-				localStorage.removeItem(AUTH_FLAG_KEY)
-			}
-			set({ user: null, token: null, isAuthenticated: false })
+		await safeRequest(api.get('/auth/logout'))
+		if (typeof window !== 'undefined') {
+			localStorage.removeItem(AUTH_TOKEN_KEY)
+			localStorage.removeItem(AUTH_USER_KEY)
+			localStorage.removeItem(AUTH_FLAG_KEY)
 		}
+		set({ user: null, token: null, isAuthenticated: false })
 	},
 }))
