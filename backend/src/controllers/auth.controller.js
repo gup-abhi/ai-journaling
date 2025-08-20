@@ -67,7 +67,7 @@ export const loginUser = async (req, res) => {
     const cookieOptions = {
       httpOnly: true,
       secure: isProd ? true : false, // allow http on localhost; set true in prod
-      sameSite: 'None', // required for cross-site cookies when using credentials
+      sameSite: 'lax', // required for cross-site cookies when using credentials
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/',
     };
