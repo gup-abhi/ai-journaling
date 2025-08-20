@@ -1,5 +1,6 @@
 import User from '../models/Users.model.js';
 import supabase from "../lib/supabase-client.js";
+import cookieOptions from '../util/cookiesOptions.js';
 
 export const signUpUser = async (req, res) => {
   const { email, password, display_name } = req.body;
@@ -62,16 +63,6 @@ export const loginUser = async (req, res) => {
       user_id = newUser._id.toString();
     }
 
-    // Cookie options suitable for cross-site dev (frontend :5173, API :5001)
-    const isProd = process.env.NODE_ENV === 'production';
-    const cookieOptions = {
-      httpOnly: true,
-      secure: isProd ? true : false, // allow http on localhost; set true in prod
-      sameSite: 'lax', // required for cross-site cookies when using credentials
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: '/',
-    };
-
     // Store access token in secure cookie
     res.cookie("access_token", data.session.access_token, cookieOptions);
     res.cookie("user_id", user_id, cookieOptions);
@@ -86,17 +77,9 @@ export const loginUser = async (req, res) => {
 export const logoutUser = async (req, res) => {
   const token = req.cookies.access_token || req.headers["authorization"]?.split(" ")[1];
 
-  const isProd = process.env.NODE_ENV === 'production';
-  const clearOpts = {
-    httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? 'None' : 'Lax', // 'Lax' for localhost/dev
-    path: '/',
-  };
-
   // Always clear cookies
-  res.clearCookie("access_token", clearOpts);
-  res.clearCookie("user_id", clearOpts);
+  res.clearCookie("access_token", cookieOptions);
+  res.clearCookie("user_id", cookieOptions);
 
   if (!token) {
     return res.status(200).json({ message: "Logged out." });
@@ -122,8 +105,10 @@ export const logoutUser = async (req, res) => {
 export const checkAuth = async (req, res) => {
   const token = req.cookies.access_token || req.headers["authorization"]?.split(" ")[1];
 
+  console.log("Checking auth with token:", token);
+
   if (!token) {
-    return res.status(401).json({ error: "Unauthorized" });
+    return res.status(401).json({ error: "No token provided" });
   }
 
   return res.status(200).json({ message: "User is authenticated." });
