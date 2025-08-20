@@ -1,33 +1,45 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader } from './ui/card'
 import { Badge } from './ui/badge'
-import { Shield, LogOut, Mic, PenTool, Brain, TrendingUp, Calendar, Plus } from 'lucide-react'
+import { Shield, LogOut, Mic, PenTool, Brain, TrendingUp, Calendar, Plus, TrendingDown } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
+import { useJournalStore } from '@/stores/journal.store'
+import type { JournalEntry } from '@/types/JournalEntry'
+import { useAiInsightStore } from '@/stores/ai-insight.store'
 
 export function Dashboard() {
   const navigate = useNavigate()
   const location = useLocation()
   const signOutStore = useAuthStore(s => s.signOut)
   const [userName] = useState('User')
+  const { fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, totalEntries, monthlyEntries, journalEntries } = useJournalStore() as { fetchTotalEntries: () => Promise<void>; fetchMonthlyEntries: () => Promise<void>; fetchJournalEntries: () => Promise<void>; totalEntries: number; monthlyEntries: number; journalEntries: JournalEntry[] }
+  const { fetchMoodTrends, moodTrends } = useAiInsightStore() as { fetchMoodTrends: () => Promise<void>; moodTrends: number }
 
   const handleSignOut = () => {
     signOutStore()
     navigate('/')
   }
 
-  const recentEntries = [
-    { id: 1, date: 'Today, 2:30 PM', preview: 'Had an amazing conversation with Sarah about our future plans...', mood: 'Excited', wordCount: 47 },
-    { id: 2, date: 'Yesterday, 9:15 AM', preview: 'Feeling a bit overwhelmed with work today, but trying to stay positive...', mood: 'Thoughtful', wordCount: 32 },
-    { id: 3, date: '2 days ago, 7:45 PM', preview: 'Great workout session today! Really proud of my progress...', mood: 'Accomplished', wordCount: 28 },
-  ]
+  useEffect(() => {
+    fetchTotalEntries()
+    fetchMonthlyEntries()
+    fetchJournalEntries()
+    fetchMoodTrends()
+  }, [fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, fetchMoodTrends]);
+
+  const recentEntries = journalEntries.slice(0, 3).map(entry => ({
+    id: entry._id,
+    date: new Date(entry.entry_date).toLocaleString(),
+    preview: entry.content.slice(0, 100) + '...',
+    wordCount: entry.word_count
+  }));
 
   const quickStats = [
-    { label: 'Total Entries', value: '47', icon: PenTool, color: 'text-blue-500' },
-    { label: 'This Month', value: '18', icon: Calendar, color: 'text-green-500' },
-    { label: 'Mood Trend', value: '+23%', icon: TrendingUp, color: 'text-purple-500' },
-    { label: 'AI Insights', value: '12', icon: Brain, color: 'text-orange-500' },
+    { label: 'Total Entries', value: totalEntries, icon: PenTool, color: 'text-blue-500' },
+    { label: 'This Month', value: monthlyEntries, icon: Calendar, color: 'text-green-500' },
+    { label: 'Mood Trend', value: `${moodTrends > 0 ? '+' : '-'}${moodTrends}%`, icon: moodTrends > 0 ? TrendingUp : TrendingDown, color: moodTrends > 0 ? 'text-purple-500' : 'text-red-500' },
   ]
 
   return (
@@ -91,7 +103,7 @@ export function Dashboard() {
         {/* Stats Grid */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-foreground mb-4">Your Progress</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {quickStats.map((stat, index) => (
               <Card key={index} className="group hover:shadow-md transition-all duration-300">
                 <CardContent className="p-6">
@@ -132,9 +144,6 @@ export function Dashboard() {
                     {entry.preview}
                   </p>
                   <div className="flex items-center justify-between">
-                    <Badge variant="secondary" className="text-xs">
-                      {entry.mood}
-                    </Badge>
                     <Button variant="ghost" size="sm" className="text-xs">
                       Read More
                     </Button>

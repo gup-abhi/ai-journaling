@@ -9,6 +9,8 @@ export const api = axios.create({
   withCredentials: true
 })
 
+
+// Add authorization token for all requests 
 api.interceptors.request.use((config) => {
   const token = typeof window !== 'undefined' ? Cookies.get('auth_token') : null
   if (token && config.headers && !config.headers['Authorization']) {
@@ -16,6 +18,20 @@ api.interceptors.request.use((config) => {
   }
   return config
 })
+
+// Global handling for 401 error code
+api.interceptors.response.use(
+  (response) => response, // pass successful responses
+  async (error: AxiosError) => {
+    if (error.response?.status === 401) {
+      // Example: redirect to login or refresh token
+      console.warn('Unauthorized! Redirecting to login...')
+      sessionStorage.clear()
+    }
+
+    return Promise.reject(error)
+  }
+)
 
 export type ApiResult<T> = { ok: true; status: number; data: T } | { ok: false; status: number; error: string }
 

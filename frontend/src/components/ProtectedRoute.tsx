@@ -10,11 +10,10 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 	const location = useLocation()
 
 	useEffect(() => {
-		console.log('isAuthenticated', isAuthenticated)
 		if (!isAuthenticated && !isLoading) {
 			restore()
 		}
-	}, [restore, isAuthenticated, isLoading])
+	}, [restore])
 
 	if (isLoading) return <div>Loading...</div>
 
