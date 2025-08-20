@@ -1,11 +1,54 @@
-import { Button } from './components/ui/button'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { ThemeProvider } from './components/ui/theme-provider'
+import { Header } from './components/Header'
+import { Hero } from './components/Hero'
+import { Features } from './components/Features'
+import { Demo } from './components/Demo'
+import { DemoAuth } from './components/DemoAuth'
+import { Privacy } from './components/Privacy'
+import { Pricing } from './components/Pricing'
+import { CTA } from './components/CTA'
+import { Footer } from './components/Footer'
+import { SignUp } from './components/SignUp'
+import { SignIn } from './components/SignIn'
+import { Dashboard } from './components/Dashboard'
 
-function App() {
-
+function LandingPage() {
   return (
     <>
-      <Button>Click me</Button>
+      <Header />
+      <main>
+        <Hero />
+        <section id="features">
+          <Features />
+        </section>
+        <Demo />
+        <DemoAuth />
+        <section id="privacy">
+          <Privacy />
+        </section>
+        <Pricing />
+        <CTA />
+      </main>
+      <Footer />
     </>
+  )
+}
+
+function App() {
+  return (
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <Router>
+        <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+          </Routes>
+        </div>
+      </Router>
+    </ThemeProvider>
   )
 }
 
