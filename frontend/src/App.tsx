@@ -12,6 +12,7 @@ import { Footer } from './components/Footer'
 import { SignUp } from './components/SignUp'
 import { SignIn } from './components/SignIn'
 import { Dashboard } from './components/Dashboard'
+import { ProtectedRoute } from './components/ProtectedRoute'
 
 function LandingPage() {
   return (
@@ -44,7 +45,11 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/signin" element={<SignIn />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
           </Routes>
         </div>
       </Router>

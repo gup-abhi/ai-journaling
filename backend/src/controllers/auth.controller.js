@@ -23,8 +23,6 @@ export const signUpUser = async (req, res) => {
       return res.status(400).json({ error: error.message });
     }
 
-    // console.log(data);
-
     return res.status(201).json({ message: "User created successfully. Verify the email to complete the registration." });
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -64,20 +62,19 @@ export const loginUser = async (req, res) => {
       user_id = newUser._id.toString();
     }
 
-    // Store access token in secure cookie
-    res.cookie("access_token", data.session.access_token, {
-      httpOnly: true,   // cannot be accessed by JS (secure)
-      secure: false,     // only over HTTPS (set false for localhost dev)
-      sameSite: "Strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
-
-    res.cookie("user_id", user_id, {
+    // Cookie options suitable for cross-site dev (frontend :5173, API :5001)
+    const isProd = process.env.NODE_ENV === 'production';
+    const cookieOptions = {
       httpOnly: true,
-      secure: false,
-      sameSite: "Strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
+      secure: isProd ? true : false, // allow http on localhost; set true in prod
+      sameSite: 'None', // required for cross-site cookies when using credentials
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+    };
+
+    // Store access token in secure cookie
+    res.cookie("access_token", data.session.access_token, cookieOptions);
+    res.cookie("user_id", user_id, cookieOptions);
 
     return res.status(200).json({ message: "User logged in successfully." });
   } catch (error) {
@@ -90,7 +87,12 @@ export const logoutUser = async (req, res) => {
   const token = req.cookies.access_token || req.headers["authorization"]?.split(" ")[1];
 
   if (!token) {
-    return res.status(400).json({ error: "No token provided." });
+    // Clear cookies regardless to ensure removal on client
+    const isProd = process.env.NODE_ENV === 'production';
+    const clearOpts = { httpOnly: true, secure: isProd ? true : false, sameSite: 'None', path: '/' };
+    res.clearCookie("access_token", clearOpts);
+    res.clearCookie("user_id", clearOpts);
+    return res.status(200).json({ message: "Logged out." });
   }
 
   try {
@@ -100,8 +102,10 @@ export const logoutUser = async (req, res) => {
           return res.status(400).json({ error: error.message });
       }
 
-      res.clearCookie("access_token");
-      res.clearCookie("user_id");
+      const isProd = process.env.NODE_ENV === 'production';
+      const clearOpts = { httpOnly: true, secure: isProd ? true : false, sameSite: 'None', path: '/' };
+      res.clearCookie("access_token", clearOpts);
+      res.clearCookie("user_id", clearOpts);
       return res.status(200).json({ message: "User logged out successfully." });
   } catch (error) {
       return res.status(500).json({ error: error.message });

@@ -4,46 +4,30 @@ import { Button } from './ui/button'
 import { Card, CardContent, CardHeader } from './ui/card'
 import { Badge } from './ui/badge'
 import { Shield, LogOut, Mic, PenTool, Brain, TrendingUp, Calendar, Plus } from 'lucide-react'
+import { useAuthStore } from '@/store/auth'
 
 export function Dashboard() {
   const navigate = useNavigate()
   const location = useLocation()
-  const [userName] = useState('User') // In a real app, this would come from auth context
+  const signOutStore = useAuthStore(s => s.signOut)
+  const [userName] = useState('User')
 
   const handleSignOut = () => {
-    // In a real app, you'd clear auth tokens and user data
+    signOutStore()
     navigate('/')
   }
 
   const recentEntries = [
-    {
-      id: 1,
-      date: 'Today, 2:30 PM',
-      preview: 'Had an amazing conversation with Sarah about our future plans...',
-      mood: 'Excited',
-      wordCount: 47
-    },
-    {
-      id: 2,
-      date: 'Yesterday, 9:15 AM',
-      preview: 'Feeling a bit overwhelmed with work today, but trying to stay positive...',
-      mood: 'Thoughtful',
-      wordCount: 32
-    },
-    {
-      id: 3,
-      date: '2 days ago, 7:45 PM',
-      preview: 'Great workout session today! Really proud of my progress...',
-      mood: 'Accomplished',
-      wordCount: 28
-    }
+    { id: 1, date: 'Today, 2:30 PM', preview: 'Had an amazing conversation with Sarah about our future plans...', mood: 'Excited', wordCount: 47 },
+    { id: 2, date: 'Yesterday, 9:15 AM', preview: 'Feeling a bit overwhelmed with work today, but trying to stay positive...', mood: 'Thoughtful', wordCount: 32 },
+    { id: 3, date: '2 days ago, 7:45 PM', preview: 'Great workout session today! Really proud of my progress...', mood: 'Accomplished', wordCount: 28 },
   ]
 
   const quickStats = [
     { label: 'Total Entries', value: '47', icon: PenTool, color: 'text-blue-500' },
     { label: 'This Month', value: '18', icon: Calendar, color: 'text-green-500' },
     { label: 'Mood Trend', value: '+23%', icon: TrendingUp, color: 'text-purple-500' },
-    { label: 'AI Insights', value: '12', icon: Brain, color: 'text-orange-500' }
+    { label: 'AI Insights', value: '12', icon: Brain, color: 'text-orange-500' },
   ]
 
   return (
