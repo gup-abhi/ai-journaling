@@ -6,7 +6,7 @@ import { Label } from './ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 import { Badge } from './ui/badge'
 import { Shield, ArrowLeft, Eye, EyeOff, User, Mail, Lock, CheckCircle } from 'lucide-react'
-import { useAuthStore } from '@/store/auth'
+import { useAuthStore } from '@/store/auth.store'
 
 export function SignUp() {
   const navigate = useNavigate()

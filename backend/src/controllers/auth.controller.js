@@ -86,28 +86,45 @@ export const loginUser = async (req, res) => {
 export const logoutUser = async (req, res) => {
   const token = req.cookies.access_token || req.headers["authorization"]?.split(" ")[1];
 
+  const isProd = process.env.NODE_ENV === 'production';
+  const clearOpts = {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'None' : 'Lax', // 'Lax' for localhost/dev
+    path: '/',
+  };
+
+  // Always clear cookies
+  res.clearCookie("access_token", clearOpts);
+  res.clearCookie("user_id", clearOpts);
+
   if (!token) {
-    // Clear cookies regardless to ensure removal on client
-    const isProd = process.env.NODE_ENV === 'production';
-    const clearOpts = { httpOnly: true, secure: isProd ? true : false, sameSite: 'None', path: '/' };
-    res.clearCookie("access_token", clearOpts);
-    res.clearCookie("user_id", clearOpts);
     return res.status(200).json({ message: "Logged out." });
   }
 
   try {
-      const { error } = await supabase.auth.signOut({ JWT: token });
+    const { error } = await supabase.auth.signOut({ JWT: token });
 
-      if (error) {
-          return res.status(400).json({ error: error.message });
-      }
+    if (error) {
+      console.error("Supabase signOut error:", error.message);
+      // Still return 200 since cookies are cleared
+      return res.status(200).json({ message: "Logged out, but Supabase signOut failed." });
+    }
 
-      const isProd = process.env.NODE_ENV === 'production';
-      const clearOpts = { httpOnly: true, secure: isProd ? true : false, sameSite: 'None', path: '/' };
-      res.clearCookie("access_token", clearOpts);
-      res.clearCookie("user_id", clearOpts);
-      return res.status(200).json({ message: "User logged out successfully." });
+    return res.status(200).json({ message: "User logged out successfully." });
   } catch (error) {
-      return res.status(500).json({ error: error.message });
+    console.error("Logout error:", error.message);
+    return res.status(500).json({ error: error.message });
   }
+};
+
+
+export const checkAuth = async (req, res) => {
+  const token = req.cookies.access_token || req.headers["authorization"]?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  return res.status(200).json({ message: "User is authenticated." });
 };

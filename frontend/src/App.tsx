@@ -13,6 +13,7 @@ import { SignUp } from './components/SignUp'
 import { SignIn } from './components/SignIn'
 import { Dashboard } from './components/Dashboard'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { Journals } from './components/Journals'
 
 function LandingPage() {
   return (
@@ -48,6 +49,11 @@ function App() {
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/journals" element={
+              <ProtectedRoute>
+                <Journals />
               </ProtectedRoute>
             } />
           </Routes>

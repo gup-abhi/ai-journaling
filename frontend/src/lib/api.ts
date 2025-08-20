@@ -1,18 +1,16 @@
 import axios, { AxiosError } from 'axios'
 import type { AxiosResponse } from 'axios'
+import Cookies from 'js-cookie'
 
 export const API_BASE = 'http://localhost:5001/api/v1'
 
 export const api = axios.create({
   baseURL: API_BASE,
-  withCredentials: true,
-  headers: {
-    // Do not force Content-Type on GET; axios sets it for JSON bodies automatically
-  },
+  withCredentials: true
 })
 
 api.interceptors.request.use((config) => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
+  const token = typeof window !== 'undefined' ? Cookies.get('auth_token') : null
   if (token && config.headers && !config.headers['Authorization']) {
     config.headers['Authorization'] = `Bearer ${token}`
   }
