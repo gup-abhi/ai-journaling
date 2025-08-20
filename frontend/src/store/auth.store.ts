@@ -18,6 +18,10 @@ type AuthState = {
   restore: () => void
 }
 
+const setSessionStorage = (key: string, value: any) => {
+  sessionStorage.setItem(key, JSON.stringify(value));
+};
+
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isLoading: false,
@@ -29,7 +33,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     const res = await safeRequest(api.get('/auth/check', { withCredentials: true }))
     console.log('res.ok', res.ok)
     set({ isLoading: false })
-    sessionStorage.setItem('isAuthenticated', JSON.stringify(res.ok));
+    setSessionStorage('isAuthenticated', res.ok);
   },
   
 
@@ -48,11 +52,11 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (res.ok) {
       // Backend sets cookie → we consider user authenticated
       set({ isLoading: false })
-      sessionStorage.setItem('isAuthenticated', JSON.stringify(true));
+      setSessionStorage('isAuthenticated', true);
       return { ok: true }
     } else {
       set({ isLoading: false, error: res.error })
-      sessionStorage.setItem('isAuthenticated', JSON.stringify(false));
+      setSessionStorage('isAuthenticated', false);
       return { ok: false }
     }
   },
@@ -60,6 +64,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   signOut: async () => {
     await safeRequest(api.get('/auth/logout', { withCredentials: true }))
     set({ user: null })
-    sessionStorage.setItem('isAuthenticated', JSON.stringify(false));
+    setSessionStorage('isAuthenticated', false);
   },
 }))
