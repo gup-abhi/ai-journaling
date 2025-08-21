@@ -27,7 +27,7 @@ export function CTA() {
           
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
             <Button size="lg" className="group relative overflow-hidden px-8 py-3 text-lg" asChild>
-              <Link to="/signup">
+              <Link to="/sign-up">
                 <Mic className="mr-2 h-5 w-5 transition-transform group-hover:scale-110" />
                 Start Journaling Now
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -35,7 +35,7 @@ export function CTA() {
               </Link>
             </Button>
             <Button variant="outline" size="lg" className="px-8 py-3 text-lg" asChild>
-              <Link to="/signin">
+              <Link to="/sign-in">
                 <Shield className="mr-2 h-5 w-5" />
                 Sign In
               </Link>

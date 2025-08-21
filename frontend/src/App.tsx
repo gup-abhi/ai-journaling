@@ -44,8 +44,8 @@ function App() {
         <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
           <Routes>
             <Route path="/" element={<LandingPage />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/signin" element={<SignIn />} />
+            <Route path="/sign-up" element={<SignUp />} />
+            <Route path="/sign-in" element={<SignIn />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />

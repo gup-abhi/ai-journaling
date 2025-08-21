@@ -124,7 +124,7 @@ export function SignIn() {
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
                 Don't have an account?{' '}
-                <Link to="/signup" className="text-primary hover:underline font-medium">Sign up</Link>
+                <Link to="/sign-up" className="text-primary hover:underline font-medium">Sign up</Link>
               </p>
             </div>
 

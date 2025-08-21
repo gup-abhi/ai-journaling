@@ -18,7 +18,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 	if (isLoading) return <div>Loading...</div>
 
 	if (!isAuthenticated && !isLoading) {
-		return <Navigate to="/signin" replace state={{ from: location, message: 'Please sign in to continue.' }} />
+		return <Navigate to="/sign-in" replace state={{ from: location, message: 'Please sign in to continue.' }} />
 	}
 
 	return <>{children}</>

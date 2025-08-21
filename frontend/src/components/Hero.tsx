@@ -31,14 +31,14 @@ export function Hero() {
           {/* CTA Buttons */}
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
             <Button size="lg" className="group relative overflow-hidden" asChild>
-              <Link to="/signup">
+              <Link to="/sign-up">
                 <Mic className="mr-2 h-5 w-5 transition-transform group-hover:scale-110" />
                 Start Journaling
                 <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/20 to-primary/40 opacity-0 transition-opacity group-hover:opacity-100" />
               </Link>
             </Button>
             <Button variant="outline" size="lg" asChild>
-              <Link to="/signin">
+              <Link to="/sign-in">
                 <PenTool className="mr-2 h-5 w-5" />
                 Sign In
               </Link>
