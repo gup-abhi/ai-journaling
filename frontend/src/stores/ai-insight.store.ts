@@ -1,9 +1,18 @@
 import { create } from 'zustand'
 import { api, safeRequest } from '@/lib/api'
+import type { JournalSentiment } from '@/types/JournalSentiment'
 
 
-export const useAiInsightStore = create((set) => ({
+type AiInsightState = {
+    moodTrends: number;
+    journalSentiment: JournalSentiment | null;
+    fetchMoodTrends: () => Promise<void>;
+    fetchJournalSentiment: (journalId: string) => Promise<void>;
+}
+
+export const useAiInsightStore = create<AiInsightState>((set) => ({
     moodTrends: 0,
+    journalSentiment: null,
 
     fetchMoodTrends: async () => {
         const response = await safeRequest(api.get<{ overallSentiment: number }>('/ai-insights/sentiment-trends/overall'));
@@ -11,6 +20,15 @@ export const useAiInsightStore = create((set) => ({
             set({ moodTrends: response.data.overallSentiment });
         } else {
             set({ moodTrends: 0 }); // or handle error as needed
+        }
+    },
+
+    fetchJournalSentiment: async (journalId: string) => {
+        const response = await safeRequest(api.get<JournalSentiment>(`/ai-insights/sentiment-trends/journal/${journalId}`));
+        if (response.ok) {
+            set({ journalSentiment: response.data });
+        } else {
+            set({ journalSentiment: null }); // or handle error as needed
         }
     }
 }));

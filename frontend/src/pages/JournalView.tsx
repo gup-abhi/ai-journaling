@@ -3,9 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { api, safeRequest } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Calendar, FileText } from 'lucide-react'
+import { Calendar, FileText, Smile, Frown, Meh } from 'lucide-react'
 import moment from 'moment'
 import { Loader } from '@/components/Loader'
+import { useAiInsightStore } from '@/stores/ai-insight.store'
+import { Badge } from '@/components/ui/badge'
 
 type JournalEntry = {
   _id: string
@@ -15,25 +17,35 @@ type JournalEntry = {
 }
 
 export function JournalView() {
-  const { id } = useParams()
+  const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [entry, setEntry] = useState<JournalEntry | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const { journalSentiment, fetchJournalSentiment } = useAiInsightStore()
+
   useEffect(() => {
     const fetchEntry = async () => {
+      if (!id) return
       setIsLoading(true)
       const res = await safeRequest(api.get<JournalEntry>(`/journal/${id}`))
       if (res.ok) {
         setEntry(res.data)
+        fetchJournalSentiment(id)
       } else {
         setError(res.error)
       }
       setIsLoading(false)
     }
     fetchEntry()
-  }, [id])
+  }, [id, fetchJournalSentiment])
+
+  const getSentimentIcon = (label: string) => {
+    if (label === 'positive') return <Smile className="h-4 w-4 text-green-500" />
+    if (label === 'negative') return <Frown className="h-4 w-4 text-red-500" />
+    return <Meh className="h-4 w-4 text-yellow-500" />
+  }
 
   if (isLoading) {
     return <Loader />
@@ -73,7 +85,15 @@ export function JournalView() {
                 <Calendar className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">{formattedDate}</span>
               </div>
-              <span className="text-sm text-muted-foreground">{entry.word_count} words</span>
+              <div className="flex items-center gap-4">
+                {journalSentiment && (
+                  <Badge variant="outline" className="flex items-center gap-2">
+                    {getSentimentIcon(journalSentiment.sentiment_label)}
+                    <span>{journalSentiment.sentiment_label} ({journalSentiment.sentiment_score * 100}%)</span>
+                  </Badge>
+                )}
+                <span className="text-sm text-muted-foreground">{entry.word_count} words</span>
+              </div>
             </div>
           </CardHeader>
           <CardContent>

@@ -38,7 +38,7 @@ export function Dashboard() {
   const quickStats = [
     { label: 'Total Entries', value: totalEntries, icon: PenTool, color: 'text-blue-500' },
     { label: 'This Month', value: monthlyEntries, icon: Calendar, color: 'text-green-500' },
-    { label: 'Mood Trend', value: `${moodTrends > 0 ? '+' : ''}${moodTrends.toFixed(2)}%`, icon: moodTrends > 0 ? TrendingUp : TrendingDown, color: moodTrends > 0 ? 'text-purple-500' : 'text-red-500' },
+    { label: 'Mood Trend', value: `${moodTrends > 0 ? '+' : ''}${moodTrends.toFixed(2)}%`, icon: moodTrends > 0 ? TrendingUp : TrendingDown, color: moodTrends > 0 ? 'text-green-500' : 'text-red-500' },
   ]
 
   return (

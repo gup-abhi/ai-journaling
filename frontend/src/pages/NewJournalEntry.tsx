@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { useJournalStore } from '@/stores/journal.store'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import moment from 'moment'
 
 export function NewJournalEntry() {
@@ -26,9 +26,7 @@ export function NewJournalEntry() {
         <CardHeader>
           <div className="flex justify-between items-center mb-2">
             <CardTitle className="text-2xl font-bold">New Journal Entry</CardTitle>
-            <Link to="/journals">
-              <Button variant="outline" size="sm">Back to Journals</Button>
-            </Link>
+              <Button variant="outline" size="sm" onClick={() => navigate(-1)}>Go Back</Button>
           </div>
           <p className="text-sm text-muted-foreground">{currentDateTime}</p>
         </CardHeader>
