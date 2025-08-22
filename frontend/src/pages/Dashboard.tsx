@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardHeader } from '../components/ui/card'
 import { Badge } from '../components/ui/badge'
-import { Shield, LogOut, Mic, PenTool, Brain, TrendingUp, Calendar, Plus, TrendingDown } from 'lucide-react'
+import { Shield, LogOut, Mic, PenTool, Brain, TrendingUp, Calendar, TrendingDown } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
 import { useJournalStore } from '@/stores/journal.store'
 import type { JournalEntry } from '@/types/JournalEntry'
@@ -58,10 +58,6 @@ export function Dashboard() {
             </div>
             
             <div className="flex items-center gap-4">
-              <Button variant="outline" size="sm" onClick={() => navigate('/journals/new')}>
-                <Plus className="h-4 w-4 mr-2" />
-                New Entry
-              </Button>
               <Button variant="ghost" size="sm" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
