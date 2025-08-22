@@ -110,16 +110,10 @@ export const getSentimentTrends = async (req, res) => {
 };
 
 
-export const getSentimentTrendsByJournalId = async (req, res) => {
-    const { user_id } = req.cookies;
+export const getSentimentTrendsById = async (req, res) => {
+    const { id } = req.params;
     try {
-        const trend = await AiInsight.aggregate([
-            {
-                $match: {
-                    user_id: new mongoose.Types.ObjectId(user_id),
-                },
-            },
-        ]);
+        const trend = await AiInsight.findById(id);
 
         if (!trend) {
             return res.status(404).json({ error: "Trend not found" });
