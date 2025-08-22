@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader } from './ui/card'
 import { Badge } from './ui/badge'
@@ -112,7 +112,10 @@ export function Dashboard() {
 
         {/* Recent Entries */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-foreground mb-4">Recent Entries</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-foreground">Recent Entries</h2>
+            <Button variant="outline" size="sm" onClick={() => navigate('/journals')}>Show More</Button>
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {recentEntries.map((entry) => (
               <Card key={entry.id} className="group hover:shadow-md transition-all duration-300">
@@ -132,9 +135,11 @@ export function Dashboard() {
                     {entry.preview}
                   </p>
                   <div className="flex items-center justify-between">
-                    <Button variant="ghost" size="sm" className="text-xs">
-                      Read More
-                    </Button>
+                    <Link to={`/journals/${entry.id}`}>
+                      <Button variant="ghost" size="sm" className="text-xs">
+                        Read More
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>

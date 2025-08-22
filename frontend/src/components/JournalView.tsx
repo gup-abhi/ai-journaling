@@ -42,7 +42,7 @@ export function JournalView() {
     return (
       <div className="container mx-auto py-8 text-center">
         <div className="text-destructive mb-4">Error: {error}</div>
-        <Button variant="outline" onClick={() => navigate('/journals')}>Back to Journals</Button>
+        <Button variant="outline" onClick={() => navigate(-1)}>Go Back</Button>
       </div>
     )
   }
@@ -51,7 +51,7 @@ export function JournalView() {
     return (
       <div className="container mx-auto py-8 text-center">
         <div className="mb-4">Journal entry not found.</div>
-        <Button variant="outline" onClick={() => navigate('/journals')}>Back to Journals</Button>
+        <Button variant="outline" onClick={() => navigate(-1)}>Go Back</Button>
       </div>
     )
   }
@@ -61,8 +61,8 @@ export function JournalView() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 py-10">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <Button variant="outline" onClick={() => navigate('/journals')} className="mb-6">
-          Back to Journals
+        <Button variant="outline" onClick={() => navigate(-1)} className="mb-6">
+          Go Back
         </Button>
 
         <Card>
