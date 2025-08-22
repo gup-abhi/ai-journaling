@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { LandingPage } from '../components/LandingPage'
 import { SignUp } from '../components/SignUp'
@@ -17,13 +17,20 @@ const pageTransition = {
 
 export function AppRoutes() {
   const location = useLocation()
+  const isAuthenticated = sessionStorage.getItem('isAuthenticated') === 'true'
 
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<motion.div {...pageTransition}><LandingPage /></motion.div>} />
-        <Route path="/sign-up" element={<motion.div {...pageTransition}><SignUp /></motion.div>} />
-        <Route path="/sign-in" element={<motion.div {...pageTransition}><SignIn /></motion.div>} />
+        <Route
+          path="/sign-up"
+          element={isAuthenticated ? <Navigate to="/dashboard" /> : <motion.div {...pageTransition}><SignUp /></motion.div>}
+        />
+        <Route
+          path="/sign-in"
+          element={isAuthenticated ? <Navigate to="/dashboard" /> : <motion.div {...pageTransition}><SignIn /></motion.div>}
+        />
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <motion.div {...pageTransition}><Dashboard /></motion.div>
