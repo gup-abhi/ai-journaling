@@ -7,6 +7,7 @@ import { Dashboard } from '../components/Dashboard'
 import { ProtectedRoute } from '../components/ProtectedRoute'
 import { Journals } from '../components/Journals'
 import { NewJournalEntry } from '../components/NewJournalEntry'
+import { NotFoundPage } from '../components/NotFoundPage'
 
 const pageTransition = {
   initial: { opacity: 0, y: 20 },
@@ -46,6 +47,7 @@ export function AppRoutes() {
             <motion.div {...pageTransition}><NewJournalEntry /></motion.div>
           </ProtectedRoute>
         } />
+        <Route path="*" element={<motion.div {...pageTransition}><NotFoundPage /></motion.div>} />
       </Routes>
     </AnimatePresence>
   )
