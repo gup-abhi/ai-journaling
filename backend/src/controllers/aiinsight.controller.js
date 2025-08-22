@@ -110,16 +110,16 @@ export const getSentimentTrends = async (req, res) => {
 };
 
 
-export const getSentimentTrendsById = async (req, res) => {
-    const { id } = req.params;
+export const getSentimentTrendsByJournalId = async (req, res) => {
+    const { journal_id } = req.params;
     try {
-        const trend = await AiInsight.findById(id);
+        const trend = await AiInsight.findOne({ journal_entry_id: journal_id });
 
         if (!trend) {
             return res.status(404).json({ error: "Trend not found" });
         }
 
-        return res.status(200).json({ trend });
+        return res.status(200).json(trend);
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: "Internal Server Error" });
