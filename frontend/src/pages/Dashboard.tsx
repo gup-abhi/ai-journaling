@@ -71,15 +71,15 @@ export function Dashboard() {
         {/* Quick Actions */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-foreground mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Button size="lg" className="h-20 text-lg">
+          <div className="grid grid-cols-1ap-4">
+            <Button size="lg" className="h-20 text-lg" onClick={() => navigate('/journals/new')}>
               <Mic className="h-6 w-6 mr-3" />
-              Start Voice Journal
+              Start Voice Or Text Journal
             </Button>
-            <Button size="lg" variant="outline" className="h-20 text-lg" onClick={() => navigate('/journals/new')}>
+            {/* <Button size="lg" variant="outline" className="h-20 text-lg" onClick={() => navigate('/journals/new')}>
               <PenTool className="h-6 w-6 mr-3" />
               Write Text Journal
-            </Button>
+            </Button> */}
           </div>
         </div>
 

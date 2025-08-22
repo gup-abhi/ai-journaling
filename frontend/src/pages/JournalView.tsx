@@ -44,7 +44,7 @@ export function JournalView() {
   const getSentimentIcon = (label: string) => {
     if (label === 'positive') return <Smile className="h-4 w-4 text-green-500" />
     if (label === 'negative') return <Frown className="h-4 w-4 text-red-500" />
-    return <Meh className="h-4 w-4 text-yellow-500" />
+    if (label === 'neutral') return <Meh className="h-4 w-4 text-yellow-500" />
   }
 
   if (isLoading) {
