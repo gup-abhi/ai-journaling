@@ -44,7 +44,6 @@ export function Journals() {
         <div className="mb-8 flex justify-between items-center relative">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Your Journals</h1>
-            <p className="text-muted-foreground mt-2">Browse your previous entries in reverse chronological order.</p>
           </div>
           <div className="flex gap-2">
             <Link to="/dashboard">
@@ -91,10 +90,12 @@ export function Journals() {
                     {preview}
                   </p>
                   <div className="mt-4 flex items-center justify-end">
-                    <Button variant="ghost" size="sm" disabled>
-                      <Eye className="h-4 w-4 mr-2" />
-                      View
-                    </Button>
+                    <Link to={`/journals/${entry._id}`}>
+                      <Button variant="ghost" size="sm">
+                        <Eye className="h-4 w-4 mr-2" />
+                        View
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>
