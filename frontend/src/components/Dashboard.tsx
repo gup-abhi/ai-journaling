@@ -39,7 +39,7 @@ export function Dashboard() {
   const quickStats = [
     { label: 'Total Entries', value: totalEntries, icon: PenTool, color: 'text-blue-500' },
     { label: 'This Month', value: monthlyEntries, icon: Calendar, color: 'text-green-500' },
-    { label: 'Mood Trend', value: `${moodTrends > 0 ? '+' : '-'}${moodTrends}%`, icon: moodTrends > 0 ? TrendingUp : TrendingDown, color: moodTrends > 0 ? 'text-purple-500' : 'text-red-500' },
+    { label: 'Mood Trend', value: `${moodTrends > 0 ? '+' : ''}${moodTrends.toFixed(2)}%`, icon: moodTrends > 0 ? TrendingUp : TrendingDown, color: moodTrends > 0 ? 'text-purple-500' : 'text-red-500' },
   ]
 
   return (
@@ -59,7 +59,7 @@ export function Dashboard() {
             </div>
             
             <div className="flex items-center gap-4">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => navigate('/journals/new')}>
                 <Plus className="h-4 w-4 mr-2" />
                 New Entry
               </Button>
@@ -72,18 +72,6 @@ export function Dashboard() {
         </div>
       </header>
 
-      {/* Success Message */}
-      {location.state?.message && (
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6">
-          <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
-            <div className="flex items-center gap-2 text-green-600">
-              <Shield className="h-4 w-4" />
-              <span className="text-sm font-medium">{location.state.message}</span>
-            </div>
-          </div>
-        </div>
-      )}
-
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         {/* Quick Actions */}
         <div className="mb-8">
@@ -93,7 +81,7 @@ export function Dashboard() {
               <Mic className="h-6 w-6 mr-3" />
               Start Voice Journal
             </Button>
-            <Button size="lg" variant="outline" className="h-20 text-lg">
+            <Button size="lg" variant="outline" className="h-20 text-lg" onClick={() => navigate('/journals/new')}>
               <PenTool className="h-6 w-6 mr-3" />
               Write Text Journal
             </Button>

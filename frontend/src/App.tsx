@@ -14,6 +14,8 @@ import { SignIn } from './components/SignIn'
 import { Dashboard } from './components/Dashboard'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Journals } from './components/Journals'
+import { NewJournalEntry } from './components/NewJournalEntry'
+import { Toaster } from 'react-hot-toast'
 
 function LandingPage() {
   return (
@@ -56,7 +58,13 @@ function App() {
                 <Journals />
               </ProtectedRoute>
             } />
+            <Route path="/journals/new" element={
+              <ProtectedRoute>
+                <NewJournalEntry />
+              </ProtectedRoute>
+            } />
           </Routes>
+          <Toaster />
         </div>
       </Router>
     </ThemeProvider>

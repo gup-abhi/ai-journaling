@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { api, safeRequest } from '@/lib/api'
+import toast from 'react-hot-toast'
 
 export type AuthUser = {
   id?: string
@@ -41,9 +42,13 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true, error: null })
     const res = await safeRequest(api.post('/auth/signup', payload, { withCredentials: true }))
     set({ isLoading: false, error: res.ok ? null : res.error })
-    return res.ok
-      ? { ok: true, message: 'Verification email sent. Please check your inbox.' }
-      : { ok: false }
+    if (res.ok) {
+      toast.success('Verification email sent. Please check your inbox.')
+      return { ok: true, message: 'Verification email sent. Please check your inbox.' }
+    } else {
+      toast.error(res.error || 'Sign up failed')
+      return { ok: false }
+    }
   },
 
   signIn: async (payload) => {
@@ -53,10 +58,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       // Backend sets cookie → we consider user authenticated
       set({ isLoading: false })
       setSessionStorage('isAuthenticated', true);
+      toast.success('Signed in successfully!')
       return { ok: true }
     } else {
       set({ isLoading: false, error: res.error })
       setSessionStorage('isAuthenticated', false);
+      toast.error(res.error || 'Sign in failed')
       return { ok: false }
     }
   },
@@ -65,5 +72,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     await safeRequest(api.get('/auth/logout', { withCredentials: true }))
     set({ user: null })
     setSessionStorage('isAuthenticated', false);
+    toast.success('Signed out successfully!')
   },
 }))

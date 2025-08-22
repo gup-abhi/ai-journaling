@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { api, safeRequest } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Badge } from './ui/badge'
@@ -40,9 +41,19 @@ export function Journals() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">Your Journals</h1>
-          <p className="text-muted-foreground mt-2">Browse your previous entries in reverse chronological order.</p>
+        <div className="mb-8 flex justify-between items-center relative">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Your Journals</h1>
+            <p className="text-muted-foreground mt-2">Browse your previous entries in reverse chronological order.</p>
+          </div>
+          <div className="flex gap-2">
+            <Link to="/dashboard">
+              <Button variant="outline">Back to Dashboard</Button>
+            </Link>
+            <Link to="/journals/new">
+              <Button>New Entry</Button>
+            </Link>
+          </div>
         </div>
 
         {isLoading && (
