@@ -1,32 +1,23 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 import { Badge } from './ui/badge'
-import { Shield, ArrowLeft, Eye, EyeOff, Mail, Lock, CheckCircle } from 'lucide-react'
+import { Shield, ArrowLeft, Eye, EyeOff, Mail, Lock } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
 
 export function SignIn() {
   const navigate = useNavigate()
-  const location = useLocation()
   const { signIn, isLoading, error, restore } = useAuthStore()
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [successMessage, setSuccessMessage] = useState('')
 
   useEffect(() => {
     restore()
   }, [restore])
-
-  useEffect(() => {
-    if (location.state?.message) {
-      setSuccessMessage(location.state.message)
-      navigate(location.pathname, { replace: true })
-    }
-  }, [location.state, navigate, location.pathname])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -62,15 +53,6 @@ export function SignIn() {
             Back to home
           </Link>
         </div>
-
-        {successMessage && (
-          <div className="mb-6 p-4 rounded-lg bg-green-500/10 border border-green-500/20">
-            <div className="flex items-center gap-2 text-green-600">
-              <CheckCircle className="h-4 w-4" />
-              <span className="text-sm font-medium">{successMessage}</span>
-            </div>
-          </div>
-        )}
 
         <Card className="shadow-lg">
           <CardHeader className="text-center space-y-2">

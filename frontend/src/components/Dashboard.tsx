@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useLocation, Link } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader } from './ui/card'
 import { Badge } from './ui/badge'
@@ -11,7 +11,6 @@ import { useAiInsightStore } from '@/stores/ai-insight.store'
 
 export function Dashboard() {
   const navigate = useNavigate()
-  const location = useLocation()
   const signOutStore = useAuthStore(s => s.signOut)
   const [userName] = useState('User')
   const { fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, totalEntries, monthlyEntries, journalEntries } = useJournalStore() as { fetchTotalEntries: () => Promise<void>; fetchMonthlyEntries: () => Promise<void>; fetchJournalEntries: () => Promise<void>; totalEntries: number; monthlyEntries: number; journalEntries: JournalEntry[] }

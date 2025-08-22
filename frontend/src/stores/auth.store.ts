@@ -32,7 +32,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true })
 
     const res = await safeRequest(api.get('/auth/check', { withCredentials: true }))
-    console.log('res.ok', res.ok)
     set({ isLoading: false })
     setSessionStorage('isAuthenticated', res.ok);
   },
