@@ -1,14 +1,14 @@
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { LandingPage } from '../components/LandingPage'
-import { SignUp } from '../components/SignUp'
-import { SignIn } from '../components/SignIn'
-import { Dashboard } from '../components/Dashboard'
+import { LandingPage } from '../pages/LandingPage'
+import { SignUp } from '../pages/SignUp'
+import { SignIn } from '../pages/SignIn'
+import { Dashboard } from '../pages/Dashboard'
 import { ProtectedRoute } from '../components/ProtectedRoute'
-import { Journals } from '../components/Journals'
-import { NewJournalEntry } from '../components/NewJournalEntry'
-import { JournalView } from '../components/JournalView'
-import { NotFoundPage } from '../components/NotFoundPage'
+import { Journals } from '../pages/Journals'
+import { NewJournalEntry } from '../pages/NewJournalEntry'
+import { JournalView } from '../pages/JournalView'
+import { NotFoundPage } from '../pages/NotFoundPage'
 
 const pageTransition = {
   initial: { opacity: 0, y: 20 },

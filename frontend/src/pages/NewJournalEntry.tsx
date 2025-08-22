@@ -1,9 +1,9 @@
 
 import { useState } from 'react'
-import { Label } from './ui/label'
-import { Button } from './ui/button'
-import { Textarea } from './ui/textarea'
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
+import { Label } from '../components/ui/label'
+import { Button } from '../components/ui/button'
+import { Textarea } from '../components/ui/textarea'
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { useJournalStore } from '../stores/journal.store'
 import { useNavigate, Link } from 'react-router-dom'
 import moment from 'moment'
