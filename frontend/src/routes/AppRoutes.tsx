@@ -24,7 +24,10 @@ export function AppRoutes() {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<motion.div {...pageTransition}><LandingPage /></motion.div>} />
+        <Route
+          path="/"
+          element={isAuthenticated ? <Navigate to="/dashboard" /> : <motion.div {...pageTransition}><LandingPage /></motion.div>}
+        />
         <Route
           path="/sign-up"
           element={isAuthenticated ? <Navigate to="/dashboard" /> : <motion.div {...pageTransition}><SignUp /></motion.div>}

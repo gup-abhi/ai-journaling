@@ -5,25 +5,31 @@ import { DemoAuth } from '../components/DemoAuth'
 import { Privacy } from '../components/Privacy'
 import { Pricing } from '../components/Pricing'
 import { CTA } from '../components/CTA'
+import { Header } from '@/components/Header'
+import { Footer } from '@/components/Footer'
 
 export function LandingPage() {
   return (
-    <main>
-      <Hero />
-      <section id="features">
-        <Features />
-      </section>
-      <section id="demo">
-        <Demo />
-      </section>
-      <section id="demo-auth">
-        <DemoAuth />
-      </section>
-      <section id="privacy">
-        <Privacy />
-      </section>
-      <Pricing />
-      <CTA />
-    </main>
+    <>
+      <Header />
+      <main>
+        <Hero />
+        <section id="features">
+          <Features />
+        </section>
+        <section id="demo">
+          <Demo />
+        </section>
+        <section id="demo-auth">
+          <DemoAuth />
+        </section>
+        <section id="privacy">
+          <Privacy />
+        </section>
+        <Pricing />
+        <CTA />
+      </main>
+      <Footer />
+    </>
   )
 }
