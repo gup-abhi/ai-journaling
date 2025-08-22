@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Button } from './ui/button'
 import { Calendar, FileText } from 'lucide-react'
 import moment from 'moment'
+import { Loader } from './Loader'
 
 type JournalEntry = {
   _id: string
@@ -35,7 +36,7 @@ export function JournalView() {
   }, [id])
 
   if (isLoading) {
-    return <div className="container mx-auto py-8 text-center">Loading journal entry...</div>
+    return <Loader />
   }
 
   if (error) {

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Badge } from './ui/badge'
 import { Calendar, FileText, Eye } from 'lucide-react'
 import { Button } from './ui/button'
+import { Loader } from './Loader'
 
 type JournalEntry = {
   _id: string
@@ -56,7 +57,7 @@ export function Journals() {
         </div>
 
         {isLoading && (
-          <div className="text-sm text-muted-foreground">Loading entries...</div>
+          <Loader />
         )}
         {error && (
           <div className="text-sm text-destructive">{error}</div>
