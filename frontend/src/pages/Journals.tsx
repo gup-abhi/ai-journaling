@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { api, safeRequest } from '@/lib/api'
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
-import { Badge } from './ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { Calendar, FileText, Eye } from 'lucide-react'
-import { Button } from './ui/button'
-import { Loader } from './Loader'
+import { Button } from '@/components/ui/button'
+import { Loader } from '@/components/Loader'
 
 type JournalEntry = {
   _id: string
@@ -15,6 +15,7 @@ type JournalEntry = {
 }
 
 export function Journals() {
+  const navigate = useNavigate()
   const [entries, setEntries] = useState<JournalEntry[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -47,12 +48,8 @@ export function Journals() {
             <h1 className="text-3xl font-bold tracking-tight">Your Journals</h1>
           </div>
           <div className="flex gap-2">
-            <Link to="/dashboard">
-              <Button variant="outline">Back to Dashboard</Button>
-            </Link>
-            <Link to="/journals/new">
-              <Button>New Entry</Button>
-            </Link>
+              <Button variant="outline" onClick={() => navigate(-1)}>Go Back</Button>
+              <Button onClick={() => navigate('/journals/new')}>New Entry</Button>
           </div>
         </div>
 

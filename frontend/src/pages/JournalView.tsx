@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api, safeRequest } from '@/lib/api'
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
-import { Button } from './ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { Calendar, FileText } from 'lucide-react'
 import moment from 'moment'
-import { Loader } from './Loader'
+import { Loader } from '@/components/Loader'
 
 type JournalEntry = {
   _id: string

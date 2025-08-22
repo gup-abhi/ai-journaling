@@ -1,10 +1,10 @@
 
 import { useState } from 'react'
-import { Label } from '../components/ui/label'
-import { Button } from '../components/ui/button'
-import { Textarea } from '../components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
-import { useJournalStore } from '../stores/journal.store'
+import { useJournalStore } from '@/stores/journal.store'
 import { useNavigate, Link } from 'react-router-dom'
 import moment from 'moment'
 
@@ -24,11 +24,13 @@ export function NewJournalEntry() {
     <div className="container mx-auto py-8">
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">New Journal Entry</CardTitle>
+          <div className="flex justify-between items-center mb-2">
+            <CardTitle className="text-2xl font-bold">New Journal Entry</CardTitle>
+            <Link to="/journals">
+              <Button variant="outline" size="sm">Back to Journals</Button>
+            </Link>
+          </div>
           <p className="text-sm text-muted-foreground">{currentDateTime}</p>
-          <Link to="/journals" className="absolute top-4 right-4">
-            <Button variant="outline" size="sm">Back to Journals</Button>
-          </Link>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
