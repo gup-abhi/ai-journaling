@@ -10,6 +10,7 @@ import { NewJournalEntry } from '../pages/NewJournalEntry'
 import { JournalView } from '../pages/JournalView'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { SentimentTrends } from '../pages/SentimentTrends'
+import JournalTemplates from '../pages/JournalTemplates'
 
 const pageTransition = {
   initial: { opacity: 0, y: 20 },
@@ -50,6 +51,11 @@ export function AppRoutes() {
         <Route path="/journals/new" element={
           <ProtectedRoute>
             <motion.div {...pageTransition}><NewJournalEntry /></motion.div>
+          </ProtectedRoute>
+        } />
+        <Route path="/journal-templates" element={
+          <ProtectedRoute>
+            <motion.div {...pageTransition}><JournalTemplates /></motion.div>
           </ProtectedRoute>
         } />
         <Route path="/journals/:id" element={
