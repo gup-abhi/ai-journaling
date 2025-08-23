@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import GoalTracking from "../models/GoalTracking.model.js";
 
 export const createGoal = async (req, res) => {
@@ -95,6 +96,20 @@ export const getGoals = async (req, res) => {
         res.status(200).json({ goals });
     } catch (error) {
         console.error("Error fetching goals:", error);
+        res.status(500).json({ error });
+    }
+};
+
+
+export const getActiveGoals = async (req, res) => {
+    const { user_id } = req.cookies;
+
+    try {
+        const goals = await GoalTracking.find({ user_id, progress: "In Progress" });
+
+        res.status(200).json(goals);
+    } catch (error) {
+        console.error("Error fetching active goals:", error);
         res.status(500).json({ error });
     }
 };
