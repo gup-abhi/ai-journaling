@@ -1,17 +1,17 @@
 import GoalTracking from "../models/GoalTracking.model.js";
 
 export const createGoal = async (req, res) => {
-    const { goal, progress, description } = req.body;
+    const { name, progress, description } = req.body;
     const { user_id } = req.cookies;
 
-    if (!goal) return res.status(400).json({ error: "Goal is required" });
+    if (!name) return res.status(400).json({ error: "Goal name is required" });
     if (!progress) return res.status(400).json({ error: "Progress is required" });
     if (!description) return res.status(400).json({ error: "Description is required" });
 
     try {
         const newGoal = new GoalTracking({
             user_id,
-            goal,
+            name,
             progress,
             description
         });
@@ -92,7 +92,7 @@ export const getGoals = async (req, res) => {
     try {
         const goals = await GoalTracking.find({ user_id });
 
-        res.status(200).json(goals);
+        res.status(200).json({ goals });
     } catch (error) {
         console.error("Error fetching goals:", error);
         res.status(500).json({ error });

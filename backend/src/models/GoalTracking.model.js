@@ -6,7 +6,7 @@ const goalTrackingSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    goal: {
+    name: {
         type: String,
         required: true
     },
