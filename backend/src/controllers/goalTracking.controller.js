@@ -7,7 +7,6 @@ export const createGoal = async (req, res) => {
 
     if (!name) return res.status(400).json({ error: "Goal name is required" });
     if (!progress) return res.status(400).json({ error: "Progress is required" });
-    if (!description) return res.status(400).json({ error: "Description is required" });
 
     try {
         const newGoal = new GoalTracking({
@@ -107,9 +106,26 @@ export const getActiveGoals = async (req, res) => {
     try {
         const goals = await GoalTracking.find({ user_id, progress: "In Progress" });
 
-        res.status(200).json(goals);
+        res.status(200).json({ goals });
     } catch (error) {
         console.error("Error fetching active goals:", error);
+        res.status(500).json({ error });
+    }
+};
+
+
+export const getGoalByProgress = async (req, res) => {
+    const { progress } = req.params;
+    const { user_id } = req.cookies;
+
+    if (!progress) return res.status(400).json({ error: "Progress parameter is required" });
+
+    try {
+        const goals = await GoalTracking.find({ user_id, progress });
+
+        res.status(200).json({ goals });
+    } catch (error) {
+        console.error("Error fetching goals by progress:", error);
         res.status(500).json({ error });
     }
 };
