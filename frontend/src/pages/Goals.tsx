@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useGoalStore } from "@/stores/goal.store";
-import { Trash2 } from 'lucide-react';
+import { Trash2, Pencil } from 'lucide-react';
 
 export function Goals() {
   const navigate = useNavigate();
@@ -32,7 +32,11 @@ export function Goals() {
               <p className="text-sm text-muted-foreground">{goal.progress}</p>
               <p>{goal.description}</p>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="flex justify-end gap-2">
+              <Button variant="outline" size="sm" onClick={() => navigate(`/goals/${goal._id}/update`)}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Update
+              </Button>
               <Button variant="destructive" size="sm" onClick={() => deleteGoal(goal._id)}>
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete

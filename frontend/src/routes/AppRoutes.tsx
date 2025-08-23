@@ -13,6 +13,7 @@ import { SentimentTrends } from '../pages/SentimentTrends'
 import JournalTemplates from '../pages/JournalTemplates'
 import { NewGoal } from '../pages/NewGoal'
 import { Goals } from '../pages/Goals'
+import { UpdateGoal } from '../pages/UpdateGoal'
 
 const pageTransition = {
   initial: { opacity: 0, y: 20 },
@@ -78,6 +79,11 @@ export function AppRoutes() {
         <Route path="/goals" element={
           <ProtectedRoute>
             <motion.div {...pageTransition}><Goals /></motion.div>
+          </ProtectedRoute>
+        } />
+        <Route path="/goals/:id/update" element={
+          <ProtectedRoute>
+            <motion.div {...pageTransition}><UpdateGoal /></motion.div>
           </ProtectedRoute>
         } />
         <Route path="*" element={<motion.div {...pageTransition}><NotFoundPage /></motion.div>} />
