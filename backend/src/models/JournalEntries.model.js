@@ -6,6 +6,11 @@ const journalEntrySchema = new mongoose.Schema({
     ref: "User",
     required: true
   },
+  template_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "JournalTemplate",
+    required: false
+  },  
   content: {
     type: String,
     required: true

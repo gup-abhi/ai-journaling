@@ -4,7 +4,7 @@ import storeAiInsight from "../util/storeAiInsights.js";
 import mongoose from "mongoose";
 
 export const createJournalEntry = async (req, res) => {
-  const { content, entry_date } = req.body;
+  const { content, entry_date, template_id } = req.body;
 
   if (!content || !entry_date) {
     return res
@@ -12,12 +12,11 @@ export const createJournalEntry = async (req, res) => {
       .json({ error: "Content and entry date are required." });
   }
 
-  console.log(req.cookies.user_id);
-
   try {
     const newEntry = new JournalEntry({
       content,
       entry_date,
+      template_id: template_id ? new mongoose.Types.ObjectId(template_id) : null,
       user_id: req.cookies.user_id,
       word_count: countWords(content),
     });
@@ -39,6 +38,7 @@ export const createJournalEntry = async (req, res) => {
       });
     });
   } catch (error) {
+    console.error(error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
@@ -50,6 +50,7 @@ export const getJournalEntries = async (req, res) => {
     }).sort({ entry_date: -1 });
     return res.status(200).json({ entries });
   } catch (error) {
+    console.error(error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
