@@ -48,7 +48,7 @@ export function AppRoutes() {
             <motion.div {...pageTransition}><Journals /></motion.div>
           </ProtectedRoute>
         } />
-        <Route path="/journals/new" element={
+        <Route path="/journal/new" element={
           <ProtectedRoute>
             <motion.div {...pageTransition}><NewJournalEntry /></motion.div>
           </ProtectedRoute>

@@ -74,7 +74,7 @@ export function Dashboard() {
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-foreground mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Button size="lg" className="h-20 text-lg p-2" onClick={() => navigate('/journals/new')}>
+            <Button size="lg" className="h-20 text-lg p-2" onClick={() => navigate('/journal/new')}>
               <Mic className="h-6 w-6 mr-3" />
               <span className='text-wrap'>
                 Start Voice Or Text Journal

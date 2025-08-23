@@ -53,7 +53,7 @@ export default function JournalTemplates() {
               </div>
             </CardContent>
             <CardFooter>
-              <Link to={`/new-journal-entry?templateId=${template._id}`}>
+              <Link to={`/journal/new?templateId=${template._id}`}>
                 <Button>Use Template</Button>
               </Link>
             </CardFooter>

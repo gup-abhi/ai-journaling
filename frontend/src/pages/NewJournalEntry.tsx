@@ -5,22 +5,48 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { useJournalStore } from '@/stores/journal.store'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import moment from 'moment'
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'
 import { Mic, MicOff, RotateCcw } from 'lucide-react'
+import type { JournalTemplate } from '@/types/JournalTemplate'
+import { api, safeRequest } from '@/lib/api'
 
 export function NewJournalEntry() {
   const [content, setContent] = useState('')
   const addJournalEntry = useJournalStore((state) => state.addJournalEntry)
   const navigate = useNavigate()
   const currentDateTime = moment().format('MMMM Do YYYY, h:mm:ss a')
+  const location = useLocation()
+  const [templateId, setTemplateId] = useState<string | "">("");
+  const [template, setTemplate] = useState<JournalTemplate | null>(null);
+  const templateIdFromUrl = new URLSearchParams(location.search).get('templateId');
+  
+  useEffect(() => {
+    if (templateIdFromUrl) {
+      setTemplateId(templateIdFromUrl);
+    }
+  }, [templateIdFromUrl]);
 
   const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition()
 
   useEffect(() => {
     setContent(transcript)
   }, [transcript])
+
+  useEffect(() => {
+    const fetchTemplate = async () => {
+      if (templateId) {
+        const response = await safeRequest(api.get<JournalTemplate>(`/journal-template/${templateId}`));
+        if (response.ok) {
+          setTemplate(response.data);
+        } else {
+          setTemplate(null);
+        }
+      }
+    }
+    fetchTemplate();
+  }, [templateId])
 
   const handleToggleListening = () => {
     if (listening) {
@@ -38,7 +64,7 @@ export function NewJournalEntry() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await addJournalEntry({ content })
+    await addJournalEntry({ content, template_id: templateId })
     navigate('/journals')
   }
 
@@ -62,6 +88,21 @@ export function NewJournalEntry() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {template && (
+              <div className="mb-4 p-4 border rounded-md bg-muted/50">
+                <h2 className="text-xl font-semibold mb-2">Template: {template.name}</h2>
+                {template.prompts && template.prompts.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-medium mb-1">Prompts:</h3>
+                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                      {template.prompts.map((prompt, index) => (
+                        <li key={index}>{prompt}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
             <div>
               <Label htmlFor="content">Content</Label>
               <div className="relative">
