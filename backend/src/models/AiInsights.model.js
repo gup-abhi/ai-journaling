@@ -1,5 +1,17 @@
 import mongoose from "mongoose";
 
+const ThemeSchema = new mongoose.Schema({
+  theme: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  score: {
+    type: Number,
+    required: true
+  }
+}, { _id: false });
+
 const aiInsightSchema = new mongoose.Schema({
   user_id: {
     type: mongoose.Schema.Types.ObjectId,
@@ -20,7 +32,7 @@ const aiInsightSchema = new mongoose.Schema({
     required: true
   },
   key_themes: {
-    type: String
+    type: [ThemeSchema],
   },
   ai_model_version:{
     type: String

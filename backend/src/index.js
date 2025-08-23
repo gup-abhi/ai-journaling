@@ -5,7 +5,7 @@ import cors from 'cors';
 import connectDB from './lib/mongo-connection.js';
 import authRoutes from './routes/auth.route.js';
 import journalRoutes from './routes/journal.route.js';
-import aiInsightRoutes from './routes/aiinsight.route.js';
+import aiInsightRoutes from './routes/insight.route.js';
 import journalTemplateRoutes from './routes/journalTemplate.route.js';
 import goalTrackingRoutes from './routes/goalTracking.route.js';
 import cookieParser from 'cookie-parser';

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { api, safeRequest } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Calendar, FileText, Smile, Frown, Meh } from 'lucide-react'
+import { Calendar, Smile, Frown, Meh } from 'lucide-react'
 import moment from 'moment'
 import { Loader } from '@/components/Loader'
 import { useAiInsightStore } from '@/stores/ai-insight.store'
@@ -26,7 +26,7 @@ export function JournalView() {
   const [error, setError] = useState<string | null>(null)
   const [template, setTemplate] = useState<JournalTemplate | null>(null)
 
-  const { journalSentiment, fetchJournalSentiment } = useAiInsightStore()
+  const { journalSentiment, keyThemes, fetchJournalSentiment } = useAiInsightStore()
 
   useEffect(() => {
     const fetchEntry = async () => {
@@ -85,7 +85,7 @@ export function JournalView() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 py-10">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <Button variant="outline" onClick={() => navigate(-1)} className="mb-6">
+        <Button variant="outline" onClick={() => navigate("/journals")} className="mb-6">
           Go Back
         </Button>
 
@@ -100,7 +100,7 @@ export function JournalView() {
                 {journalSentiment && (
                   <Badge variant="outline" className="flex items-center gap-2">
                     {getSentimentIcon(journalSentiment.sentiment_label)}
-                    <span>{journalSentiment.sentiment_label} ({journalSentiment.sentiment_score * 100}%)</span>
+                    <span>{journalSentiment.sentiment_label} ({((journalSentiment.sentiment_score * 100).toFixed(2))}%)</span>
                   </Badge>
                 )}
                 <span className="text-sm text-muted-foreground">{entry.word_count} words</span>
@@ -135,9 +135,20 @@ export function JournalView() {
               </div>
             )}
             <CardTitle className="text-2xl font-bold mb-4 flex items-center gap-2">
-              <FileText className="h-6 w-6 text-primary" />
-              Journal Entry
+            {keyThemes.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-lg font-bold mb-3">Key Themes:</h3>
+                <div className="flex flex-wrap gap-2">
+                  {keyThemes.map((theme, index) => (
+                    <Badge key={index} variant="outline" className='h-10 font-extrabold text-accent text-sm'>
+                      {theme.theme}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
             </CardTitle>
+            <h3 className="text-lg font-bold mb-3">Journal Entry:</h3>
             <p className="text-foreground leading-relaxed whitespace-pre-wrap">
               {entry.content}
             </p>

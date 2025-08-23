@@ -7,5 +7,4 @@ export type Goal = {
   user_id: string;
   createdAt: string;
   updatedAt: string;
-  __v: number;
 }

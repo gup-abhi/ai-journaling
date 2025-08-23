@@ -104,8 +104,8 @@ export function NewJournalEntry() {
               </div>
             )}
             <div>
-              <Label htmlFor="content">Content</Label>
-              <div className="relative">
+              <Label htmlFor="content" className='text-xl'>Content</Label>
+              <div className="relative mt-2">
                 <Textarea
                   id="content"
                   value={content}

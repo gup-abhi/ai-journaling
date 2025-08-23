@@ -1,6 +1,6 @@
 import JournalEntry from "../models/JournalEntries.model.js";
 import { countWords } from "../util/countWords.js";
-import storeAiInsight from "../util/storeAiInsights.js";
+import storeAiInsight from "../util/storeInsights.js";
 import mongoose from "mongoose";
 
 export const createJournalEntry = async (req, res) => {
@@ -64,8 +64,6 @@ export const getJournalEntryById = async (req, res) => {
     const entry = await JournalEntry.findOne({ _id: id });
     if (!entry)
       return res.status(404).json({ error: "Journal entry not found." });
-
-    console.log(entry);
 
     return res.status(200).json(entry);
   } catch (error) {

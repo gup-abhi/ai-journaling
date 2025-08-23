@@ -54,7 +54,7 @@ export default function JournalTemplates() {
             </CardContent>
             <CardFooter>
               <Link to={`/journal/new?templateId=${template._id}`}>
-                <Button>Use Template</Button>
+                <Button variant="outline" className='text-accent'>Use Template</Button>
               </Link>
             </CardFooter>
           </Card>

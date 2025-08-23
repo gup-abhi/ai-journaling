@@ -6,5 +6,4 @@ export type JournalTemplate = {
   prompts: string[],
   benefits: string[],
   createdAt: string,
-  __v: number
 }

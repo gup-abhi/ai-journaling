@@ -48,7 +48,7 @@ export function Journals() {
             <h1 className="text-3xl font-bold tracking-tight">Your Journals</h1>
           </div>
           <div className="flex gap-2">
-              <Button variant="outline" onClick={() => navigate(-1)}>Go Back</Button>
+              <Button variant="outline" onClick={() => navigate("/dashboard")}>Go Back</Button>
               <Button onClick={() => navigate('/journal/new')}>New Entry</Button>
           </div>
         </div>
