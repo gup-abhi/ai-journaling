@@ -159,9 +159,11 @@ export function Dashboard() {
                     You tend to feel most optimistic on Tuesday and Wednesday mornings. 
                     Consider scheduling important meetings during these times.
                   </p>
-                  <Button variant="outline" size="sm">
-                    View All Insights
-                  </Button>
+                  <Link to="/sentiment-trends">
+                    <Button variant="outline" size="sm">
+                      View All Insights
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </CardContent>
