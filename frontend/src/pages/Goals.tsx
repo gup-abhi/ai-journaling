@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useGoalStore } from "@/stores/goal.store";
-import { Trash2, Pencil } from 'lucide-react';
+import { Trash2, Pencil, CheckCircle, Hourglass, XCircle, PauseCircle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export function Goals() {
@@ -33,6 +33,21 @@ export function Goals() {
     navigate({ search: queryParams.toString() }, { replace: true });
   };
 
+  const getProgressIcon = (progress: string) => {
+    switch (progress) {
+      case "not-started":
+        return <XCircle className="h-4 w-4 text-gray-500" />;
+      case "in-progress":
+        return <Hourglass className="h-4 w-4 text-blue-500" />;
+      case "completed":
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case "on-hold":
+        return <PauseCircle className="h-4 w-4 text-yellow-500" />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-4">
@@ -44,10 +59,10 @@ export function Goals() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
-              <SelectItem value="not-started">Not Started</SelectItem>
-              <SelectItem value="in-progress">In Progress</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="on-hold">On Hold</SelectItem>
+              <SelectItem value="Not Started">Not Started</SelectItem>
+              <SelectItem value="In Progress">In Progress</SelectItem>
+              <SelectItem value="Completed">Completed</SelectItem>
+              <SelectItem value="On Hold">On Hold</SelectItem>
             </SelectContent>
           </Select>
           <Button onClick={() => navigate("/goals/new")} className="mr-4">
@@ -66,7 +81,10 @@ export function Goals() {
               <CardTitle>{goal.name}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">{goal.progress}</p>
+              <div className="flex items-center gap-2">
+                {getProgressIcon(goal.progress)}
+                <p className="text-sm text-muted-foreground">{goal.progress}</p>
+              </div>
               <p>{goal.description}</p>
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
