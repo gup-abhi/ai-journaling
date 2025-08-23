@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Button } from '../components/ui/button'
-import { Card, CardContent, CardHeader } from '../components/ui/card'
+import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/card'
 import { Badge } from '../components/ui/badge'
 import { Shield, LogOut, Mic, PenTool, Brain, TrendingUp, Calendar, TrendingDown } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth.store'
@@ -30,7 +30,7 @@ export function Dashboard() {
     fetchMoodTrends()
   }, [fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, fetchMoodTrends, getUser]);
 
-  const recentEntries = journalEntries.slice(0, 3).map(entry => ({
+  const recentEntries = journalEntries.slice(0, 6).map(entry => ({
     id: entry._id,
     date: new Date(entry.entry_date).toLocaleString(),
     preview: entry.content.slice(0, 100) + '...',
@@ -73,7 +73,7 @@ export function Dashboard() {
         {/* Quick Actions */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-foreground mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Button size="lg" className="h-20 text-lg p-2" onClick={() => navigate('/journals/new')}>
               <Mic className="h-6 w-6 mr-3" />
               <span className='text-wrap'>
@@ -135,6 +135,8 @@ export function Dashboard() {
                   <p className="text-foreground leading-relaxed mb-3 line-clamp-3">
                     {entry.preview}
                   </p>
+                </CardContent>
+                <CardFooter className="pt-3">
                   <div className="flex items-center justify-between">
                     <Link to={`/journals/${entry.id}`}>
                       <Button variant="ghost" size="sm" className="text-xs">
@@ -142,7 +144,7 @@ export function Dashboard() {
                       </Button>
                     </Link>
                   </div>
-                </CardContent>
+                </CardFooter>
               </Card>
             ))}
           </div>

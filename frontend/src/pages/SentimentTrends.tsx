@@ -48,7 +48,7 @@ export function SentimentTrends() {
   };
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto p-4 md:p-6 lg:p-8">
       <Button variant="outline" onClick={() => navigate(-1)} className="mb-6">
         Go Back
       </Button>
