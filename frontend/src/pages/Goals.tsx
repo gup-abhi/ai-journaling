@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useGoalStore } from "@/stores/goal.store";
+import { Trash2 } from 'lucide-react';
 
 export function Goals() {
   const navigate = useNavigate();
-  const { goals, fetchGoals } = useGoalStore();
+  const { goals, fetchGoals, deleteGoal } = useGoalStore();
 
   useEffect(() => {
     fetchGoals();
@@ -31,6 +32,12 @@ export function Goals() {
               <p className="text-sm text-muted-foreground">{goal.progress}</p>
               <p>{goal.description}</p>
             </CardContent>
+            <CardFooter>
+              <Button variant="destructive" size="sm" onClick={() => deleteGoal(goal._id)}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
+            </CardFooter>
           </Card>
         ))}
       </div>

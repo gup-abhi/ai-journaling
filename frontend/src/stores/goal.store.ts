@@ -8,6 +8,7 @@ interface GoalStore {
   goals: Goal[];
   fetchGoals: () => Promise<void>;
   addGoal: (newGoal: { name: string; description?: string; progress: string }) => Promise<void>;
+  deleteGoal: (goalId: string) => Promise<void>;
 }
 
 export const useGoalStore = create<GoalStore>((set) => ({
@@ -30,6 +31,16 @@ export const useGoalStore = create<GoalStore>((set) => ({
       set((state) => ({ ...state, goals: [...state.goals, response.data] }));
     } else {
       toast.error(response.error || 'Failed to add goal');
+    }
+  },
+
+  deleteGoal: async (goalId: string) => {
+    const response = await safeRequest(api.delete(`/goal-tracking/${goalId}`));
+    if (response.ok) {
+      toast.success(response.data.message);
+      set((state) => ({ ...state, goals: state.goals.filter((goal) => goal._id !== goalId) }));
+    } else {
+      toast.error(response.error || 'Failed to delete goal');
     }
   },
 }));
