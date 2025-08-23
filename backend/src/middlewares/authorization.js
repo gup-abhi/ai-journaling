@@ -20,7 +20,7 @@ export const validateToken = async (req, res, next) => {
       return res.status(401).json({ error: "Invalid or expired token" });
     }
 
-    req.user = data.user;
+    req.user = data.user.user_metadata;
     next();
   } catch (err) {
     console.error("Token validation error:", err);
