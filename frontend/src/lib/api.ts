@@ -27,6 +27,9 @@ api.interceptors.response.use(
       // Example: redirect to login or refresh token
       console.warn('Unauthorized! Redirecting to login...')
       sessionStorage.clear()
+       if (window.location.href.split("/")[3] !== 'sign-in') {
+        window.location.href = '/sign-in'
+      }
     }
 
     return Promise.reject(error)
