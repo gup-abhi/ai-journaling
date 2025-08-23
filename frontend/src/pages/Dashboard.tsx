@@ -18,7 +18,7 @@ export function Dashboard() {
   const [userName] = useState(user?.display_name)
   const { fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, totalEntries, monthlyEntries, journalEntries } = useJournalStore() as { fetchTotalEntries: () => Promise<void>; fetchMonthlyEntries: () => Promise<void>; fetchJournalEntries: () => Promise<void>; totalEntries: number; monthlyEntries: number; journalEntries: JournalEntry[] }
   const { fetchMoodTrends, moodTrends } = useAiInsightStore() as { fetchMoodTrends: () => Promise<void>; moodTrends: number }
-  const { goals, fetchGoals } = useGoalStore() as { goals: Goal[]; fetchGoals: () => Promise<void> };
+  const { fetchGoals, activeGoals, getActiveGoals } = useGoalStore() as { goals: Goal[]; fetchGoals: () => Promise<void>; activeGoals: Goal[]; getActiveGoals: () => Promise<void> };
 
   const handleSignOut = () => {
     signOutStore()
@@ -32,7 +32,8 @@ export function Dashboard() {
     fetchJournalEntries()
     fetchMoodTrends()
     fetchGoals()
-  }, [fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, fetchMoodTrends, getUser, fetchGoals]);
+    getActiveGoals()
+  }, [fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, fetchMoodTrends, getUser, fetchGoals, getActiveGoals]);
 
   const recentEntries = journalEntries.slice(0, 6).map(entry => ({
     id: entry._id,
@@ -45,7 +46,7 @@ export function Dashboard() {
     { label: 'Total Entries', value: totalEntries, icon: PenTool, color: 'text-blue-500' },
     { label: 'This Month', value: monthlyEntries, icon: Calendar, color: 'text-green-500' },
     { label: 'Mood Trend', value: `${moodTrends > 0 ? '+' : ''}${moodTrends.toFixed(2)}%`, icon: moodTrends > 0 ? TrendingUp : TrendingDown, color: moodTrends > 0 ? 'text-green-500' : 'text-red-500' },
-    { label: 'Active Goals', value: goals.length, icon: Brain, color: 'text-purple-500' },
+    { label: 'Active Goals', value: activeGoals.length, icon: Brain, color: 'text-purple-500' },
   ]
 
   return (
