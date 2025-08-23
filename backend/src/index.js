@@ -6,6 +6,7 @@ import connectDB from './lib/mongo-connection.js';
 import authRoutes from './routes/auth.route.js';
 import journalRoutes from './routes/journal.route.js';
 import aiInsightRoutes from './routes/aiinsight.route.js';
+import journalTemplateRoutes from './routes/journalTemplate.route.js';
 import cookieParser from 'cookie-parser';
 
 const app = express();
@@ -21,9 +22,12 @@ app.get('/', (req, res) => {
     res.status(200).json({ message: 'Server is up' });
 });
 
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/journal', journalRoutes);
-app.use('/api/v1/ai-insights', aiInsightRoutes);
+const API_ROUTE_START = process.env.API_ROUTE_START || '/api/v1';
+
+app.use(`${API_ROUTE_START}/auth`, authRoutes);
+app.use(`${API_ROUTE_START}/journal`, journalRoutes);
+app.use(`${API_ROUTE_START}/ai-insights`, aiInsightRoutes);
+app.use(`${API_ROUTE_START}/journal-template`, journalTemplateRoutes);
 
 const server = http.createServer(app);
 
