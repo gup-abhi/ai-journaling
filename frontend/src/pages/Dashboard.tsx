@@ -8,6 +8,8 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useJournalStore } from '@/stores/journal.store'
 import type { JournalEntry } from '@/types/JournalEntry'
 import { useAiInsightStore } from '@/stores/ai-insight.store'
+import { useGoalStore } from '@/stores/goal.store'
+import type { Goal } from '@/types/Goal'
 
 export function Dashboard() {
   const navigate = useNavigate()
@@ -16,6 +18,7 @@ export function Dashboard() {
   const [userName] = useState(user?.display_name)
   const { fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, totalEntries, monthlyEntries, journalEntries } = useJournalStore() as { fetchTotalEntries: () => Promise<void>; fetchMonthlyEntries: () => Promise<void>; fetchJournalEntries: () => Promise<void>; totalEntries: number; monthlyEntries: number; journalEntries: JournalEntry[] }
   const { fetchMoodTrends, moodTrends } = useAiInsightStore() as { fetchMoodTrends: () => Promise<void>; moodTrends: number }
+  const { goals, fetchGoals } = useGoalStore() as { goals: Goal[]; fetchGoals: () => Promise<void> };
 
   const handleSignOut = () => {
     signOutStore()
@@ -28,7 +31,8 @@ export function Dashboard() {
     fetchMonthlyEntries()
     fetchJournalEntries()
     fetchMoodTrends()
-  }, [fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, fetchMoodTrends, getUser]);
+    fetchGoals()
+  }, [fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, fetchMoodTrends, getUser, fetchGoals]);
 
   const recentEntries = journalEntries.slice(0, 6).map(entry => ({
     id: entry._id,
@@ -41,6 +45,7 @@ export function Dashboard() {
     { label: 'Total Entries', value: totalEntries, icon: PenTool, color: 'text-blue-500' },
     { label: 'This Month', value: monthlyEntries, icon: Calendar, color: 'text-green-500' },
     { label: 'Mood Trend', value: `${moodTrends > 0 ? '+' : ''}${moodTrends.toFixed(2)}%`, icon: moodTrends > 0 ? TrendingUp : TrendingDown, color: moodTrends > 0 ? 'text-green-500' : 'text-red-500' },
+    { label: 'Active Goals', value: goals.length, icon: Brain, color: 'text-purple-500' },
   ]
 
   return (
@@ -73,7 +78,7 @@ export function Dashboard() {
         {/* Quick Actions */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-foreground mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Button size="lg" className="h-20 text-lg p-2" onClick={() => navigate('/journal/new')}>
               <Mic className="h-6 w-6 mr-3" />
               <span className='text-wrap'>
@@ -84,6 +89,12 @@ export function Dashboard() {
               <PenTool className="h-6 w-6 mr-3" />
               <span className='text-wrap'>
                 Browse Journal Templates
+              </span>
+            </Button>
+            <Button size="lg" variant="secondary" className="h-20 text-lg p-2" onClick={() => navigate('/goals')}>
+              <Brain className="h-6 w-6 mr-3" />
+              <span className='text-wrap'>
+                Manage Goals
               </span>
             </Button>
           </div>
