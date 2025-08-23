@@ -1,23 +1,37 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useGoalStore } from "@/stores/goal.store";
 import { Trash2, Pencil } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export function Goals() {
   const navigate = useNavigate();
   const { goals, fetchGoals, deleteGoal } = useGoalStore();
+  const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    fetchGoals();
-  }, [fetchGoals]);
+    fetchGoals(filter);
+  }, [fetchGoals, filter]);
 
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">My Goals</h1>
-        <div>
+        <div className="flex items-center gap-4">
+          <Select onValueChange={setFilter} value={filter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="not-started">Not Started</SelectItem>
+              <SelectItem value="in-progress">In Progress</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="on-hold">On Hold</SelectItem>
+            </SelectContent>
+          </Select>
           <Button onClick={() => navigate("/goals/new")} className="mr-4">Add Goal</Button>
           <Button onClick={() => navigate("/dashboard")} variant="outline">Go back to dashboard</Button>
         </div>

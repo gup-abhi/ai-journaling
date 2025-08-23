@@ -24,7 +24,7 @@ export function UpdateGoal() {
   const [progress, setProgress] = useState('');
 
   useEffect(() => {
-    fetchGoals();
+    fetchGoals("");
   }, [fetchGoals]);
 
   useEffect(() => {
@@ -76,10 +76,10 @@ export function UpdateGoal() {
                   <SelectValue>{progress || "Select a status"}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Not Started">Not Started</SelectItem>
-                  <SelectItem value="In Progress">In Progress</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                  <SelectItem value="On Hold">On Hold</SelectItem>
+                  <SelectItem value="not-started">Not Started</SelectItem>
+                  <SelectItem value="in-progress">In Progress</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="on-hold">On Hold</SelectItem>
                 </SelectContent>
               </Select>
             </div>

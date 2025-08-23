@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 interface GoalStore {
   goals: Goal[];
   activeGoals: Goal[];
-  fetchGoals: () => Promise<void>;
+  fetchGoals: (filter: string) => Promise<void>;
   addGoal: (newGoal: { name: string; description?: string; progress: string }) => Promise<void>;
   deleteGoal: (goalId: string) => Promise<void>;
   updateGoal: (goalId: string, progress: string) => Promise<void>;
@@ -18,8 +18,14 @@ export const useGoalStore = create<GoalStore>((set) => ({
   goals: [],
   activeGoals: [],
 
-  fetchGoals: async () => {
-    const response = await safeRequest(api.get<{ goals: Goal[] }>('/goal-tracking'));
+  fetchGoals: async (filter?: string) => {
+    const params: { params: Record<string, string> } = { params: {} };
+
+    if (filter !== "all") {
+      params.params["progress"] = filter as string;
+    }
+
+    const response = await safeRequest(api.get<{ goals: Goal[] }>('/goal-tracking', params));
     console.log(response);
     if (response.ok) {
       set({ goals: response.data.goals });
