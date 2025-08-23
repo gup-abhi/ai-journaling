@@ -8,12 +8,14 @@ import moment from 'moment'
 import { Loader } from '@/components/Loader'
 import { useAiInsightStore } from '@/stores/ai-insight.store'
 import { Badge } from '@/components/ui/badge'
+import type { JournalTemplate } from '@/types/JournalTemplate'
 
 type JournalEntry = {
   _id: string
   content: string
   entry_date: string
   word_count: number
+  template_id?: string
 }
 
 export function JournalView() {
@@ -22,6 +24,7 @@ export function JournalView() {
   const [entry, setEntry] = useState<JournalEntry | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [template, setTemplate] = useState<JournalTemplate | null>(null)
 
   const { journalSentiment, fetchJournalSentiment } = useAiInsightStore()
 
@@ -33,6 +36,14 @@ export function JournalView() {
       if (res.ok) {
         setEntry(res.data)
         fetchJournalSentiment(id)
+        if (res.data.template_id) {
+          const templateRes = await safeRequest(api.get<JournalTemplate>(`/journal-template/${res.data.template_id}`))
+          if (templateRes.ok) {
+            setTemplate(templateRes.data)
+          } else {
+            setTemplate(null)
+          }
+        }
       } else {
         setError(res.error)
       }
@@ -97,6 +108,32 @@ export function JournalView() {
             </div>
           </CardHeader>
           <CardContent>
+            {template && (
+              <div className="mb-4 p-4 border rounded-md bg-muted/50">
+                <h2 className="text-xl font-semibold mb-2">Template: {template.name}</h2>
+                {template.prompts && template.prompts.length > 0 && (
+                  <div className="mb-4">
+                    <h3 className="text-lg font-medium mb-1">Prompts:</h3>
+                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                      {template.prompts.map((prompt, index) => (
+                        <li key={index}>{prompt}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {template.benefits && template.benefits.length > 0 && (
+                  <div className="mb-4">
+                    <h3 className="text-lg font-medium mb-1">Benefits:</h3>
+                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                      {template.benefits.map((benefit, index) => (
+                        <li key={index}>{benefit}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
             <CardTitle className="text-2xl font-bold mb-4 flex items-center gap-2">
               <FileText className="h-6 w-6 text-primary" />
               Journal Entry
