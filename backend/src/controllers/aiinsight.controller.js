@@ -90,7 +90,7 @@ export const getSentimentTrendsByPeriod = async (req, res) => {
             },
         ]);
 
-        return res.status(200).json({ trends: sentimentTrend });
+        return res.status(200).json(sentimentTrend );
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: "Internal Server Error" });
