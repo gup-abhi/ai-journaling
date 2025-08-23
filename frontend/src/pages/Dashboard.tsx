@@ -9,7 +9,6 @@ import { useJournalStore } from '@/stores/journal.store'
 import type { JournalEntry } from '@/types/JournalEntry'
 import { useAiInsightStore } from '@/stores/ai-insight.store'
 import { useGoalStore } from '@/stores/goal.store'
-import type { Goal } from '@/types/Goal'
 
 export function Dashboard() {
   const navigate = useNavigate()
@@ -18,7 +17,7 @@ export function Dashboard() {
   const [userName] = useState(user?.display_name)
   const { fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, totalEntries, monthlyEntries, journalEntries } = useJournalStore() as { fetchTotalEntries: () => Promise<void>; fetchMonthlyEntries: () => Promise<void>; fetchJournalEntries: () => Promise<void>; totalEntries: number; monthlyEntries: number; journalEntries: JournalEntry[] }
   const { fetchMoodTrends, moodTrends } = useAiInsightStore() as { fetchMoodTrends: () => Promise<void>; moodTrends: number }
-  const { fetchGoals, activeGoals, getActiveGoals } = useGoalStore() as { goals: Goal[]; fetchGoals: () => Promise<void>; activeGoals: Goal[]; getActiveGoals: () => Promise<void> };
+  const { activeGoals, getActiveGoals } = useGoalStore();
 
   const handleSignOut = () => {
     signOutStore()
@@ -31,9 +30,8 @@ export function Dashboard() {
     fetchMonthlyEntries()
     fetchJournalEntries()
     fetchMoodTrends()
-    fetchGoals()
     getActiveGoals()
-  }, [fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, fetchMoodTrends, getUser, fetchGoals, getActiveGoals]);
+  }, [fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, fetchMoodTrends, getUser, getActiveGoals]);
 
   const recentEntries = journalEntries.slice(0, 6).map(entry => ({
     id: entry._id,
@@ -106,7 +104,7 @@ export function Dashboard() {
           <h2 className="text-2xl font-bold text-foreground mb-4">Your Progress</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {quickStats.map((stat, index) => (
-              <Card key={index} className="group hover:shadow-md transition-all duration-300">
+              <Card key={index} className="group hover:shadow-md transition-all duration-300 cursor-pointer" onClick={() => stat.label === 'Active Goals' ? navigate('/goals?filter=in-progress') : null}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
