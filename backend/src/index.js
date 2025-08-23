@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.route.js';
 import journalRoutes from './routes/journal.route.js';
 import aiInsightRoutes from './routes/aiinsight.route.js';
 import journalTemplateRoutes from './routes/journalTemplate.route.js';
+import goalTrackingRoutes from './routes/goalTracking.route.js';
 import cookieParser from 'cookie-parser';
 
 const app = express();
@@ -28,6 +29,7 @@ app.use(`${API_ROUTE_START}/auth`, authRoutes);
 app.use(`${API_ROUTE_START}/journal`, journalRoutes);
 app.use(`${API_ROUTE_START}/ai-insights`, aiInsightRoutes);
 app.use(`${API_ROUTE_START}/journal-template`, journalTemplateRoutes);
+app.use(`${API_ROUTE_START}/goal-tracking`, goalTrackingRoutes);
 
 const server = http.createServer(app);
 
