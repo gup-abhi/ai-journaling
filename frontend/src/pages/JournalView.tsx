@@ -8,6 +8,7 @@ import moment from 'moment'
 import { Loader } from '@/components/Loader'
 import { useAiInsightStore } from '@/stores/ai-insight.store'
 import { Badge } from '@/components/ui/badge'
+import * as Tooltip from '@radix-ui/react-tooltip'
 import type { JournalTemplate } from '@/types/JournalTemplate'
 
 type JournalEntry = {
@@ -140,9 +141,28 @@ export function JournalView() {
                 <h3 className="text-lg font-bold mb-3">Key Themes:</h3>
                 <div className="flex flex-wrap gap-2">
                   {keyThemes.map((theme, index) => (
-                    <Badge key={index} variant="outline" className='h-10 font-extrabold text-accent text-sm'>
-                      {theme.theme}
-                    </Badge>
+                    <Tooltip.Provider key={index}>
+                      <Tooltip.Root>
+                        <Tooltip.Trigger asChild>
+                          <Badge
+                            variant="outline"
+                            className={`h-10 font-extrabold bg-accent-background text-sm ${
+                              theme.sentimentLabel === 'positive'
+                                ? 'text-green-800'
+                                : theme.sentimentLabel === 'negative'
+                                ? 'text-red-800'
+                                : 'text-yellow-800'
+                            }`}
+                          >
+                            {theme.theme}
+                          </Badge>
+                        </Tooltip.Trigger>
+                        <Tooltip.Content className='bg-muted p-2 rounded-md text-accent text-sm'>
+                          <p>Sentiment: {theme.sentimentLabel}</p>
+                          <p>Score: {(theme.averageSentiment * 100).toFixed(2)}</p>
+                        </Tooltip.Content>
+                      </Tooltip.Root>
+                    </Tooltip.Provider>
                   ))}
                 </div>
               </div>
