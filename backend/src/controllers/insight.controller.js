@@ -151,3 +151,69 @@ export const getOverallSentiment = async (req, res) => {
 };
 
 
+export const getKeyThemesByPeriod = async (req, res) => {
+    try {
+    const { user_id } = req.cookies; // or req.user._id depending on your auth setup
+    const { period = "all" } = req.params;
+    const { limit = 10 } = req.query;
+
+    // Time filter (based on "period")
+    let dateFilter = {};
+    if (period !== "all") {
+      const now = new Date();
+      let startDate;
+
+      switch (period) {
+        case "week":
+          startDate = new Date(now.setDate(now.getDate() - 7));
+          break;
+        case "month":
+          startDate = new Date(now.setMonth(now.getMonth() - 1));
+          break;
+        case "year":
+          startDate = new Date(now.setFullYear(now.getFullYear() - 1));
+          break;
+        default:
+          startDate = null;
+      }
+
+      if (startDate) {
+        dateFilter = { createdAt: { $gte: startDate } };
+      }
+    }
+
+    const themes = await AiInsight.aggregate([
+      {
+        $match: {
+          user_id: new mongoose.Types.ObjectId(user_id),
+          ...dateFilter
+        }
+      },
+      { $unwind: "$key_themes" }, // break out array
+      {
+        $group: {
+          _id: "$key_themes.theme",
+          totalScore: { $sum: "$key_themes.score" },
+        }
+      },
+      { $sort: { totalScore: -1 } },
+      { $limit: parseInt(limit) },
+      {
+        $project: {
+          _id: 0,
+          theme: "$_id",
+          score: "$totalScore"
+        }
+      }
+    ]);
+
+    res.status(200).json({
+      user_id,
+      period,
+      top_themes: themes
+    });
+  } catch (error) {
+    console.error("Error fetching top themes:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};

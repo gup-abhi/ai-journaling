@@ -9,6 +9,14 @@ const ThemeSchema = new mongoose.Schema({
   score: {
     type: Number,
     required: true
+  },
+  sentimentLabel: {
+    type: String,
+    required: true
+  },
+  averageSentiment: {
+    type: Number,
+    required: true
   }
 }, { _id: false });
 
