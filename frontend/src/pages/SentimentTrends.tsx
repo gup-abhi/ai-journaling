@@ -58,9 +58,9 @@ export function SentimentTrends() {
         </CardHeader>
         <CardContent>
           <div className="flex justify-end gap-2 mb-4">
-            <Button variant={period === 'week' ? 'default' : 'outline'} onClick={() => setPeriod('week')}>Week</Button>
-            <Button variant={period === 'month' ? 'default' : 'outline'} onClick={() => setPeriod('month')}>Month</Button>
-            <Button variant={period === 'year' ? 'default' : 'outline'} onClick={() => setPeriod('year')}>Year</Button>
+            <Button variant={period === 'week' ? 'default' : 'outline'} onClick={() => setPeriod('week')}>Weekly</Button>
+            <Button variant={period === 'month' ? 'default' : 'outline'} onClick={() => setPeriod('month')}>Monthly</Button>
+            <Button variant={period === 'year' ? 'default' : 'outline'} onClick={() => setPeriod('year')}>Yearly</Button>
           </div>
           <ResponsiveContainer width="100%" height={400}>
             <LineChart data={sentimentTrends}>
