@@ -12,7 +12,8 @@ import { useAiInsightStore } from '@/stores/ai-insight.store'
 export function Dashboard() {
   const navigate = useNavigate()
   const signOutStore = useAuthStore(s => s.signOut)
-  const [userName] = useState('User')
+  const { user, getUser } = useAuthStore()
+  const [userName] = useState(user?.display_name)
   const { fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, totalEntries, monthlyEntries, journalEntries } = useJournalStore() as { fetchTotalEntries: () => Promise<void>; fetchMonthlyEntries: () => Promise<void>; fetchJournalEntries: () => Promise<void>; totalEntries: number; monthlyEntries: number; journalEntries: JournalEntry[] }
   const { fetchMoodTrends, moodTrends } = useAiInsightStore() as { fetchMoodTrends: () => Promise<void>; moodTrends: number }
 
@@ -22,11 +23,12 @@ export function Dashboard() {
   }
 
   useEffect(() => {
+    getUser()
     fetchTotalEntries()
     fetchMonthlyEntries()
     fetchJournalEntries()
     fetchMoodTrends()
-  }, [fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, fetchMoodTrends]);
+  }, [fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, fetchMoodTrends, getUser]);
 
   const recentEntries = journalEntries.slice(0, 3).map(entry => ({
     id: entry._id,

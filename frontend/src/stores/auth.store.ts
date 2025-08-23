@@ -3,10 +3,11 @@ import { api, safeRequest } from '@/lib/api'
 import toast from 'react-hot-toast'
 
 export type AuthUser = {
-  id?: string
-  email: string
-  display_name?: string
-  email_verified?: boolean
+  display_name: string,
+  email: string,
+  email_verified: boolean,
+  phone_verified: boolean,
+  sub: string
 }
 
 type AuthState = {
@@ -17,6 +18,7 @@ type AuthState = {
   signIn: (payload: { email: string; password: string }) => Promise<{ ok: boolean }>
   signOut: () => Promise<void>
   restore: () => void
+  getUser: () => Promise<void>
 }
 
 const setSessionStorage = (key: string, value: any) => {
@@ -36,7 +38,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({  isLoading: false })
     setSessionStorage('isAuthenticated', res.ok);
   },
-  
+
 
   signUp: async (payload) => {
     set({ isLoading: true, error: null })
@@ -74,4 +76,14 @@ export const useAuthStore = create<AuthState>((set) => ({
     setSessionStorage('isAuthenticated', false);
     toast.success('Signed out successfully!')
   },
+
+
+  getUser: async () => {
+    const res = await safeRequest(api.get('/auth/user', { withCredentials: true }))
+    if (res.ok) {
+      set({ user: res.data })
+    } else {
+      set({ user: null })
+    }
+  }
 }))
