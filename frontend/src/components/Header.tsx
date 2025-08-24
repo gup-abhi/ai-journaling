@@ -113,14 +113,18 @@ export function Header() {
           <div className="md:hidden">
             <div className="space-y-1 pb-3 pt-2">
               {navigation.map((item) => (
-                <Link
+                <NavLink
                   key={item.name}
                   to={item.href}
-                  className="block rounded-lg px-3 py-2 text-base font-medium text-muted-foreground hover:bg-accent hover:text-foreground"
+                  className={({ isActive }) =>
+                    `block rounded-lg px-3 py-2 text-base font-medium hover:bg-accent hover:text-foreground ${
+                      isActive ? "text-accent font-bold" : "text-muted-foreground"
+                    }`
+                  }
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}
-                </Link>
+                </NavLink>
               ))}
             </div>
             <div className="border-t py-3">
