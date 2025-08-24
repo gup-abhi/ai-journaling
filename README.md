@@ -58,6 +58,7 @@ This is a web-based journaling application that provides AI-powered insights int
     MONGO_URI=your-mongo-uri
     SUPABASE_URL=your-supabase-url
     SUPABASE_KEY=your-supabase-key
+    BACKEND_URL=your-backend-url
     ```
 
 ## Usage
