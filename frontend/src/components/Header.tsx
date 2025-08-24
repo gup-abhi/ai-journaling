@@ -35,27 +35,54 @@ export function Header() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="rounded-lg bg-primary p-2">
-              <img
-                src="/logo.svg" // change if in assets → {logo}
-                alt="AI Journal Logo"
-                className="h-6 w-6"
-              />
-            </div>
-            <div className="hidden sm:block">
-              <span className="text-xl font-bold text-foreground">AI Journal</span>
-              {isAuthenticated ? (
-                <p className="text-xs text-muted-foreground">
-                  Welcome, {user?.display_name || user?.full_name}!
-                </p>
-              ) : (
-                <Badge variant="outline" className="ml-2 text-xs">
-                  Beta
-                </Badge>
-              )}
-            </div>
-          </Link>
+          <div className="hidden md:flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="rounded-lg bg-primary p-2">
+                <img
+                  src="/logo.svg" // change if in assets → {logo}
+                  alt="AI Journal Logo"
+                  className="h-6 w-6"
+                />
+              </div>
+              <div className="hidden sm:block">
+                <span className="text-xl font-bold text-foreground">AI Journal</span>
+                {isAuthenticated ? (
+                  <p className="text-xs text-muted-foreground">
+                    Welcome, {user?.display_name || user?.full_name}!
+                  </p>
+                ) : (
+                  <Badge variant="outline" className="ml-2 text-xs">
+                    Beta
+                  </Badge>
+                )}
+              </div>
+            </Link>
+          </div>
+
+          {/* Mobile Logo */}
+          <div className="md:hidden flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-2">
+              <div className="rounded-lg bg-primary p-2">
+                <img
+                  src="/logo.svg" // change if in assets → {logo}
+                  alt="AI Journal Logo"
+                  className="h-6 w-6"
+                />
+              </div>
+              <div>
+                <span className="text-xl font-bold text-foreground">AI Journal</span>
+                {isAuthenticated ? (
+                  <p className="text-xs text-muted-foreground">
+                    Welcome, {user?.display_name || user?.full_name}!
+                  </p>
+                ) : (
+                  <Badge variant="outline" className="ml-2 text-xs">
+                    Beta
+                  </Badge>
+                )}
+              </div>
+            </Link>
+          </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
@@ -111,7 +138,7 @@ export function Header() {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden">
-            <div className="space-y-1 pb-3 pt-2">
+            <div className="space-y-1 pb-3 pt-2 px-2">
               {navigation.map((item) => (
                 <NavLink
                   key={item.name}
