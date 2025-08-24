@@ -81,40 +81,46 @@ export function Goals() {
 
       {/* Goals Grid */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {goals.map((goal) => (
-          <Card key={goal._id} className="flex flex-col">
-            <CardHeader>
-              <CardTitle className="text-lg sm:text-xl">{goal.name}</CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                {getProgressIcon(goal.progress)}
-                <p className="text-sm text-muted-foreground">{goal.progress}</p>
-              </div>
-              <p className="text-sm sm:text-base">{goal.description}</p>
-            </CardContent>
-            <CardFooter className="flex flex-col sm:flex-row justify-end gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate(`/goals/${goal._id}/update`)}
-                className="w-full sm:w-auto"
-              >
-                <Pencil className="h-4 w-4 mr-2" />
-                Update
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => deleteGoal(goal._id)}
-                className="w-full sm:w-auto"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
+        {goals.length > 0 ? (
+          goals.map((goal) => (
+            <Card key={goal._id} className="flex flex-col">
+              <CardHeader>
+                <CardTitle className="text-lg sm:text-xl">{goal.name}</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  {getProgressIcon(goal.progress)}
+                  <p className="text-sm text-muted-foreground">{goal.progress}</p>
+                </div>
+                <p className="text-sm sm:text-base">{goal.description}</p>
+              </CardContent>
+              <CardFooter className="flex flex-col sm:flex-row justify-end gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/goals/${goal._id}/update`)}
+                  className="w-full sm:w-auto"
+                >
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Update
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => deleteGoal(goal._id)}
+                  className="w-full sm:w-auto"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+              </CardFooter>
+            </Card>
+          ))
+        ) : (
+          <div className="col-span-full flex items-center justify-center h-64">
+            <p className="text-muted-foreground">No goals found. Get started by adding a new goal!</p>
+          </div>
+        )}
       </div>
     </div>
   );

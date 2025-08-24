@@ -9,7 +9,7 @@ import { useAuthStore } from '@/stores/auth.store'
 export function Header() {
   const navigate = useNavigate()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { signOut, isAuthenticated } = useAuthStore()
+  const { signOut, isAuthenticated, user } = useAuthStore()
 
   const handleSignOut = async () => {
     await signOut()
@@ -45,9 +45,15 @@ export function Header() {
             </div>
             <div className="hidden sm:block">
               <span className="text-xl font-bold text-foreground">AI Journal</span>
-              <Badge variant="outline" className="ml-2 text-xs">
-                Beta
-              </Badge>
+              {isAuthenticated ? (
+                <p className="text-xs text-muted-foreground">
+                  Welcome, {user?.display_name || user?.full_name}!
+                </p>
+              ) : (
+                <Badge variant="outline" className="ml-2 text-xs">
+                  Beta
+                </Badge>
+              )}
             </div>
           </Link>
 

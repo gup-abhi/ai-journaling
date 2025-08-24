@@ -71,6 +71,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       // Backend sets cookie → we consider user authenticated
       set({ isLoading: false, isAuthenticated: true })
       channel.postMessage({ isAuthenticated: true })
+      useAuthStore.getState().getUser()
       toast.success('Signed in successfully!')
       return { ok: true }
     } else {

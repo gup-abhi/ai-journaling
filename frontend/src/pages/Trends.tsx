@@ -86,16 +86,22 @@ export function Trends() {
             <Button variant={period === 'month' ? 'default' : 'outline'} onClick={() => setPeriod('month')}>Monthly</Button>
             <Button variant={period === 'year' ? 'default' : 'outline'} onClick={() => setPeriod('year')}>Yearly</Button>
           </div>
-          <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={sentimentTrends}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis domain={[-1, 1]} tickFormatter={formatYAxisTick} />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-              <Line type="monotone" dataKey="sentiment" stroke="#8884d8" activeDot={{ r: 8 }} />
-            </LineChart>
-          </ResponsiveContainer>
+          {sentimentTrends.length > 0 ? (
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart data={sentimentTrends}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis domain={[-1, 1]} tickFormatter={formatYAxisTick} />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend />
+                <Line type="monotone" dataKey="sentiment" stroke="#8884d8" activeDot={{ r: 8 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-64">
+              <p className="text-muted-foreground">No sentiment data available for this period.</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -114,25 +120,31 @@ export function Trends() {
           </Select>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={750}>
-            <BarChart layout="vertical" data={topThemesTrends.top_themes} margin={{ top: 20, right: 30, left: 120, bottom: 60 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" label={{ value: "Score", position: "bottom", offset: 10, fill: "var(--primary)" }} />
-              <YAxis type="category" dataKey="theme" label={{ value: "Key Theme", angle: -90, position: "insideLeft", offset: -75, fill: "var(--primary)" }} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "var(--background)", // tooltip box background
-                  border: "1px solid var(--primary)",   // border color
-                  borderRadius: "8px",
-                  color: "var(--primary)"               // text color
-                }}
-                itemStyle={{ color: "var(--accent)" }}  // score text color
-                labelStyle={{ color: "var(--primary)" }} // theme label color
-              />
-              <Legend verticalAlign="top" align="center" height={40} fill="var(--primary)" />
-              <Bar dataKey="score" name="Score" fill="var(--primary)" />
-            </BarChart>
-          </ResponsiveContainer>
+          {topThemesTrends.top_themes.length > 0 ? (
+            <ResponsiveContainer width="100%" height={750}>
+              <BarChart layout="vertical" data={topThemesTrends.top_themes} margin={{ top: 20, right: 30, left: 120, bottom: 60 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" label={{ value: "Score", position: "bottom", offset: 10, fill: "var(--primary)" }} />
+                <YAxis type="category" dataKey="theme" label={{ value: "Key Theme", angle: -90, position: "insideLeft", offset: -75, fill: "var(--primary)" }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "var(--background)", // tooltip box background
+                    border: "1px solid var(--primary)",   // border color
+                    borderRadius: "8px",
+                    color: "var(--primary)"               // text color
+                  }}
+                  itemStyle={{ color: "var(--accent)" }}  // score text color
+                  labelStyle={{ color: "var(--primary)" }} // theme label color
+                />
+                <Legend verticalAlign="top" align="center" height={40} fill="var(--primary)" />
+                <Bar dataKey="score" name="Score" fill="var(--primary)" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-64">
+              <p className="text-muted-foreground">No theme data available for this period.</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
