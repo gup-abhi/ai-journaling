@@ -4,8 +4,7 @@ import { Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth.store'
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
-	const isAuthenticated = sessionStorage.getItem('isAuthenticated') === 'true';
-	const restore = useAuthStore(s => s.restore)
+	const { restore, isAuthenticated } = useAuthStore()
 	const isLoading = useAuthStore(s => s.isLoading)
 
 	useEffect(() => {

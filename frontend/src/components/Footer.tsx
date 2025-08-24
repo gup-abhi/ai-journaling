@@ -40,7 +40,12 @@ export function Footer() {
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <div className="rounded-lg bg-primary p-2">
-                <Shield className="h-6 w-6 text-primary-foreground" />
+                {/* <Shield className="h-6 w-6 text-primary-foreground" /> */}
+                <img
+                  src="public/logo.svg"
+                  alt="AI Journal Logo"
+                  className="h-6 w-6 text-primary-foreground"
+                />
               </div>
               <span className="text-xl font-bold text-foreground">AI Journal</span>
             </div>

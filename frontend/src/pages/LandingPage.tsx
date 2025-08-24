@@ -5,13 +5,10 @@ import { DemoAuth } from '../components/DemoAuth'
 import { Privacy } from '../components/Privacy'
 import { Pricing } from '../components/Pricing'
 import { CTA } from '../components/CTA'
-import { Header } from '@/components/Header'
-import { Footer } from '@/components/Footer'
 
 export function LandingPage() {
   return (
     <>
-      <Header />
       <main>
         <Hero />
         <section id="features">
@@ -29,7 +26,6 @@ export function LandingPage() {
         <Pricing />
         <CTA />
       </main>
-      <Footer />
     </>
   )
 }

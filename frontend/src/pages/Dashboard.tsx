@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/card'
 import { Badge } from '../components/ui/badge'
-import { Shield, LogOut, Mic, PenTool, Brain, TrendingUp, Calendar, TrendingDown } from 'lucide-react'
-import { useAuthStore } from '@/stores/auth.store'
+import { Mic, PenTool, Brain, TrendingUp, Calendar, TrendingDown } from 'lucide-react'
 import { useJournalStore } from '@/stores/journal.store'
 import type { JournalEntry } from '@/types/JournalEntry'
 import { useAiInsightStore } from '@/stores/ai-insight.store'
@@ -12,30 +11,18 @@ import { useGoalStore } from '@/stores/goal.store'
 
 export function Dashboard() {
   const navigate = useNavigate()
-  const signOutStore = useAuthStore(s => s.signOut)
-  const { user, getUser } = useAuthStore()
-  const [userName, setUserName] = useState(user?.display_name)
   const { fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, totalEntries, monthlyEntries, journalEntries } = useJournalStore() as { fetchTotalEntries: () => Promise<void>; fetchMonthlyEntries: () => Promise<void>; fetchJournalEntries: () => Promise<void>; totalEntries: number; monthlyEntries: number; journalEntries: JournalEntry[] }
   const { fetchMoodTrends, moodTrends } = useAiInsightStore() as { fetchMoodTrends: () => Promise<void>; moodTrends: number }
   const { activeGoals, getActiveGoals } = useGoalStore();
 
-  const handleSignOut = () => {
-    signOutStore()
-    navigate('/')
-  }
 
   useEffect(() => {
-    if (user?.display_name || user?.full_name) setUserName(user.display_name || user?.full_name)
-  }, [user])
-
-  useEffect(() => {
-    getUser()
     fetchTotalEntries()
     fetchMonthlyEntries()
     fetchJournalEntries()
     fetchMoodTrends()
     getActiveGoals()
-  }, [fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, fetchMoodTrends, getUser, getActiveGoals]);
+  }, [fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, fetchMoodTrends, getActiveGoals]);
 
   const recentEntries = journalEntries.slice(0, 6).map(entry => ({
     id: entry._id,
@@ -53,29 +40,7 @@ export function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-primary p-2">
-                <Shield className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">AI Journal</h1>
-                <p className="text-sm text-muted-foreground">Welcome back, {userName || "User"}!</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      
 
       <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         {/* Quick Actions */}

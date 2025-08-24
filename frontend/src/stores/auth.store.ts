@@ -15,6 +15,8 @@ type AuthState = {
   user: AuthUser | null
   isLoading: boolean
   error: string | null
+  isAuthenticated: boolean
+  setIsAuthenticated: (value: boolean) => void
   signUp: (payload: { email: string; password: string; display_name: string }) => Promise<{ ok: boolean; message?: string }>
   signIn: (payload: { email: string; password: string }) => Promise<{ ok: boolean }>
   signInWithGoogle: () => Promise<{ ok: boolean }>
@@ -23,22 +25,23 @@ type AuthState = {
   getUser: () => Promise<void>
 }
 
-const setSessionStorage = (key: string, value: any) => {
-  sessionStorage.setItem(key, JSON.stringify(value));
-};
-
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isLoading: false,
   error: null,
+  isAuthenticated: false,
+
+  setIsAuthenticated: (value) => set({ isAuthenticated: value }),
 
   restore: async () => {
     set({ isLoading: true })
 
     const res = await safeRequest(api.get('/auth/check', { withCredentials: true }))
     console.log('Auth check response:', res)
-    set({  isLoading: false })
-    setSessionStorage('isAuthenticated', res.ok);
+    set({  isLoading: false, isAuthenticated: res.ok })
+    if (res.ok) {
+      useAuthStore.getState().getUser()
+    }
   },
 
 
@@ -60,13 +63,11 @@ export const useAuthStore = create<AuthState>((set) => ({
     const res = await safeRequest(api.post('/auth/login', payload, { withCredentials: true }))
     if (res.ok) {
       // Backend sets cookie → we consider user authenticated
-      set({ isLoading: false })
-      setSessionStorage('isAuthenticated', true);
+      set({ isLoading: false, isAuthenticated: true })
       toast.success('Signed in successfully!')
       return { ok: true }
     } else {
-      set({ isLoading: false, error: res.error })
-      setSessionStorage('isAuthenticated', false);
+      set({ isLoading: false, error: res.error, isAuthenticated: false })
       toast.error(res.error || 'Sign in failed')
       return { ok: false }
     }
@@ -79,7 +80,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       window.location.href = `${API_BASE}/auth/google/login`;
       return { ok: true };
     } catch (err: any) {
-      set({ isLoading: false, error: err.message });
+      set({ isLoading: false, error: err.message, isAuthenticated: false });
       toast.error(err.message || 'Google Sign-In failed');
       return { ok: false };
     }
@@ -87,8 +88,8 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signOut: async () => {
     await safeRequest(api.get('/auth/logout', { withCredentials: true }))
-    set({ user: null })
-    setSessionStorage('isAuthenticated', false);
+    set({ user: null, isAuthenticated: false })
+    sessionStorage.removeItem('isAuthenticated');
     toast.success('Signed out successfully!')
   },
 

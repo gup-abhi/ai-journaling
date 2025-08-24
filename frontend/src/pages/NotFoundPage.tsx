@@ -1,9 +1,10 @@
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/button'
+import { useAuthStore } from '@/stores/auth.store'
 
 export function NotFoundPage() {
   const navigate = useNavigate()
-  const isAuthenticated = sessionStorage.getItem('isAuthenticated') === 'true'
+  const { isAuthenticated } = useAuthStore()
 
   const handleGoHome = () => {
     if (isAuthenticated) {
