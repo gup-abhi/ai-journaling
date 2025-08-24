@@ -62,15 +62,27 @@ This is a web-based journaling application that provides AI-powered insights int
 
 ## Usage
 
+### Development
+
 To run the frontend and backend development servers concurrently, run the following commands in separate terminals:
 
 ```bash
-npm run frontend
+npm run frontend-dev
 ```
 
 ```bash
 npm run backend-dev
 ```
+
+### Production
+
+To build and run the application in production, run the following command:
+
+```bash
+npm start
+```
+
+This will build the frontend, and then start the backend server, which will also serve the frontend.
 
 ## Contributing
 

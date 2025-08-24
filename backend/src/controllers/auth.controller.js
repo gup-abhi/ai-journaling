@@ -1,6 +1,7 @@
 import User from '../models/Users.model.js';
 import supabase from "../lib/supabase-client.js";
 import cookieOptions from '../util/cookiesOptions.js';
+import { FRONTEND_URL, BACKEND_URL } from '../config/index.js';
 
 export const signUpUser = async (req, res) => {
   const { email, password, display_name } = req.body;
@@ -118,7 +119,7 @@ export const loginWithGoogle = async (req, res) => {
             // This is the crucial part for server-side auth
             flowType: 'pkce', 
             // Make sure this is the full URL to your callback route
-            redirectTo: 'http://localhost:5001/api/v1/auth/google/callback', 
+            redirectTo: `${BACKEND_URL}/api/v1/auth/google/callback`, 
         },
     });
 
@@ -147,8 +148,6 @@ export const googleCallback = async (req, res) => {
         console.error("Error exchanging code for session:", error);
         return res.status(401).json({ error: "Failed to login with Google" });
       } else {
-        console.log("Google OAuth data:", data);
-
         const session = data.session;
         const user = session.user;
 
@@ -168,7 +167,7 @@ export const googleCallback = async (req, res) => {
         res.cookie("user_id", dbUser._id.toString(), cookieOptions(7 * 24 * 60 * 60 * 1000));
 
         // 3️⃣ Redirect user to frontend dashboard
-        return res.redirect("http://localhost:5173/dashboard");
+        return res.redirect(`${FRONTEND_URL}/dashboard`);
       }
     } else {
        res.status(400).send('No code provided in callback.');

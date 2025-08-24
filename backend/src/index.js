@@ -9,6 +9,11 @@ import aiInsightRoutes from './routes/insight.route.js';
 import journalTemplateRoutes from './routes/journalTemplate.route.js';
 import goalTrackingRoutes from './routes/goalTracking.route.js';
 import cookieParser from 'cookie-parser';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -18,6 +23,9 @@ app.use(cors({
     origin: 'http://localhost:5173',
     credentials: true
 }));
+
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, '../../frontend/dist')));
 
 app.get('/', (req, res) => {
     res.status(200).json({ message: 'Server is up' });
@@ -31,9 +39,17 @@ app.use(`${API_ROUTE_START}/ai-insights`, aiInsightRoutes);
 app.use(`${API_ROUTE_START}/journal-template`, journalTemplateRoutes);
 app.use(`${API_ROUTE_START}/goal-tracking`, goalTrackingRoutes);
 
+// The "catchall" handler: for any request that doesn't
+// match one above, send back React's index.html file.
+app.get('*_id', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
+});
+
 const server = http.createServer(app);
 
 server.listen(process.env.PORT, () => {
   connectDB();
   console.log(`Server is running on port ${process.env.PORT}`);
 });
+
+export default server;

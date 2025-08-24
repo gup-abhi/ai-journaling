@@ -5,9 +5,10 @@
   "main": "index.js",
   "scripts": {
     "postinstall": "npm install --prefix frontend && npm install --prefix backend",
+    "start": "npm run build:frontend && npm start --prefix backend",
+    "build:frontend": "npm run build --prefix frontend",
     "backend-dev": "npm run dev --prefix backend",
-    "frontend": "npm run dev --prefix frontend",
-    "build": "npm run build --prefix frontend"
+    "frontend-dev": "npm run dev --prefix frontend"
   },
   "repository": {
     "type": "git",

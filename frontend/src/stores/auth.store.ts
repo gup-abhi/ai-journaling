@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { api, API_BASE, safeRequest } from '@/lib/api'
+import { api, safeRequest } from '@/lib/api'
 import toast from 'react-hot-toast'
 
 export type AuthUser = {
@@ -86,7 +86,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       // Redirect to backend for Google OAuth initiation
-      window.location.href = `${API_BASE}/auth/google/login`;
+      window.location.href = '/api/v1/auth/google/login';
       return { ok: true };
     } catch (err: any) {
       set({ isLoading: false, error: err.message, isAuthenticated: false });

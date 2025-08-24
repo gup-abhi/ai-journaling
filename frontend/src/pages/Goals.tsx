@@ -46,11 +46,10 @@ export function Goals() {
   };
 
   return (
-    <div className="container mx-auto p-4 md:p-6 lg:p-8">
+    <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
       {/* Header with responsive layout */}
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center mb-4">
-        <h1 className="text-xl sm:text-2xl font-bold">My Goals</h1>
-        
+        <h2 className="text-2xl font-bold text-foreground">My Goals</h2>
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full sm:w-auto">
           <Select onValueChange={handleFilterChange} value={filter}>
             <SelectTrigger className="w-full sm:w-[180px]">
@@ -122,6 +121,6 @@ export function Goals() {
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 }

@@ -1,13 +1,11 @@
-import axios, { AxiosError } from 'axios'
-import type { AxiosResponse } from 'axios'
+import axios from 'axios'
 import Cookies from 'js-cookie'
-import {useAuthStore} from '@/stores/auth.store'
-
-export const API_BASE = 'http://localhost:5001/api/v1'
+import type { AxiosError, AxiosResponse } from 'axios'
+import { useAuthStore } from '@/stores/auth.store'
 
 export const api = axios.create({
-  baseURL: API_BASE,
-  withCredentials: true
+  baseURL: '/api/v1',
+  withCredentials: true,
 })
 
 
