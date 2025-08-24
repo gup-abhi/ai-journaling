@@ -3,6 +3,11 @@ import supabase from "../lib/supabase-client.js";
 import cookieOptions from '../util/cookiesOptions.js';
 import { FRONTEND_URL, BACKEND_URL } from '../config/index.js';
 
+/**
+ * Sign up a new user
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
 export const signUpUser = async (req, res) => {
   const { email, password, display_name } = req.body;
 
@@ -37,6 +42,13 @@ export const signUpUser = async (req, res) => {
   }
 };
 
+
+/**
+ * Log in an existing user
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>}
+ */
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
@@ -82,6 +94,13 @@ export const loginUser = async (req, res) => {
   }
 };
 
+
+/**
+ * Log out the current user
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>}
+ */
 export const logoutUser = async (req, res) => {
   const token = req.cookies.access_token || req.headers["authorization"]?.split(" ")[1];
 
@@ -111,6 +130,12 @@ export const logoutUser = async (req, res) => {
 };
 
 
+/**
+ * Log in with Google
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>}
+ */
 export const loginWithGoogle = async (req, res) => {
   try {
     const { data, error } = await supabase.auth.signInWithOAuth({
@@ -134,6 +159,12 @@ export const loginWithGoogle = async (req, res) => {
 };
 
 
+/**
+ * Handle Google OAuth callback
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>}
+ */
 export const googleCallback = async (req, res) => {
   const { code } = req.query;
 
@@ -179,6 +210,12 @@ export const googleCallback = async (req, res) => {
 };
 
 
+/**
+ * Check if the user is authenticated
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>}
+ */
 export const checkAuth = async (req, res) => {
   const token = req.cookies.access_token || req.headers["authorization"]?.split(" ")[1];
 
@@ -190,6 +227,12 @@ export const checkAuth = async (req, res) => {
 };
 
 
+/**
+ * Get user details
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>}
+ */
 export const getUserDetails = async (req, res) => {
   res.status(200).json(req.user);
 };

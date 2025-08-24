@@ -7,9 +7,9 @@ const router = express.Router();
 router.post('/signup', signUpUser);
 router.post('/login', loginUser);
 router.get('/logout', logoutUser);
-router.get('/check', checkAuth);
-router.get('/user', validateToken, getUserDetails);
 router.get('/google/callback', googleCallback);
 router.get('/google/login', loginWithGoogle);
+router.get('/check', validateToken, checkAuth);
+router.get('/user', validateToken, getUserDetails);
 
 export default router;
