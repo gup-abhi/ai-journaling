@@ -6,7 +6,7 @@ import { Label } from '../components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Badge } from '../components/ui/badge'
 import { Separator } from '../components/ui/separator'
-import { Shield, ArrowLeft, Eye, EyeOff, User, Mail, Lock, CheckCircle } from 'lucide-react'
+import { Shield, Eye, EyeOff, User, Mail, Lock, CheckCircle } from 'lucide-react'
 import { FaGoogle } from 'react-icons/fa'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -71,12 +71,6 @@ export function SignUp() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="mb-6">
-          <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="h-4 w-4" />
-            Back to home
-          </Link>
-        </div>
 
         <Card className="shadow-lg">
           <CardHeader className="text-center space-y-2">

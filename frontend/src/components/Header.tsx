@@ -24,7 +24,7 @@ export function Header() {
         { name: 'Goals', href: '/goals', tag: Link },
       ]
     : [
-        { name: 'Features', href: '/#features', tag: 'a' },
+        { name: 'Features', href: '#features', tag: 'a' },
         { name: 'Privacy', href: '/#privacy', tag: 'a' },
         { name: 'Pricing', href: '/#pricing', tag: 'a' },
         { name: 'About', href: '/#about', tag: 'a' },

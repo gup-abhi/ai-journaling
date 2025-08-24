@@ -25,13 +25,18 @@ type AuthState = {
   getUser: () => Promise<void>
 }
 
+const channel = new BroadcastChannel('auth-channel');
+
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isLoading: false,
   error: null,
   isAuthenticated: false,
 
-  setIsAuthenticated: (value) => set({ isAuthenticated: value }),
+  setIsAuthenticated: (value) => {
+    set({ isAuthenticated: value })
+    channel.postMessage({ isAuthenticated: value })
+  },
 
   restore: async () => {
     set({ isLoading: true })
@@ -42,6 +47,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (res.ok) {
       useAuthStore.getState().getUser()
     }
+    channel.postMessage({ isAuthenticated: res.ok })
   },
 
 
@@ -64,10 +70,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     if (res.ok) {
       // Backend sets cookie → we consider user authenticated
       set({ isLoading: false, isAuthenticated: true })
+      channel.postMessage({ isAuthenticated: true })
       toast.success('Signed in successfully!')
       return { ok: true }
     } else {
       set({ isLoading: false, error: res.error, isAuthenticated: false })
+      channel.postMessage({ isAuthenticated: false })
       toast.error(res.error || 'Sign in failed')
       return { ok: false }
     }
@@ -81,6 +89,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       return { ok: true };
     } catch (err: any) {
       set({ isLoading: false, error: err.message, isAuthenticated: false });
+      channel.postMessage({ isAuthenticated: false })
       toast.error(err.message || 'Google Sign-In failed');
       return { ok: false };
     }
@@ -90,6 +99,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     await safeRequest(api.get('/auth/logout', { withCredentials: true }))
     set({ user: null, isAuthenticated: false })
     sessionStorage.removeItem('isAuthenticated');
+    channel.postMessage({ isAuthenticated: false })
     toast.success('Signed out successfully!')
   },
 
@@ -103,3 +113,17 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   }
 }))
+
+channel.onmessage = (event) => {
+  if (event.data.isAuthenticated !== useAuthStore.getState().isAuthenticated) {
+    useAuthStore.setState({ isAuthenticated: event.data.isAuthenticated })
+    if (event.data.isAuthenticated) {
+      useAuthStore.getState().getUser()
+    } else {
+      useAuthStore.setState({ user: null })
+    }
+  }
+};
+
+// Initial check on load
+useAuthStore.getState().restore()
