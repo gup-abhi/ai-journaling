@@ -5,12 +5,14 @@ import { Input } from '../components/ui/input'
 import { Label } from '../components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Badge } from '../components/ui/badge'
+import { Separator } from '../components/ui/separator'
 import { Shield, ArrowLeft, Eye, EyeOff, Mail, Lock } from 'lucide-react'
+import { FaGoogle } from 'react-icons/fa'
 import { useAuthStore } from '@/stores/auth.store'
 
 export function SignIn() {
   const navigate = useNavigate()
-  const { signIn, isLoading, error, restore } = useAuthStore()
+  const { signIn, isLoading, error, restore, signInWithGoogle } = useAuthStore()
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -42,6 +44,10 @@ export function SignIn() {
     if (res.ok) {
       navigate('/dashboard', { state: { message: 'Successfully signed in!' } })
     }
+  }
+
+  const handleGoogleSignIn = async () => {
+    await signInWithGoogle()
   }
 
   return (
@@ -102,6 +108,25 @@ export function SignIn() {
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
             </form>
+
+            <div className="relative my-6">
+              <Separator />
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-card px-2 text-xs text-muted-foreground">
+                OR
+              </span>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full flex items-center gap-2"
+              size="lg"
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+            >
+              <FaGoogle className="h-4 w-4" />
+              Sign in with Google
+            </Button>
 
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">

@@ -11,7 +11,11 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 // Try creating client safely
 let supabase = null;
 try {
-  supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        flowType: 'pkce',
+      },
+    });
   console.log("✅ Supabase client initialized successfully");
 } catch (err) {
   console.error("❌ Failed to initialize Supabase client:", err.message);

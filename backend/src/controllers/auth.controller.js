@@ -9,6 +9,12 @@ export const signUpUser = async (req, res) => {
     return res.status(400).json({ error: "Email, password, and display name are required." });
   }
 
+  // Check if user already exists in MongoDB
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    return res.status(400).json({ error: "User with this email already exists." });
+  }
+
   try {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -64,8 +70,9 @@ export const loginUser = async (req, res) => {
     }
 
     // Store access token in secure cookie
-    res.cookie("access_token", data.session.access_token, cookieOptions);
-    res.cookie("user_id", user_id, cookieOptions);
+    res.cookie("access_token", data.session.access_token, cookieOptions(60 * 60 * 1000));
+    res.cookie("user_id", user_id, cookieOptions(7 * 24 * 60 * 60 * 1000));
+    res.cookie("refresh_token", data.session.refresh_token, cookieOptions(7 * 24 * 60 * 60 * 1000)); // 7 days for refresh token
 
     return res.status(200).json({ message: "User logged in successfully." });
   } catch (error) {
@@ -78,8 +85,9 @@ export const logoutUser = async (req, res) => {
   const token = req.cookies.access_token || req.headers["authorization"]?.split(" ")[1];
 
   // Always clear cookies
-  res.clearCookie("access_token", cookieOptions);
-  res.clearCookie("user_id", cookieOptions);
+  res.clearCookie("access_token", cookieOptions());
+  res.clearCookie("user_id", cookieOptions());
+  res.clearCookie("refresh_token", cookieOptions());
 
   if (!token) {
     return res.status(200).json({ message: "Logged out." });
@@ -98,6 +106,76 @@ export const logoutUser = async (req, res) => {
   } catch (error) {
     console.error("Logout error:", error.message);
     return res.status(500).json({ error: error.message });
+  }
+};
+
+
+export const loginWithGoogle = async (req, res) => {
+  try {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+            // This is the crucial part for server-side auth
+            flowType: 'pkce', 
+            // Make sure this is the full URL to your callback route
+            redirectTo: 'http://localhost:5001/api/v1/auth/google/callback', 
+        },
+    });
+
+    if (error) return res.status(400).json({ error: error.message });
+
+    // Redirect the user to Google login page
+    return res.redirect(data.url);
+  } catch (err) {
+    console.error("Google login error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+export const googleCallback = async (req, res) => {
+  const { code } = req.query;
+
+  console.log("Google callback code:", code);
+
+  try {
+    if (code) {
+      // const supabase = createClient(req, res); // Create a Supabase client with the request context
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+      if (error) {
+        console.error("Error exchanging code for session:", error);
+        return res.status(401).json({ error: "Failed to login with Google" });
+      } else {
+        console.log("Google OAuth data:", data);
+
+        const session = data.session;
+        const user = session.user;
+
+        // 1️⃣ Add user to MongoDB if first login
+        let dbUser = await User.findOne({ email: user.email });
+        if (!dbUser) {
+          dbUser = await User.create({
+            email: user.email,
+            auth_uid: user.id,
+            display_name: user.user_metadata.full_name || user.user_metadata.name || user.email,
+          });
+        }
+
+        // 2️⃣ Set cookies for access & refresh tokens
+        res.cookie("access_token", session.access_token, cookieOptions(60 * 60 * 1000));
+        res.cookie("refresh_token", session.refresh_token, cookieOptions(7 * 24 * 60 * 60 * 1000));
+        res.cookie("user_id", dbUser._id.toString(), cookieOptions(7 * 24 * 60 * 60 * 1000));
+
+        // 3️⃣ Redirect user to frontend dashboard
+        return res.redirect("http://localhost:5173/dashboard");
+      }
+    } else {
+       res.status(400).send('No code provided in callback.');
+    }
+  } catch (err) {
+    console.error("Google callback error:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 

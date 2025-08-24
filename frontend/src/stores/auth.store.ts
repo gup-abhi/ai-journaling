@@ -1,9 +1,10 @@
 import { create } from 'zustand'
-import { api, safeRequest } from '@/lib/api'
+import { api, API_BASE, safeRequest } from '@/lib/api'
 import toast from 'react-hot-toast'
 
 export type AuthUser = {
   display_name: string,
+  full_name: string,
   email: string,
   email_verified: boolean,
   phone_verified: boolean,
@@ -16,6 +17,7 @@ type AuthState = {
   error: string | null
   signUp: (payload: { email: string; password: string; display_name: string }) => Promise<{ ok: boolean; message?: string }>
   signIn: (payload: { email: string; password: string }) => Promise<{ ok: boolean }>
+  signInWithGoogle: () => Promise<{ ok: boolean }>
   signOut: () => Promise<void>
   restore: () => void
   getUser: () => Promise<void>
@@ -67,6 +69,19 @@ export const useAuthStore = create<AuthState>((set) => ({
       setSessionStorage('isAuthenticated', false);
       toast.error(res.error || 'Sign in failed')
       return { ok: false }
+    }
+  },
+
+  signInWithGoogle: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      // Redirect to backend for Google OAuth initiation
+      window.location.href = `${API_BASE}/auth/google/login`;
+      return { ok: true };
+    } catch (err: any) {
+      set({ isLoading: false, error: err.message });
+      toast.error(err.message || 'Google Sign-In failed');
+      return { ok: false };
     }
   },
 

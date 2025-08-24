@@ -14,7 +14,7 @@ export function Dashboard() {
   const navigate = useNavigate()
   const signOutStore = useAuthStore(s => s.signOut)
   const { user, getUser } = useAuthStore()
-  const [userName] = useState(user?.display_name)
+  const [userName, setUserName] = useState(user?.display_name)
   const { fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, totalEntries, monthlyEntries, journalEntries } = useJournalStore() as { fetchTotalEntries: () => Promise<void>; fetchMonthlyEntries: () => Promise<void>; fetchJournalEntries: () => Promise<void>; totalEntries: number; monthlyEntries: number; journalEntries: JournalEntry[] }
   const { fetchMoodTrends, moodTrends } = useAiInsightStore() as { fetchMoodTrends: () => Promise<void>; moodTrends: number }
   const { activeGoals, getActiveGoals } = useGoalStore();
@@ -23,6 +23,10 @@ export function Dashboard() {
     signOutStore()
     navigate('/')
   }
+
+  useEffect(() => {
+    if (user?.display_name || user?.full_name) setUserName(user.display_name || user?.full_name)
+  }, [user])
 
   useEffect(() => {
     getUser()
@@ -59,7 +63,7 @@ export function Dashboard() {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-foreground">AI Journal</h1>
-                <p className="text-sm text-muted-foreground">Welcome back, {userName}!</p>
+                <p className="text-sm text-muted-foreground">Welcome back, {userName || "User"}!</p>
               </div>
             </div>
             
