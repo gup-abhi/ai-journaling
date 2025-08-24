@@ -27,7 +27,6 @@ This is a web-based journaling application that provides AI-powered insights int
 *   **Database:** MongoDB with Mongoose
 *   **Authentication:** Supabase
 *   **AI Features:** Sentiment analysis using `vader-sentiment`
-*   **Messaging:** Kafka (for asynchronous processing of AI tasks)
 
 ## Getting Started
 
@@ -37,7 +36,6 @@ This is a web-based journaling application that provides AI-powered insights int
 *   npm
 *   MongoDB
 *   Supabase Account
-*   Kafka
 
 ### Installation
 
@@ -47,62 +45,31 @@ This is a web-based journaling application that provides AI-powered insights int
     git clone https://github.com/your-username/ai-journaling.git
     ```
 
-2.  Install frontend dependencies:
+2.  Install dependencies:
 
     ```bash
-    cd frontend
     npm install
     ```
 
-3.  Install backend dependencies:
-
-    ```bash
-    cd ../backend
-    npm install
-    ```
-
-4.  Create a `.env` file in the `backend` directory and add the following environment variables:
+3.  Create a `.env` file in the `backend` directory and add the following environment variables:
 
     ```
     PORT=your-port
     MONGO_URI=your-mongo-uri
     SUPABASE_URL=your-supabase-url
     SUPABASE_KEY=your-supabase-key
-    KAFKA_BROKERS=your-kafka-brokers
     ```
 
 ## Usage
 
-### Frontend
-
-To run the frontend, navigate to the `frontend` directory and run the following command:
+To run the frontend and backend development servers concurrently, run the following commands in separate terminals:
 
 ```bash
-npm run dev
+npm run frontend
 ```
 
-This will start the development server on `http://localhost:5173`.
-
-To build the frontend for production, run:
-
 ```bash
-npm run build
-```
-
-### Backend
-
-To run the backend, navigate to the `backend` directory and run the following command:
-
-```bash
-npm run dev
-```
-
-This will start the development server on the port specified in your `.env` file.
-
-To run the backend in production, use:
-
-```bash
-npm run start
+npm run backend-dev
 ```
 
 ## Contributing
