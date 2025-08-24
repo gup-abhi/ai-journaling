@@ -5,7 +5,7 @@ import { AppRoutes } from './routes/AppRoutes'
 function App() {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <div className="min-h-screen bg-background text-foreground overflow-x-hidden scroll-smooth">
+      <div className="min-h-screen bg-background text-foreground scroll-smooth">
         <AppRoutes />
         <Toaster
           toastOptions={{
