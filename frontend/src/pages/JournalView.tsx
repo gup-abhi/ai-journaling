@@ -6,10 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Calendar, Smile, Frown, Meh } from 'lucide-react'
 import moment from 'moment'
 import { Loader } from '@/components/Loader'
-import { useAiInsightStore } from '@/stores/ai-insight.store'
 import { Badge } from '@/components/ui/badge'
 import * as Tooltip from '@radix-ui/react-tooltip'
 import type { JournalTemplate } from '@/types/JournalTemplate'
+import type { JournalSentiment } from '@/types/JournalSentiment'
+import type { KeyTheme } from '@/types/KeyTheme'
 
 type JournalEntry = {
   _id: string
@@ -26,8 +27,27 @@ export function JournalView() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [template, setTemplate] = useState<JournalTemplate | null>(null)
+  const [journalSentiment, setJournalSentiment] = useState<JournalSentiment | null>(null)
+  const [keyThemes, setKeyThemes] = useState<KeyTheme[]>([])
 
-  const { journalSentiment, keyThemes, fetchJournalSentiment } = useAiInsightStore()
+  const fetchJournalSentiment = async (journalId: string) => {
+    try {
+      const response = await safeRequest(api.get<JournalSentiment>(`/ai-insights/trends/journal/${journalId}`));
+
+      if (response.ok && response.data) {
+        setJournalSentiment(response.data);
+        setKeyThemes(response.data.key_themes ?? []);
+      } else {
+        setJournalSentiment(null);
+        setKeyThemes([]);
+      }
+    } catch (error) {
+      console.error("Error fetching journal sentiment:", error);
+      setJournalSentiment(null);
+      setKeyThemes([]);
+    }
+  };
+
 
   useEffect(() => {
     const fetchEntry = async () => {
@@ -51,7 +71,7 @@ export function JournalView() {
       setIsLoading(false)
     }
     fetchEntry()
-  }, [id, fetchJournalSentiment])
+  }, [id])
 
   const getSentimentIcon = (label: string) => {
     if (label === 'positive') return <Smile className="h-4 w-4 text-green-500" />

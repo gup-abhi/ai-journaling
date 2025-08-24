@@ -1,23 +1,25 @@
 import { create } from 'zustand'
 import { api, safeRequest } from '@/lib/api'
-import type { JournalSentiment } from '@/types/JournalSentiment'
-import type { KeyTheme } from '@/types/KeyTheme'
+import type { SentimentTrend } from '@/types/SentimentTrends'
+import type { TopThemeTrends } from '@/types/TopThemeTrends'
 
 type AiInsightState = {
     moodTrends: number;
-    journalSentiment: JournalSentiment | null;
-    sentimentTrends: { date: string; sentiment: number }[];
-    keyThemes: KeyTheme[];
+    sentimentTrends: SentimentTrend[];
+    topThemesTrends: TopThemeTrends;
     fetchMoodTrends: () => Promise<void>;
-    fetchJournalSentiment: (journalId: string) => Promise<void>;
     fetchSentimentTrends: (period: 'week' | 'month' | 'year') => Promise<void>;
+    fetchTopThemes: (period: 'week' | 'month' | 'year', limit: number) => Promise<void>;
 }
 
 export const useAiInsightStore = create<AiInsightState>((set) => ({
     moodTrends: 0,
-    journalSentiment: null,
     sentimentTrends: [],
-    keyThemes: [],
+    topThemesTrends: {
+        user_id: '',
+        period: '',
+        top_themes: []
+    },
 
     fetchMoodTrends: async () => {
         const response = await safeRequest(api.get<{ overallSentiment: number }>('/ai-insights/trends/overall'));
@@ -25,15 +27,6 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
             set({ moodTrends: response.data.overallSentiment });
         } else {
             set({ moodTrends: 0 }); // or handle error as needed
-        }
-    },
-
-    fetchJournalSentiment: async (journalId: string) => {
-        const response = await safeRequest(api.get<JournalSentiment>(`/ai-insights/trends/journal/${journalId}`));
-        if (response.ok) {
-            set({ journalSentiment: response.data, keyThemes: response.data.key_themes });
-        } else {
-            set({ journalSentiment: null, keyThemes: [] }); // or handle error as needed
         }
     },
 
@@ -48,5 +41,14 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
         } else {
             set({ sentimentTrends: [] }); // or handle error as needed
         }
-    }
+    },
+
+    fetchTopThemes: async (period: string, limit: number) => {
+      const res = await safeRequest(api.get<TopThemeTrends>(`/ai-insights/trends/keyThemes/period/${period}?limit=${limit}`));
+      if (res.ok) {
+        set({ topThemesTrends: res.data });
+      } else {
+        set({ topThemesTrends: { user_id: '', period: '', top_themes: [] } }); // or handle error as needed
+      }
+    },
 }));

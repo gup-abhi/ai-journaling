@@ -84,13 +84,13 @@ export function Dashboard() {
                 Start Voice Or Text Journal
               </span>
             </Button>
-            <Button size="lg" variant="secondary" className="h-20 text-lg p-2" onClick={() => navigate('/journal-templates')}>
+            <Button size="lg" variant="secondary" className="h-20 text-lg p-2 text-accent" onClick={() => navigate('/journal-templates')}>
               <PenTool className="h-6 w-6 mr-3" />
               <span className='text-wrap'>
                 Browse Journal Templates
               </span>
             </Button>
-            <Button size="lg" variant="secondary" className="h-20 text-lg p-2" onClick={() => navigate('/goals')}>
+            <Button size="lg" variant="secondary" className="h-20 text-lg p-2 text-accent" onClick={() => navigate('/goals')}>
               <Brain className="h-6 w-6 mr-3" />
               <span className='text-wrap'>
                 Manage Goals
@@ -175,7 +175,7 @@ export function Dashboard() {
                     You tend to feel most optimistic on Tuesday and Wednesday mornings. 
                     Consider scheduling important meetings during these times.
                   </p>
-                  <Link to="/sentiment-trends">
+                  <Link to="/trends">
                     <Button variant="outline" size="sm">
                       View All Insights
                     </Button>

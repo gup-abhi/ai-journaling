@@ -1,0 +1,1 @@
+export type SentimentTrend = { date: string; sentiment: number }

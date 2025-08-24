@@ -9,7 +9,7 @@ import { Journals } from '../pages/Journals'
 import { NewJournalEntry } from '../pages/NewJournalEntry'
 import { JournalView } from '../pages/JournalView'
 import { NotFoundPage } from '../pages/NotFoundPage'
-import { SentimentTrends } from '../pages/SentimentTrends'
+import { Trends } from '../pages/Trends'
 import JournalTemplates from '../pages/JournalTemplates'
 import { NewGoal } from '../pages/NewGoal'
 import { Goals } from '../pages/Goals'
@@ -66,9 +66,9 @@ export function AppRoutes() {
             <motion.div {...pageTransition}><JournalView /></motion.div>
           </ProtectedRoute>
         } />
-        <Route path="/sentiment-trends" element={
+        <Route path="/trends" element={
           <ProtectedRoute>
-            <motion.div {...pageTransition}><SentimentTrends /></motion.div>
+            <motion.div {...pageTransition}><Trends /></motion.div>
           </ProtectedRoute>
         } />
         <Route path="/goals/new" element={
