@@ -4,8 +4,8 @@
   "description": "This is a web-based journaling application that provides AI-powered insights into your entries. It features a modern, responsive user interface and a robust backend to handle data storage, user authentication, and AI analysis.",
   "main": "index.js",
   "scripts": {
-    "postinstall": "npm install --prefix frontend && npm install --prefix backend",
-    "start": "npm run build:frontend && npm start --prefix backend",
+    "postinstall": "npm install --prefix frontend && npm install --prefix backend && npm run build:frontend",
+    "start": "npm start --prefix backend",
     "build:frontend": "npm run build --prefix frontend",
     "backend-dev": "npm run dev --prefix backend",
     "frontend-dev": "npm run dev --prefix frontend"
