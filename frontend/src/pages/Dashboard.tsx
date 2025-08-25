@@ -96,37 +96,43 @@ export function Dashboard() {
             <h2 className="text-2xl font-bold text-foreground">Recent Entries</h2>
             <Button variant="outline" size="sm" onClick={() => navigate('/journals')}>Show More</Button>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {recentEntries.map((entry) => (
-              <Card key={entry.id} className="group hover:shadow-md transition-all duration-300">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">{entry.date}</span>
+          {recentEntries.length === 0 ? (
+            <div className="flex items-center justify-center h-32">
+              <p className="text-muted-foreground">No recent entries to display. Start journaling to see your recent entries here!</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {recentEntries.map((entry) => (
+                <Card key={entry.id} className="group hover:shadow-md transition-all duration-300">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">{entry.date}</span>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        {entry.wordCount} words
+                      </Badge>
                     </div>
-                    <Badge variant="outline" className="text-xs">
-                      {entry.wordCount} words
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-foreground leading-relaxed mb-3 line-clamp-3">
-                    {entry.preview}
-                  </p>
-                </CardContent>
-                <CardFooter className="pt-3">
-                  <div className="flex items-center justify-between">
-                    <Link to={`/journals/${entry.id}`}>
-                      <Button variant="ghost" size="sm" className="text-xs">
-                        Read More
-                      </Button>
-                    </Link>
-                  </div>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-foreground leading-relaxed mb-3 line-clamp-3">
+                      {entry.preview}
+                    </p>
+                  </CardContent>
+                  <CardFooter className="pt-3">
+                    <div className="flex items-center justify-between">
+                      <Link to={`/journals/${entry.id}`}>
+                        <Button variant="ghost" size="sm" className="text-xs">
+                          Read More
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* AI Insights Preview */}
