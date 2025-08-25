@@ -2,6 +2,7 @@ import User from '../models/Users.model.js';
 import supabase from "../lib/supabase-client.js";
 import cookieOptions from '../util/cookiesOptions.js';
 import { FRONTEND_URL, BACKEND_URL } from '../config/index.js';
+import AppError from '../util/AppError.js'; // Import AppError
 
 /**
  * Sign up a new user
@@ -12,13 +13,13 @@ export const signUpUser = async (req, res) => {
   const { email, password, display_name } = req.body;
 
   if (!email || !password || !display_name) {
-    return res.status(400).json({ error: "Email, password, and display name are required." });
+    throw new AppError("Email, password, and display name are required.", 400);
   }
 
   // Check if user already exists in MongoDB
   const existingUser = await User.findOne({ email });
   if (existingUser) {
-    return res.status(400).json({ error: "User with this email already exists." });
+    throw new AppError("User with this email already exists.", 400);
   }
 
   try {
@@ -33,12 +34,12 @@ export const signUpUser = async (req, res) => {
     });
 
     if (error) {
-      return res.status(400).json({ error: error.message });
+      throw new AppError(error.message, 400);
     }
 
     return res.status(201).json({ message: "User created successfully. Verify the email to complete the registration." });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    throw new AppError(error.message, 500);
   }
 };
 
@@ -53,7 +54,7 @@ export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ error: "Email and password are required." });
+    throw new AppError("Email and password are required.", 400);
   }
 
   try {
@@ -63,7 +64,7 @@ export const loginUser = async (req, res) => {
     });
 
     if (error) {
-      return res.status(400).json({ error: error.message });
+      throw new AppError(error.message, 400);
     }
 
     // Adding user in the mongodb for the first time
@@ -90,7 +91,7 @@ export const loginUser = async (req, res) => {
     return res.status(200).json({ message: "User logged in successfully." });
   } catch (error) {
     console.error("Login error:", error);
-    return res.status(500).json({ error: error.message });
+    throw new AppError(error.message, 500);
   }
 };
 
@@ -125,7 +126,7 @@ export const logoutUser = async (req, res) => {
     return res.status(200).json({ message: "User logged out successfully." });
   } catch (error) {
     console.error("Logout error:", error.message);
-    return res.status(500).json({ error: error.message });
+    throw new AppError(error.message, 500);
   }
 };
 
@@ -148,13 +149,13 @@ export const loginWithGoogle = async (req, res) => {
         },
     });
 
-    if (error) return res.status(400).json({ error: error.message });
+    if (error) throw new AppError(error.message, 400);
 
     // Redirect the user to Google login page
     return res.redirect(data.url);
   } catch (err) {
     console.error("Google login error:", err);
-    res.status(500).json({ error: "Internal server error" });
+    throw new AppError("Internal server error", 500);
   }
 };
 
@@ -177,7 +178,7 @@ export const googleCallback = async (req, res) => {
 
       if (error) {
         console.error("Error exchanging code for session:", error);
-        return res.status(401).json({ error: "Failed to login with Google" });
+        throw new AppError("Failed to login with Google", 401);
       } else {
         const session = data.session;
         const user = session.user;
@@ -193,7 +194,7 @@ export const googleCallback = async (req, res) => {
         }
 
         // 2️⃣ Set cookies for access & refresh tokens
-        res.cookie("access_token", session.access_token, cookieOptions(60 * 60 * 1000));
+        res.cookie("access_token", session.access_token, cookieOptions(60 * 1000));
         res.cookie("refresh_token", session.refresh_token, cookieOptions(7 * 24 * 60 * 60 * 1000));
         res.cookie("user_id", dbUser._id.toString(), cookieOptions(7 * 24 * 60 * 60 * 1000));
 
@@ -201,11 +202,11 @@ export const googleCallback = async (req, res) => {
         return res.redirect(`${FRONTEND_URL}/dashboard`);
       }
     } else {
-       res.status(400).send('No code provided in callback.');
+       throw new AppError('No code provided in callback.', 400);
     }
   } catch (err) {
     console.error("Google callback error:", err);
-    res.status(500).json({ error: "Internal server error" });
+    throw new AppError("Internal server error", 500);
   }
 };
 

@@ -1,12 +1,13 @@
 import mongoose from "mongoose";
 import GoalTracking from "../models/GoalTracking.model.js";
+import AppError from "../util/AppError.js";
 
 export const createGoal = async (req, res) => {
     const { name, progress, description } = req.body;
     const { user_id } = req.cookies;
 
-    if (!name) return res.status(400).json({ error: "Goal name is required" });
-    if (!progress) return res.status(400).json({ error: "Progress is required" });
+    if (!name) throw new AppError("Goal name is required", 400);
+    if (!progress) throw new AppError("Progress is required", 400);
 
     try {
         const newGoal = new GoalTracking({
@@ -20,7 +21,7 @@ export const createGoal = async (req, res) => {
         res.status(201).json({ message: "Goal created successfully", newGoal });
     } catch (error) {
         console.error("Error creating goal:", error);
-        res.status(500).json({ message: "Error creating goal", error });
+        throw new AppError("Error creating goal", 500);
     }
 };
 
@@ -29,9 +30,9 @@ export const updateGoal = async (req, res) => {
     const { id } = req.params;
     const { progress } = req.body;
 
-    if (!id) return res.status(400).json({ error: "Goal ID is required" });
+    if (!id) throw new AppError("Goal ID is required", 400);
 
-    if (!progress) return res.status(400).json({ error: "Progress is required" });
+    if (!progress) throw new AppError("Progress is required", 400);
 
     try {
         const updatedGoal = await GoalTracking.findByIdAndUpdate(
@@ -40,12 +41,12 @@ export const updateGoal = async (req, res) => {
             { new: true }
         );
 
-        if (!updatedGoal) return res.status(404).json({ error: "Goal not found" });
+        if (!updatedGoal) throw new AppError("Goal not found", 404);
 
         res.status(200).json({ message: "Goal updated successfully", updatedGoal });
     } catch (error) {
         console.error("Error updating goal:", error);
-        res.status(500).json({ error });
+        throw new AppError("Error updating goal", 500);
     }
 };
 
@@ -53,17 +54,17 @@ export const updateGoal = async (req, res) => {
 export const deleteGoal = async (req, res) => {
     const { id } = req.params;
 
-    if (!id) return res.status(400).json({ error: "Goal ID is required" });
+    if (!id) throw new AppError("Goal ID is required", 400);
 
     try {
         const deletedGoal = await GoalTracking.findByIdAndDelete(id);
 
-        if (!deletedGoal) return res.status(404).json({ error: "Goal not found" });
+        if (!deletedGoal) throw new AppError("Goal not found", 404);
 
         res.status(200).json({ message: "Goal deleted successfully", deletedGoal });
     } catch (error) {
         console.error("Error deleting goal:", error);
-        res.status(500).json({ error });
+        throw new AppError("Error deleting goal", 500);
     }
 };
 
@@ -71,17 +72,17 @@ export const deleteGoal = async (req, res) => {
 export const getGoal = async (req, res) => {
     const { id } = req.params;
 
-    if (!id) return res.status(400).json({ error: "Goal ID is required" });
+    if (!id) throw new AppError("Goal ID is required", 400);
 
     try {
         const goal = await GoalTracking.findById(id);
 
-        if (!goal) return res.status(404).json({ error: "Goal not found" });
+        if (!goal) throw new AppError("Goal not found", 404);
 
         res.status(200).json(goal);
     } catch (error) {
         console.error("Error fetching goal:", error);
-        res.status(500).json({ error });
+        throw new AppError("Error fetching goal", 500);
     }
 };
 
@@ -104,7 +105,7 @@ export const getGoals = async (req, res) => {
         res.status(200).json({ goals });
     } catch (error) {
         console.error("Error fetching goals:", error);
-        res.status(500).json({ error });
+        throw new AppError("Error fetching goals", 500);
     }
 };
 
@@ -118,6 +119,6 @@ export const getActiveGoals = async (req, res) => {
         res.status(200).json({ goals });
     } catch (error) {
         console.error("Error fetching active goals:", error);
-        res.status(500).json({ error });
+        throw new AppError("Error fetching active goals", 500);
     }
 };

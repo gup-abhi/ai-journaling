@@ -1,17 +1,18 @@
 import JournalTemplate from '../models/JournalTemplates.model.js';
+import AppError from "../util/AppError.js";
 
 export const getAllJournalTemplates = async (req, res) => {
   try {
     const templates = await JournalTemplate.find();
 
     if (templates.length === 0) {
-      return res.status(404).json({ message: "No templates found" });
+      throw new AppError("No templates found", 404);
     }
 
     res.status(200).json(templates);
   } catch (error) {
     console.error("Error fetching journal templates:", error);
-    res.status(500).json({ error: "Internal server error" });
+    throw new AppError("Internal server error", 500);
   }
 };
 
@@ -20,11 +21,11 @@ export const getJournalTemplateById = async (req, res) => {
   try {
     const template = await JournalTemplate.findById(id);
     if (!template) {
-      return res.status(404).json({ message: "Template not found" });
+      throw new AppError("Template not found", 404);
     }
     res.status(200).json(template);
   } catch (error) {
     console.error("Error fetching journal template:", error);
-    res.status(500).json({ error: "Internal server error" });
+    throw new AppError("Internal server error", 500);
   }
 };

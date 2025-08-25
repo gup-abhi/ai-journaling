@@ -1,12 +1,13 @@
 import AiInsight from '../models/AiInsights.model.js';
 import mongoose from 'mongoose';
+import AppError from "../util/AppError.js";
 
 export const getSentimentTrendsByPeriod = async (req, res) => {
     const { user_id } = req.cookies;
     const period = req.params.period;
 
     if (!period || !['day', 'week', 'month', 'year'].includes(period)) {
-        return res.status(400).json({ error: "Invalid period. Please specify 'day', 'week', 'month', or 'year'." });
+        throw new AppError("Invalid period. Please specify 'day', 'week', 'month', or 'year'.", 400);
     }
 
     try {
@@ -93,7 +94,7 @@ export const getSentimentTrendsByPeriod = async (req, res) => {
         return res.status(200).json(sentimentTrend );
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: "Internal Server Error" });
+        throw new AppError("Internal Server Error", 500);
     }
 };
 
@@ -105,7 +106,7 @@ export const getSentimentTrends = async (req, res) => {
         return res.status(200).json({ trends });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: "Internal Server Error" });
+        throw new AppError("Internal Server Error", 500);
     }
 };
 
@@ -116,13 +117,13 @@ export const getSentimentTrendsByJournalId = async (req, res) => {
         const trend = await AiInsight.findOne({ journal_entry_id: journal_id });
 
         if (!trend) {
-            return res.status(404).json({ error: "Trend not found" });
+            throw new AppError("Trend not found", 404);
         }
 
         return res.status(200).json(trend);
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: "Internal Server Error" });
+        throw new AppError("Internal Server Error", 500);
     }
 };
 
@@ -146,7 +147,7 @@ export const getOverallSentiment = async (req, res) => {
         return res.status(200).json({ overallSentiment: overallSentiment[0]?.averageSentiment * 100 || 0 });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: "Internal Server Error" });
+        throw new AppError("Internal Server Error", 500);
     }
 };
 
@@ -214,6 +215,6 @@ export const getKeyThemesByPeriod = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching top themes:", error);
-    res.status(500).json({ error: "Internal Server Error" });
+    throw new AppError("Internal Server Error", 500);
   }
 };
