@@ -12,6 +12,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { useAiInsightStore } from '@/stores/ai-insight.store';
 import { useNavigate } from 'react-router-dom';
 import type { Period } from '@/types/Period';
+import { Loader } from '@/components/Loader'; // Import Loader
 
 
 interface CustomTooltipProps {
@@ -54,7 +55,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
 export function Trends() {
   const [limit, setLimit] = useState(5);
   const [period, setPeriod] = useState<Period>('month');
-  const { sentimentTrends, fetchSentimentTrends, topThemesTrends, fetchTopThemes } = useAiInsightStore();
+  const { sentimentTrends, fetchSentimentTrends, topThemesTrends, fetchTopThemes, isSentimentLoading, isThemesLoading } = useAiInsightStore(); // Get isLoading states
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -86,7 +87,9 @@ export function Trends() {
             <Button variant={period === 'month' ? 'default' : 'outline'} onClick={() => setPeriod('month')}>Monthly</Button>
             <Button variant={period === 'year' ? 'default' : 'outline'} onClick={() => setPeriod('year')}>Yearly</Button>
           </div>
-          {sentimentTrends.length > 0 ? (
+          {isSentimentLoading ? ( // Conditionally render Loader
+            <Loader className="h-64" />
+          ) : sentimentTrends.length > 0 ? (
             <ResponsiveContainer width="100%" height={400}>
               <LineChart data={sentimentTrends}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -120,7 +123,9 @@ export function Trends() {
           </Select>
         </CardHeader>
         <CardContent>
-          {topThemesTrends.top_themes.length > 0 ? (
+          {isThemesLoading ? ( // Conditionally render Loader
+            <Loader className="h-64" /> 
+          ) : topThemesTrends.top_themes.length > 0 ? (
             <ResponsiveContainer width="100%" height={750}>
               <BarChart layout="vertical" data={topThemesTrends.top_themes} margin={{ top: 20, right: 30, left: 120, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" />

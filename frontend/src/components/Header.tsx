@@ -39,7 +39,7 @@ export function Header() {
             <Link to="/" className="flex items-center gap-2">
               <div className="rounded-lg bg-primary p-2">
                 <img
-                  src="/logo.svg" // change if in assets → {logo}
+                  src="logo.svg" // change if in assets → {logo}
                   alt="AI Journal Logo"
                   className="h-6 w-6"
                 />

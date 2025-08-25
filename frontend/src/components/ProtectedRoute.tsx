@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth.store'
+import { Loader } from './Loader' // Import the Loader component
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
 	const { restore, isAuthenticated } = useAuthStore()
@@ -13,7 +14,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 		}
 	}, [restore])
 
-	if (isLoading) return <div>Loading...</div>
+	if (isLoading) return <Loader /> // Use the Loader component
 
 	if (!isAuthenticated && !isLoading) {
 		return <Navigate to="/sign-in" />

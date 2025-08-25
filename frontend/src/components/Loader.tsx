@@ -1,9 +1,13 @@
 import { motion } from 'framer-motion'
 
-export function Loader() {
+interface LoaderProps {
+  className?: string; // Add className prop
+}
+
+export function Loader({ className }: LoaderProps) { // Destructure className
   return (
     <motion.div
-      className="flex items-center justify-center min-h-screen"
+      className={`flex items-center justify-center ${className || 'min-h-screen'}`} // Apply className
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}

@@ -42,7 +42,7 @@ export function Footer() {
               <div className="rounded-lg bg-primary p-2">
                 {/* <Shield className="h-6 w-6 text-primary-foreground" /> */}
                 <img
-                  src="public/logo.svg"
+                  src="logo.svg"
                   alt="AI Journal Logo"
                   className="h-6 w-6 text-primary-foreground"
                 />

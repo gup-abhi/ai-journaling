@@ -5,11 +5,12 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useGoalStore } from "@/stores/goal.store";
 import { Trash2, Pencil, CheckCircle, Hourglass, XCircle, PauseCircle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader } from '@/components/Loader'; // Import Loader
 
 export function Goals() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { goals, fetchGoals, deleteGoal } = useGoalStore();
+  const { goals, fetchGoals, deleteGoal, isLoading } = useGoalStore(); // Get isLoading
 
   const queryParams = new URLSearchParams(location.search);
   const initialFilter = queryParams.get("filter") || "all";
@@ -44,6 +45,10 @@ export function Goals() {
         return null;
     }
   };
+
+  if (isLoading) { // Render Loader if loading
+    return <Loader />;
+  }
 
   return (
     <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
