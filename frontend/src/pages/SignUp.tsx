@@ -63,7 +63,7 @@ export function SignUp() {
 
   useEffect(() => {
     if (successMessage) {
-      const t = setTimeout(() => navigate('/signin', { state: { message: successMessage } }), 1500)
+      const t = setTimeout(() => navigate('/sign-in', { state: { message: successMessage } }), 1500)
       return () => clearTimeout(t)
     }
   }, [successMessage, navigate])

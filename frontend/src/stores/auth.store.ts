@@ -128,3 +128,5 @@ channel.onmessage = (event) => {
 
 // Initial check on load
 useAuthStore.getState().restore()
+
+export const getAuthStore = () => useAuthStore.getState()

@@ -1,7 +1,7 @@
 import axios from 'axios'
 import Cookies from 'js-cookie'
 import type { AxiosError, AxiosResponse } from 'axios'
-import { useAuthStore } from '@/stores/auth.store'
+import { getAuthStore } from '@/stores/auth.store'
 
 export const api = axios.create({
   baseURL: '/api/v1',
@@ -26,8 +26,7 @@ api.interceptors.response.use(
       // Example: redirect to login or refresh token
       console.warn('Unauthorized! Redirecting to login...')
       localStorage.clear()
-      const { setIsAuthenticated } = useAuthStore()
-      setIsAuthenticated(false)
+      getAuthStore().setIsAuthenticated(false)
       if (window.location.href.split("/")[3] !== 'sign-in') {
         window.location.href = '/sign-in'
       }
