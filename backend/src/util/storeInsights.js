@@ -1,23 +1,19 @@
-import AiInsight from "../models/AiInsights.model.js";
-import analyzeSentiment from './sentimentAnalysis.js';
-import { getTopThemes } from './themeExtraction.js';
+import Insight from "../models/Insights.model.js";
+import { generateInsights } from "../util/generateInsights.js"
 
 const storeAiInsight = async (req, res, data) => {
-    const { user_id, journal_entry_id, content, processed_at } = data;
+  const { user_id, journal_entry_id, content, processed_at } = data;
   try {
-    const { sentiment_label, sentiment_score } = await analyzeSentiment(content);
-    const key_themes = getTopThemes(content, 10);
+    const insightData = await generateInsights(content);
 
-    const aiInsight = new AiInsight({
+    const insight = new Insight({
       user_id,
       journal_entry_id,
-      sentiment_label,
-      sentiment_score,
-      key_themes,
+      ...insightData,
       processed_at
     });
 
-    await aiInsight.save();
+    await insight.save();
     console.log("AI Insight stored successfully:");
   } catch (error) {
     console.error("Error storing AI Insight:", error);

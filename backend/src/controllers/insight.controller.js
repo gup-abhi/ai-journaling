@@ -1,4 +1,4 @@
-import AiInsight from '../models/AiInsights.model.js';
+import Insight from '../models/Insights.model.js';
 import mongoose from 'mongoose';
 import AppError from "../util/AppError.js";
 
@@ -44,7 +44,7 @@ export const getSentimentTrendsByPeriod = async (req, res) => {
             groupFields = { day: { $dateToString: { format: dateFormat, date: '$processed_at' } } };
         }
 
-        const sentimentTrend = await AiInsight.aggregate([
+        const sentimentTrend = await Insight.aggregate([
             {
                 $match: {
                     user_id: new mongoose.Types.ObjectId(user_id),
@@ -53,7 +53,7 @@ export const getSentimentTrendsByPeriod = async (req, res) => {
             {
                 $group: {
                     _id: groupFields,
-                    averageSentiment: { $avg: '$sentiment_score' },
+                    averageSentiment: { $avg: '$sentiment.score' },
                 },
             },
             {
@@ -91,18 +91,17 @@ export const getSentimentTrendsByPeriod = async (req, res) => {
             },
         ]);
 
-        return res.status(200).json(sentimentTrend );
+        return res.status(200).json(sentimentTrend);
     } catch (error) {
         console.error(error);
         throw new AppError("Internal Server Error", 500);
     }
 };
 
-
 export const getSentimentTrends = async (req, res) => {
     const { user_id } = req.cookies;
     try {
-        const trends = await AiInsight.find({ user_id: new mongoose.Types.ObjectId(user_id) });
+        const trends = await Insight.find({ user_id: new mongoose.Types.ObjectId(user_id) });
         return res.status(200).json({ trends });
     } catch (error) {
         console.error(error);
@@ -114,7 +113,7 @@ export const getSentimentTrends = async (req, res) => {
 export const getSentimentTrendsByJournalId = async (req, res) => {
     const { journal_id } = req.params;
     try {
-        const trend = await AiInsight.findOne({ journal_entry_id: journal_id });
+        const trend = await Insight.findOne({ journal_entry_id: journal_id });
 
         if (!trend) {
             throw new AppError("Trend not found", 404);
@@ -129,22 +128,26 @@ export const getSentimentTrendsByJournalId = async (req, res) => {
 
 
 export const getOverallSentiment = async (req, res) => {
+    const { user_id } = req.cookies;
+
     try {
-        const overallSentiment = await AiInsight.aggregate([
+        const overallSentiment = await Insight.aggregate([
             {
                 $match: {
-                    user_id: new mongoose.Types.ObjectId(req.cookies.user_id),
+                    user_id: new mongoose.Types.ObjectId(user_id),
                 },
             },
             {
                 $group: {
-                    _id: null, // Grouping by null to get overall sentiment
-                    averageSentiment: { $avg: '$sentiment_score' },
+                    _id: null, // Group all entries together
+                    averageSentiment: { $avg: '$sentiment.score' }, // ✅ updated path
                 },
             },
         ]);
 
-        return res.status(200).json({ overallSentiment: overallSentiment[0]?.averageSentiment * 100 || 0 });
+        return res.status(200).json({
+            overallSentiment: overallSentiment[0]?.averageSentiment * 100 || 0, // return as percentage
+        });
     } catch (error) {
         console.error(error);
         throw new AppError("Internal Server Error", 500);
@@ -153,7 +156,7 @@ export const getOverallSentiment = async (req, res) => {
 
 
 export const getKeyThemesByPeriod = async (req, res) => {
-    try {
+  try {
     const { user_id } = req.cookies; // or req.user._id depending on your auth setup
     const { period = "all" } = req.params;
     const { limit = 10 } = req.query;
@@ -166,13 +169,16 @@ export const getKeyThemesByPeriod = async (req, res) => {
 
       switch (period) {
         case "week":
-          startDate = new Date(now.setDate(now.getDate() - 7));
+          startDate = new Date();
+          startDate.setDate(startDate.getDate() - 7);
           break;
         case "month":
-          startDate = new Date(now.setMonth(now.getMonth() - 1));
+          startDate = new Date();
+          startDate.setMonth(startDate.getMonth() - 1);
           break;
         case "year":
-          startDate = new Date(now.setFullYear(now.getFullYear() - 1));
+          startDate = new Date();
+          startDate.setFullYear(startDate.getFullYear() - 1);
           break;
         default:
           startDate = null;
@@ -183,35 +189,35 @@ export const getKeyThemesByPeriod = async (req, res) => {
       }
     }
 
-    const themes = await AiInsight.aggregate([
+    const themes = await Insight.aggregate([
       {
         $match: {
           user_id: new mongoose.Types.ObjectId(user_id),
-          ...dateFilter
-        }
+          ...dateFilter,
+        },
       },
-      { $unwind: "$key_themes" }, // break out array
+      { $unwind: "$themes_topics" }, // flatten array
       {
         $group: {
-          _id: "$key_themes.theme",
-          totalScore: { $sum: "$key_themes.score" },
-        }
+          _id: "$themes_topics",
+          count: { $sum: 1 }, // frequency of each theme
+        },
       },
-      { $sort: { totalScore: -1 } },
+      { $sort: { count: -1 } },
       { $limit: parseInt(limit) },
       {
         $project: {
           _id: 0,
           theme: "$_id",
-          score: "$totalScore"
-        }
-      }
+          frequency: "$count",
+        },
+      },
     ]);
 
     res.status(200).json({
       user_id,
       period,
-      top_themes: themes
+      top_themes: themes,
     });
   } catch (error) {
     console.error("Error fetching top themes:", error);
