@@ -129,7 +129,7 @@ export function Trends() {
             <ResponsiveContainer width="100%" height={750}>
               <BarChart layout="vertical" data={topThemesTrends.top_themes} margin={{ top: 20, right: 30, left: 120, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" label={{ value: "Score", position: "bottom", offset: 10, fill: "var(--primary)" }} />
+                <XAxis type="number" label={{ value: "frequency", position: "bottom", offset: 10, fill: "var(--primary)" }} />
                 <YAxis type="category" dataKey="theme" label={{ value: "Key Theme", angle: -90, position: "insideLeft", offset: -75, fill: "var(--primary)" }} />
                 <Tooltip
                   contentStyle={{
@@ -138,11 +138,11 @@ export function Trends() {
                     borderRadius: "8px",
                     color: "var(--primary)"               // text color
                   }}
-                  itemStyle={{ color: "var(--accent)" }}  // score text color
+                  itemStyle={{ color: "var(--accent)" }}  // frequency text color
                   labelStyle={{ color: "var(--primary)" }} // theme label color
                 />
                 <Legend verticalAlign="top" align="center" height={40} fill="var(--primary)" />
-                <Bar dataKey="score" name="Score" fill="var(--primary)" />
+                <Bar dataKey="frequency" name="frequency" fill="var(--primary)" />
               </BarChart>
             </ResponsiveContainer>
           ) : (
