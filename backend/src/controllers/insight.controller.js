@@ -110,7 +110,7 @@ export const getSentimentTrends = async (req, res) => {
 };
 
 
-export const getSentimentTrendsByJournalId = async (req, res) => {
+export const getTrendsByJournalId = async (req, res) => {
     const { journal_id } = req.params;
     try {
         const trend = await Insight.findOne({ journal_entry_id: journal_id });
