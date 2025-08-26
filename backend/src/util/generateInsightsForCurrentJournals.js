@@ -11,40 +11,32 @@ async function generateInsightsForCurrentJournals() {
         console.log("Fetched Journal Entries count:", entries.length);
         if (entries) {
             for (const [index, entry] of entries.entries()) {
-                console.log(`Generating insights for entry ${index + 1}/${entries.length}`);
-                const result = await generateInsights(entry.content);
-                insights.push(result);
+                if (index % 5 === 0) await new Promise(resolve => setTimeout(resolve, 10 * 1000)); // Throttle requests
+                console.log(`Generating insights for entry ${index + 1}/${entries.length} - id - ${entry._id}`);
+                const insight = await generateInsights(entry.content);
+                await addInsightsToInsightsCollections(entry, insight, index, entries.length);
             }
         }
-
-        return {
-            entries,
-            insights
-        };
     } catch (error) {
         console.error("Error generating insights for current journals:", error);
     }
 }
 
-async function addInsightsToInsightsCollections() {
+async function addInsightsToInsightsCollections(entry, insight, index, count) {
     try {
-        const { entries, insights } = await generateInsightsForCurrentJournals();
-
-        for (const [index, insight] of insights.entries()) {
-            const data = {
-                user_id: entries[index].user_id,
-                journal_entry_id: entries[index]._id,
-                processed_at: entries[index].entry_date,
-                ...insight
-            };
-            const newInsight = new Insights(data);
-            await newInsight.save();
-            console.log(`Insight saved of ${index + 1}/${insights.length}`);
-        }
+        const data = {
+            user_id: entry.user_id,
+            journal_entry_id: entry._id,
+            processed_at: entry.entry_date,
+            ...insight
+        };
+        const newInsight = new Insights(data);
+        await newInsight.save();
+        console.log(`Insight saved of ${index + 1}/${count}`);
     } catch (error) {
         console.error("Error adding insights to the collection:", error);
     }
 }
 
 await connectDB();
-await addInsightsToInsightsCollections();
+await generateInsightsForCurrentJournals();

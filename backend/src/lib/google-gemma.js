@@ -1,6 +1,5 @@
 // Load environment variables from .env file
 import 'dotenv/config';
-import { prompt } from '../util/prompts/iinsights.prompt.js';
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
@@ -16,6 +15,6 @@ if (!API_KEY) {
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 // For text-only input, use the gemma-3-12b-it model
-const model = genAI.getGenerativeModel({ model: 'gemma-3-12b-it' });
+const model = genAI.getGenerativeModel({ model: 'gemma-3-27b-it' });
 
 export default model;
