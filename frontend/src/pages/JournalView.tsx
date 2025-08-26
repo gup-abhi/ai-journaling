@@ -8,7 +8,7 @@ import moment from 'moment'
 import { Loader } from '@/components/Loader'
 import { Badge } from '@/components/ui/badge'
 import type { JournalTemplate } from '@/types/JournalTemplate.type'
-import type { LanguageComplexity, Sentiment, Trend } from '@/types/Trend.type'
+import type { Trend } from '@/types/Trend.type'
 
 type JournalEntry = {
   _id: string
@@ -18,6 +18,16 @@ type JournalEntry = {
   template_id?: string
 }
 
+const health_wellbeing_mapping: { [key: string]: string } = {
+  physical_health: "Physical Health",
+  sleep: "Sleep",
+  energy_level: "Energy Level",
+  diet: "Diet",
+  exercise: "Exercise",
+  mental_health: "Mental Health",
+  emotional_wellbeing: "Emotional Wellbeing"
+}
+
 export function JournalView() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -25,17 +35,7 @@ export function JournalView() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [template, setTemplate] = useState<JournalTemplate | null>(null)
-  const [keyThemes, setKeyThemes] = useState<string[]>([])
-  const [sentiment, setSentiment] = useState<Sentiment | null>(null);
-  const [summary, setSummary] = useState<string | null>(null);
-  const [patterns, setPatterns] = useState<any | null>(null);
-  const [entities, setEntities] = useState<any | null>(null);
-  const [goalAspirations, setGoalAspirations] = useState<string[]>([]);
-  const [stressTriggers, setStressTriggers] = useState<string[]>([]);
-  const [relationshipSocialDynamics, setRelationshipSocialDynamics] = useState<string[]>([]);
-  const [healthWellbeing, setHealthWellbeing] = useState<string[]>([]);
-  const [creativityReflection, setCreativityReflection] = useState<string[]>([]);
-  const [languageComplexity, setLanguageComplexity] = useState<LanguageComplexity | null>(null);
+  const [trend, setTrend] = useState<Trend | null>(null)
   const [noInsights, setNoInsights] = useState(false);
 
   const fetchJournalSentiment = async (journalId: string) => {
@@ -43,42 +43,15 @@ export function JournalView() {
       const response = await safeRequest(api.get<Trend>(`/ai-insights/trends/journal/${journalId}`));
 
       if (response.ok && response.data) {
-        setKeyThemes(response.data.themes_topics);
-        setSentiment(response.data.sentiment);
-        setSummary(response.data.summary);
-        setPatterns(response.data.patterns);
-        setEntities(response.data.entities);
-        setGoalAspirations(response.data.goals_aspirations);
-        setStressTriggers(response.data.stressors_triggers);
-        setRelationshipSocialDynamics(response.data.relationships_social_dynamics);
-        setHealthWellbeing(response.data.health_wellbeing);
-        setCreativityReflection(response.data.creativity_expression);
-        setLanguageComplexity(response.data.language_complexity);
+        setTrend(response.data)
       } else {
         setNoInsights(true);
-        clearData();
       }
     } catch (error) {
       console.error("Error fetching journal sentiment:", error);
       setNoInsights(true);
-      clearData();
     }
   };
-
-  const clearData = () => {
-      setKeyThemes([]);
-      setSentiment(null);
-      setSummary(null);
-      setPatterns(null);
-      setEntities(null);
-      setGoalAspirations([]);
-      setStressTriggers([]);
-      setRelationshipSocialDynamics([]);
-      setHealthWellbeing([]);
-      setCreativityReflection([]);
-      setLanguageComplexity(null);  
-  }
-
 
   useEffect(() => {
     const fetchEntry = async () => {
@@ -108,6 +81,20 @@ export function JournalView() {
     if (label === 'positive') return <Smile className="h-4 w-4 text-green-500" />
     if (label === 'negative') return <Frown className="h-4 w-4 text-red-500" />
     if (label === 'neutral') return <Meh className="h-4 w-4 text-yellow-500" />
+  }
+
+  const getSentimentColorClass = (label: string) => {
+    if (label === 'positive') return 'text-green-500'
+    if (label === 'negative') return 'text-red-500'
+    if (label === 'neutral') return 'text-yellow-500'
+    return ''
+  }
+
+  const getIntensityColorClass = (label: string) => {
+    if (label === 'high') return 'text-red-500'
+    if (label === 'medium') return 'text-yellow-500'
+    if (label === 'low') return 'text-green-500'
+    return ''
   }
 
   if (isLoading) {
@@ -151,10 +138,10 @@ export function JournalView() {
                     <span className="text-sm text-muted-foreground">{formattedDate}</span>
                   </div>
                   <div className="flex items-center gap-4">
-                    {sentiment && (
+                    {trend && trend.sentiment && (
                       <Badge variant="outline" className="flex items-center gap-2">
-                        {getSentimentIcon(sentiment.overall)}
-                        <span>{sentiment.overall} ({((sentiment.score * 100).toFixed(2))}%)</span>
+                        {getSentimentIcon(trend.sentiment.overall)}
+                        <span>{trend.sentiment.overall} ({((trend.sentiment.score * 100).toFixed(2))}%)</span>
                       </Badge>
                     )}
                     <span className="text-sm text-muted-foreground">{entry.word_count} words</span>
@@ -204,74 +191,91 @@ export function JournalView() {
               <CardContent>
                 {noInsights && (
                   <div className="text-center text-muted-foreground">
-                    <p>No AI insights available for this entry yet. Check back in few minutes.</p>
+                    <p>No AI insights available for this entry yet. Check back in a few minutes.</p>
                   </div>
                 )}
-                {summary && (
+                {trend && trend.summary && (
                   <div className="text-md whitespace-pre-wrap mt-4">
                     <h4 className='text-accent'>Summarized:</h4>
-                    <p className='text-muted-foreground'>{summary}</p>
+                    <p className='text-muted-foreground'>{trend.summary}</p>
                   </div>
                 )}
 
-                {sentiment && sentiment.acknowledgement && (
+                {trend && trend.sentiment && trend.sentiment.acknowledgement && (
                   <div className="text-md whitespace-pre-wrap mt-4">
                     <h4 className='text-accent'>Compassionate Note:</h4>
-                    <p className='text-muted-foreground'>{sentiment.acknowledgement}</p>
+                    <p className='text-muted-foreground'>{trend.sentiment.acknowledgement}</p>
                   </div>
                 )}
 
-                {keyThemes.length > 0 && (
+                {trend && trend.sentiment && trend.sentiment.emotions && trend.sentiment.emotions.length > 0 && (
+                  <div className="text-md whitespace-pre-wrap mt-4">
+                    <h4 className='text-accent'>Emotions:</h4>
+                    <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                      {trend.sentiment.emotions.map((emotion, index) => (
+                        <li key={index}>
+                          <span className="text-foreground">{emotion.emotion}</span>
+                          <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                            <li>Intensity: <span className={getIntensityColorClass(emotion.intensity)}>{emotion.intensity}</span></li>
+                            <li>Trigger: {emotion.trigger}</li>
+                          </ul>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {trend && trend.themes_topics && trend.themes_topics.length > 0 && (
                   <div className="mt-4">
                     <h4 className="text-accent">Key Themes:</h4>
                     <div className="flex flex-wrap gap-2">
-                      {keyThemes.map((theme, index) => (
+                      {trend.themes_topics.map((theme, index) => (
                         <Badge
                           variant="outline"
-                          className="h-10 bg-accent-background text-muted-foreground text-sm"
+                          className={`h-10 bg-accent-background text-muted-foreground text-sm font-extrabold`}
                           key={index}
                         >
-                          {theme}
+                          {theme.theme} <span className={`ml-2 ${getSentimentColorClass(theme.sentiment_towards_theme)}`}> ({theme.sentiment_towards_theme})</span>
                         </Badge>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {patterns && (
+                {trend && trend.patterns && (
                   <div className="text-md whitespace-pre-wrap mt-4">
                     <h4 className="text-accent">
                       Pattern:
                     </h4>
                     <div className="ml-4">
-                      {patterns && patterns.behavioral && patterns.behavioral.length > 0 && (
+                      {trend.patterns.behavioral && trend.patterns.behavioral.length > 0 && (
                         <>
                           <h4 className='text-accent'>Behavioral Patterns:</h4>
                           <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
-                            {patterns.behavioral.map((pattern: string, index: number) => (
-                              <li key={index}>{pattern}</li>
+                            {trend.patterns.behavioral.map((pattern, index) => (
+                              <li key={index}>{pattern.pattern} ({pattern.frequency_indicator})</li>
                             ))}
                           </ul>
                         </>
                       )}
 
-                      {patterns && patterns.cognitive && patterns.cognitive.length > 0 && (
+                      {trend.patterns.cognitive && trend.patterns.cognitive.length > 0 && (
                         <>
                           <h4 className='text-accent'>Cognitive Patterns:</h4>
                           <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
-                            {patterns.cognitive.map((pattern: string, index: number) => (
-                              <li key={index}>{pattern}</li>
+                            {trend.patterns.cognitive.map((pattern, index) => (
+                              <li key={index}>{pattern.pattern} - "{pattern.example_phrase}"</li>
                             ))}
                           </ul>
                         </>
                       )}
 
-                      {patterns && patterns.temporal && patterns.temporal.length > 0 && (
+                      {trend.patterns.temporal && trend.patterns.temporal.length > 0 && (
                         <>
                           <h4 className='text-accent'>Temporal Patterns:</h4>
                           <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
-                            {patterns.temporal.map((pattern: string, index: number) => (
-                              <li key={index}>{pattern}</li>
+                            {trend.patterns.temporal.map((pattern, index) => (
+                              <li key={index}>{pattern.pattern} ({pattern.associated_time_period})</li>
                             ))}
                           </ul>
                         </>
@@ -280,145 +284,136 @@ export function JournalView() {
                   </div>
                 )}
 
-                {entities && (entities.people.length !== 0 || entities.organizations.length !== 0 || entities.locations.length !== 0 || entities.events.length !== 0 || entities.products.length !== 0) && (
+                {trend && trend.entities && (trend.entities.people.length > 0 || trend.entities.organizations.length > 0 || trend.entities.locations.length > 0 || trend.entities.events.length > 0 || trend.entities.products.length > 0) && (
                   <div className="text-md whitespace-pre-wrap mt-4">
                     <h4 className='text-accent'>Entities:</h4>
                     <div className="ml-4">
-                      {entities.people.length > 0 && (
+                      {trend.entities.people.length > 0 && (
                         <>
                           <h5 className='text-accent ml-4'>People:</h5>
-                          {/* <ul className="list-disc list-inside space-y-1 text-muted-foreground"> */}
-                            {entities.people.map((entity: string, index: number) => (
+                            {trend.entities.people.map((entity, index) => (
                               <Badge key={index} variant="outline"
                                   className="h-10 bg-accent-background text-muted-foreground text-sm">
-                                    {entity}
+                                    {entity.name} ({entity.sentiment})
                               </Badge>
                             ))}
-                          {/* </ul> */}
                         </>
                       )}
 
-                      {entities.organizations.length > 0 && (
+                      {trend.entities.organizations.length > 0 && (
                         <>
                           <h5 className='text-accent'>Organizations:</h5>
-                          {/* <ul className="list-disc list-inside space-y-1 text-muted-foreground"> */}
-                            {entities.organizations.map((entity: string, index: number) => (
+                            {trend.entities.organizations.map((entity, index) => (
                               <Badge key={index} variant="outline"
                                 className="h-10 bg-accent-background text-muted-foreground text-sm">
-                                  {entity}
+                                  {entity.name} ({entity.sentiment})
                               </Badge>
                             ))}
-                          {/* </ul> */}
                         </>
                       )}
 
-                      {entities.locations.length > 0 && (
+                      {trend.entities.locations.length > 0 && (
                         <>
                           <h5 className='text-foreground'>Locations:</h5>
-                          {/* <ul className="list-disc list-inside space-y-1 text-muted-foreground"> */}
-                            {entities.locations.map((entity: string, index: number) => (
+                            {trend.entities.locations.map((entity, index) => (
                               <Badge key={index} variant="outline"
                                 className="h-10 bg-accent-background text-muted-foreground text-sm">
-                                  {entity}
+                                  {entity.name} ({entity.sentiment})
                               </Badge>
                             ))}
-                          {/* </ul> */}
                         </>
                       )}
 
-                      {entities.events.length > 0 && (
+                      {trend.entities.events.length > 0 && (
                         <>
                           <h5 className='text-foreground'>Events:</h5>
-                          {/* <ul className="list-disc list-inside space-y-1 text-muted-foreground"> */}
-                            {entities.events.map((entity: string, index: number) => (
+                            {trend.entities.events.map((entity, index) => (
                               <Badge key={index} variant="outline"
                                 className="h-10 bg-accent-background text-muted-foreground text-sm">
-                                  {entity}
+                                  {entity.name} ({entity.sentiment})
                               </Badge>
                             ))}
-                          {/* </ul> */}
                         </>
                       )}
 
-                      {entities.products.length > 0 && (
+                      {trend.entities.products.length > 0 && (
                         <>
                           <h5 className='text-foreground'>Products:</h5>
-                          {/* <ul className="list-disc list-inside space-y-1 text-muted-foreground"> */}
-                            {entities.products.map((entity: string, index: number) => (
+                            {trend.entities.products.map((entity, index) => (
                               <Badge key={index} variant="outline"
                                 className="h-10 bg-accent-background text-muted-foreground text-sm">
-                                  {entity}
+                                  {entity.name} ({entity.sentiment})
                               </Badge>
                             ))}
-                          {/* </ul> */}
                         </>
                       )}
                     </div>
                   </div>
                 )}
 
-                {goalAspirations.length > 0 && (
+                {trend && trend.goals_aspirations && trend.goals_aspirations.length > 0 && (
                   <div className="text-md whitespace-pre-wrap mt-4">
                     <h4 className='text-accent'>Goals & Aspirations:</h4>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
-                      {goalAspirations.map((goal: string, index: number) => (
-                        <li key={index}>{goal}</li>
+                      {trend.goals_aspirations.map((goal, index) => (
+                        <li key={index}>
+                          <span className="text-foreground">{goal.goal}</span>
+                          <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                            <li>Status: {goal.status}</li>
+                            <li>Progress: {goal.progress_indicator}</li>
+                          </ul>
+                        </li>
                       ))}
                     </ul>
                   </div>
                 )}
 
-                {stressTriggers.length > 0 && (
+                {trend && trend.stressors_triggers && trend.stressors_triggers.length > 0 && (
                   <div className="text-md whitespace-pre-wrap mt-4">
                     <h4 className='text-accent'>Stressors & Triggers:</h4>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
-                      {stressTriggers.map((trigger: string, index: number) => (
-                        <li key={index}>{trigger}</li>
+                      {trend.stressors_triggers.map((trigger, index) => (
+                        <li key={index}>
+                          <span className="text-foreground">{trigger.trigger}</span>
+                          <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                            <li>Impact: {trigger.impact_level}</li>
+                            <li>Coping: {trigger.coping_mechanism_mentioned}</li>
+                          </ul>
+                        </li>
                       ))}
                     </ul>
                   </div>
                 )}
 
-                {relationshipSocialDynamics.length > 0 && (
+                {trend && trend.relationships_social_dynamics && trend.relationships_social_dynamics.length > 0 && (
                   <div className="text-md whitespace-pre-wrap mt-4">
                     <h4 className='text-accent'>Relationships & Social Dynamics:</h4>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
-                      {relationshipSocialDynamics.map((relationship: string, index: number) => (
-                        <li key={index}>{relationship}</li>
+                      {trend.relationships_social_dynamics.map((relationship, index) => (
+                        <li key={index}>{relationship.person_or_group}: {relationship.interaction_summary} ({relationship.emotional_tone})</li>
                       ))}
                     </ul>
                   </div>
                 )}
 
-                {healthWellbeing.length > 0 && (
+                {trend && trend.health_wellbeing && trend.health_wellbeing.length > 0 && (
                   <div className="text-md whitespace-pre-wrap mt-4">
                     <h4 className='text-accent'>Health & Wellbeing:</h4>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
-                      {healthWellbeing.map((health: string, index: number) => (
-                        <li key={index}>{health}</li>
+                      {trend.health_wellbeing.map((health, index) => (
+                        <li key={index}><span className="text-foreground">{health_wellbeing_mapping[health.aspect]}</span>: {health.status_or_change} (Mood Impact: {health.impact_on_mood})</li>
                       ))}
                     </ul>
                   </div>
                 )}
 
-                {creativityReflection.length > 0 && (
+                {trend && trend.creativity_expression && (
                   <div className="text-md whitespace-pre-wrap mt-4">
-                    <h4 className='text-accent'>Creativity Reflection:</h4>
+                    <h4 className='text-accent'>Creativity & Expression:</h4>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
-                      {creativityReflection.map((reflection: string, index: number) => (
-                        <li key={index}>{reflection}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {languageComplexity && (
-                  <div className="text-md whitespace-pre-wrap mt-4">
-                    <h4 className='text-accent'>Language Complexity:</h4>
-                    <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
-                      <li className='text-foreground'>Readability: <span className="text-muted-foreground">{languageComplexity.readability}</span></li>
-                      <li className='text-foreground'>Vocabulary Richness: <span className="text-muted-foreground">{languageComplexity.vocabulary_richness}</span></li>
-                      <li className='text-foreground'>Writing Style: <span className="text-muted-foreground">{languageComplexity.writing_style}</span></li>
+                      <li>Readability: {trend.creativity_expression.readability}</li>
+                      <li>Vocabulary Richness: {trend.creativity_expression.vocabulary_richness}</li>
+                      <li>Writing Style: {trend.creativity_expression.writing_style}</li>
                     </ul>
                   </div>
                 )}
