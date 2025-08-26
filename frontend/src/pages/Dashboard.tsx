@@ -5,7 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/card
 import { Badge } from '../components/ui/badge'
 import { Mic, PenTool, Brain, TrendingUp, Calendar, TrendingDown } from 'lucide-react'
 import { useJournalStore } from '@/stores/journal.store'
-import type { JournalEntry } from '@/types/JournalEntry'
+import type { JournalEntry } from '@/types/JournalEntry.type'
 import { useAiInsightStore } from '@/stores/ai-insight.store'
 import { useGoalStore } from '@/stores/goal.store'
 

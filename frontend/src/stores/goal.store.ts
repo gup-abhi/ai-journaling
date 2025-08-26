@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { api, safeRequest } from '@/lib/api';
-import type { Goal } from '@/types/Goal';
+import type { Goal } from '@/types/Goal.type';
 import toast from 'react-hot-toast';
 
 interface GoalStore {

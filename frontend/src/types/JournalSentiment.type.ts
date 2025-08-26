@@ -1,4 +1,4 @@
-import type { KeyTheme } from "./KeyTheme";
+import type { KeyTheme } from "./KeyTheme.type";
 
 export type JournalSentiment = {
     sentiment_score: number;

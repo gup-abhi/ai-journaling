@@ -1,8 +1,8 @@
 import { create } from 'zustand'
 import { api, safeRequest } from '@/lib/api'
-import type { JournalEntry } from '@/types/JournalEntry'
+import type { JournalEntry } from '@/types/JournalEntry.type'
 import toast from 'react-hot-toast'
-import type { JournalTemplate } from '@/types/JournalTemplate'
+import type { JournalTemplate } from '@/types/JournalTemplate.type'
 
 interface JournalStore {
   journalEntries: JournalEntry[];

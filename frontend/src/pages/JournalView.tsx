@@ -1,16 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api, safeRequest } from '@/lib/api'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Calendar, Smile, Frown, Meh } from 'lucide-react'
 import moment from 'moment'
 import { Loader } from '@/components/Loader'
 import { Badge } from '@/components/ui/badge'
-import * as Tooltip from '@radix-ui/react-tooltip'
-import type { JournalTemplate } from '@/types/JournalTemplate'
-import type { JournalSentiment } from '@/types/JournalSentiment'
-import type { KeyTheme } from '@/types/KeyTheme'
+import type { JournalTemplate } from '@/types/JournalTemplate.type'
+import type { LanguageComplexity, Sentiment, Trend } from '@/types/Trend.type'
 
 type JournalEntry = {
   _id: string
@@ -27,26 +25,59 @@ export function JournalView() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [template, setTemplate] = useState<JournalTemplate | null>(null)
-  const [journalSentiment, setJournalSentiment] = useState<JournalSentiment | null>(null)
-  const [keyThemes, setKeyThemes] = useState<KeyTheme[]>([])
+  const [trend, setTrend] = useState<Trend | null>(null)
+  const [keyThemes, setKeyThemes] = useState<string[]>([])
+  const [sentiment, setSentiment] = useState<Sentiment | null>(null);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [patterns, setPatterns] = useState<any | null>(null);
+  const [entities, setEntities] = useState<any | null>(null);
+  const [goalAspirations, setGoalAspirations] = useState<string[]>([]);
+  const [stressTriggers, setStressTriggers] = useState<string[]>([]);
+  const [relationshipSocialDynamics, setRelationshipSocialDynamics] = useState<string[]>([]);
+  const [healthWellbeing, setHealthWellbeing] = useState<string[]>([]);
+  const [creativityReflection, setCreativityReflection] = useState<string[]>([]);
+  const [languageComplexity, setLanguageComplexity] = useState<LanguageComplexity | null>(null);
 
   const fetchJournalSentiment = async (journalId: string) => {
     try {
-      const response = await safeRequest(api.get<JournalSentiment>(`/ai-insights/trends/journal/${journalId}`));
+      const response = await safeRequest(api.get<Trend>(`/ai-insights/trends/journal/${journalId}`));
 
       if (response.ok && response.data) {
-        setJournalSentiment(response.data);
-        setKeyThemes(response.data.key_themes ?? []);
+        setTrend(response.data);
+        setKeyThemes(response.data.themes_topics);
+        setSentiment(response.data.sentiment);
+        setSummary(response.data.summary);
+        setPatterns(response.data.patterns);
+        setEntities(response.data.entities);
+        setGoalAspirations(response.data.goals_aspirations);
+        setStressTriggers(response.data.stressors_triggers);
+        setRelationshipSocialDynamics(response.data.relationships_social_dynamics);
+        setHealthWellbeing(response.data.health_wellbeing);
+        setCreativityReflection(response.data.creativity_expression);
+        setLanguageComplexity(response.data.language_complexity);
       } else {
-        setJournalSentiment(null);
-        setKeyThemes([]);
+        clearData();
       }
     } catch (error) {
       console.error("Error fetching journal sentiment:", error);
-      setJournalSentiment(null);
-      setKeyThemes([]);
+      clearData();
     }
   };
+
+  const clearData = () => {
+      setTrend(null);
+      setKeyThemes([]);
+      setSentiment(null);
+      setSummary(null);
+      setPatterns(null);
+      setEntities(null);
+      setGoalAspirations([]);
+      setStressTriggers([]);
+      setRelationshipSocialDynamics([]);
+      setHealthWellbeing([]);
+      setCreativityReflection([]);
+      setLanguageComplexity(null);  
+  }
 
 
   useEffect(() => {
@@ -105,95 +136,279 @@ export function JournalView() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 py-10">
-      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <Button variant="outline" onClick={() => navigate("/journals")} className="mb-6">
           Go Back
         </Button>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">{formattedDate}</span>
-              </div>
-              <div className="flex items-center gap-4">
-                {journalSentiment && (
-                  <Badge variant="outline" className="flex items-center gap-2">
-                    {getSentimentIcon(journalSentiment.sentiment_label)}
-                    <span>{journalSentiment.sentiment_label} ({((journalSentiment.sentiment_score * 100).toFixed(2))}%)</span>
-                  </Badge>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">{formattedDate}</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    {sentiment && (
+                      <Badge variant="outline" className="flex items-center gap-2">
+                        {getSentimentIcon(sentiment.overall)}
+                        <span>{sentiment.overall} ({((sentiment.score * 100).toFixed(2))}%)</span>
+                      </Badge>
+                    )}
+                    <span className="text-sm text-muted-foreground">{entry.word_count} words</span>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {template && (
+                  <div className="mb-4 p-4 border rounded-md bg-muted/50">
+                    <h2 className="text-xl font-semibold mb-2">Template: {template.name}</h2>
+                    {template.prompts && template.prompts.length > 0 && (
+                      <div className="mb-4">
+                        <h3 className="text-lg font-medium mb-1">Prompts:</h3>
+                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                          {template.prompts.map((prompt, index) => (
+                            <li key={index}>{prompt}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {template.benefits && template.benefits.length > 0 && (
+                      <div className="mb-4">
+                        <h3 className="text-lg font-medium mb-1">Benefits:</h3>
+                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                          {template.benefits.map((benefit, index) => (
+                            <li key={index}>{benefit}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
                 )}
-                <span className="text-sm text-muted-foreground">{entry.word_count} words</span>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {template && (
-              <div className="mb-4 p-4 border rounded-md bg-muted/50">
-                <h2 className="text-xl font-semibold mb-2">Template: {template.name}</h2>
-                {template.prompts && template.prompts.length > 0 && (
-                  <div className="mb-4">
-                    <h3 className="text-lg font-medium mb-1">Prompts:</h3>
-                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                      {template.prompts.map((prompt, index) => (
-                        <li key={index}>{prompt}</li>
+                <h3 className="text-lg text-accent font-bold mb-3">Journal Entry:</h3>
+                <p className="text-foreground leading-relaxed whitespace-pre-wrap">
+                  {entry.content}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="lg:col-span-1">
+            <Card>
+              <CardHeader>
+                <h2 className="text-lg text-accent font-bold text-center">AI Insights</h2>
+              </CardHeader>
+              <CardContent>
+                {summary && (
+                  <div className="text-md whitespace-pre-wrap mt-4">
+                    <h4 className='text-accent'>Summarized:</h4>
+                    <p className='text-muted-foreground'>{summary}</p>
+                  </div>
+                )}
+
+                {sentiment && sentiment.acknowledgement && (
+                  <div className="text-md whitespace-pre-wrap mt-4">
+                    <h4 className='text-accent'>Compassionate Note:</h4>
+                    <p className='text-muted-foreground'>{sentiment.acknowledgement}</p>
+                  </div>
+                )}
+
+                {keyThemes.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-accent">Key Themes:</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {keyThemes.map((theme, index) => (
+                        <Badge
+                          variant="secondary"
+                          className="h-10 bg-accent-background text-muted-foreground text-sm"
+                          key={index}
+                        >
+                          {theme}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {patterns && (
+                  <div className="text-md whitespace-pre-wrap mt-4">
+                    <h4 className="text-accent">
+                      Pattern:
+                    </h4>
+                    <div className="ml-4">
+                      <h4 className='text-accent'>Behavioral Patterns:</h4>
+                      <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                        {patterns.behavioral.map((pattern: string, index: number) => (
+                          <li key={index}>{pattern}</li>
+                        ))}
+                      </ul>
+
+                      <h4 className='text-accent'>Cognitive Patterns:</h4>
+                      <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                        {patterns.cognitive.map((pattern: string, index: number) => (
+                          <li key={index}>{pattern}</li>
+                        ))}
+                      </ul>
+
+                      <h4 className='text-accent'>Temporal Patterns:</h4>
+                      <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                        {patterns.temporal.map((pattern: string, index: number) => (
+                          <li key={index}>{pattern}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+
+                {entities && (
+                  <div className="text-md whitespace-pre-wrap mt-4">
+                    <h4 className='text-accent'>Entities:</h4>
+                    <div className="ml-4">
+                      {entities.people.length > 0 && (
+                        <>
+                          <h5 className='text-accent ml-4'>People:</h5>
+                          <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                            {entities.people.map((entity: string, index: number) => (
+                              <Badge key={index} variant="secondary"
+                                  className="h-10 bg-accent-background text-muted-foreground text-sm">
+                                    {entity}
+                              </Badge>
+                            ))}
+                          </ul>
+                        </>
+                      )}
+
+                      {entities.organizations.length > 0 && (
+                        <>
+                          <h5 className='text-accent'>Organizations:</h5>
+                          <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                            {entities.organizations.map((entity: string, index: number) => (
+                              <Badge key={index} variant="secondary"
+                                className="h-10 bg-accent-background text-muted-foreground text-sm">
+                                  {entity}
+                              </Badge>
+                            ))}
+                          </ul>
+                        </>
+                      )}
+
+                      {entities.locations.length > 0 && (
+                        <>
+                          <h5 className='text-foreground'>Locations:</h5>
+                          <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                            {entities.locations.map((entity: string, index: number) => (
+                              <Badge key={index} variant="secondary"
+                                className="h-10 bg-accent-background text-muted-foreground text-sm">
+                                  {entity}
+                              </Badge>
+                            ))}
+                          </ul>
+                        </>
+                      )}
+
+                      {entities.events.length > 0 && (
+                        <>
+                          <h5 className='text-foreground'>Events:</h5>
+                          <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                            {entities.events.map((entity: string, index: number) => (
+                              <Badge key={index} variant="secondary"
+                                className="h-10 bg-accent-background text-muted-foreground text-sm">
+                                  {entity}
+                              </Badge>
+                            ))}
+                          </ul>
+                        </>
+                      )}
+
+                      {entities.products.length > 0 && (
+                        <>
+                          <h5 className='text-foreground'>Products:</h5>
+                          <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                            {entities.products.map((entity: string, index: number) => (
+                              <Badge key={index} variant="secondary"
+                                className="h-10 bg-accent-background text-muted-foreground text-sm">
+                                  {entity}
+                              </Badge>
+                            ))}
+                          </ul>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {goalAspirations.length > 0 && (
+                  <div className="text-md whitespace-pre-wrap mt-4">
+                    <h4 className='text-accent'>Goals & Aspirations:</h4>
+                    <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                      {goalAspirations.map((goal: string, index: number) => (
+                        <li key={index}>{goal}</li>
                       ))}
                     </ul>
                   </div>
                 )}
 
-                {template.benefits && template.benefits.length > 0 && (
-                  <div className="mb-4">
-                    <h3 className="text-lg font-medium mb-1">Benefits:</h3>
-                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                      {template.benefits.map((benefit, index) => (
-                        <li key={index}>{benefit}</li>
+                {stressTriggers.length > 0 && (
+                  <div className="text-md whitespace-pre-wrap mt-4">
+                    <h4 className='text-accent'>Stressors & Triggers:</h4>
+                    <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                      {stressTriggers.map((trigger: string, index: number) => (
+                        <li key={index}>{trigger}</li>
                       ))}
                     </ul>
                   </div>
                 )}
-              </div>
-            )}
-            <CardTitle className="text-2xl font-bold mb-4 flex items-center gap-2">
-            {keyThemes.length > 0 && (
-              <div className="mt-6">
-                <h3 className="text-lg font-bold mb-3">Key Themes:</h3>
-                <div className="flex flex-wrap gap-2">
-                  {keyThemes.map((theme, index) => (
-                    <Tooltip.Provider key={index}>
-                      <Tooltip.Root>
-                        <Tooltip.Trigger asChild>
-                          <Badge
-                            variant="outline"
-                            className={`h-10 font-extrabold bg-accent-background text-sm ${
-                              theme.sentimentLabel === 'positive'
-                                ? 'text-green-800'
-                                : theme.sentimentLabel === 'negative'
-                                ? 'text-red-800'
-                                : 'text-yellow-800'
-                            }`}
-                          >
-                            {theme.theme}
-                          </Badge>
-                        </Tooltip.Trigger>
-                        <Tooltip.Content className='bg-muted p-2 rounded-md text-accent text-sm'>
-                          <p>Sentiment: {theme.sentimentLabel}</p>
-                          <p>Score: {(theme.averageSentiment * 100).toFixed(2)}</p>
-                        </Tooltip.Content>
-                      </Tooltip.Root>
-                    </Tooltip.Provider>
-                  ))}
-                </div>
-              </div>
-            )}
-            </CardTitle>
-            <h3 className="text-lg font-bold mb-3">Journal Entry:</h3>
-            <p className="text-foreground leading-relaxed whitespace-pre-wrap">
-              {entry.content}
-            </p>
-          </CardContent>
-        </Card>
+
+                {relationshipSocialDynamics.length > 0 && (
+                  <div className="text-md whitespace-pre-wrap mt-4">
+                    <h4 className='text-accent'>Relationships & Social Dynamics:</h4>
+                    <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                      {relationshipSocialDynamics.map((relationship: string, index: number) => (
+                        <li key={index}>{relationship}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {healthWellbeing.length > 0 && (
+                  <div className="text-md whitespace-pre-wrap mt-4">
+                    <h4 className='text-accent'>Health & Wellbeing:</h4>
+                    <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                      {healthWellbeing.map((health: string, index: number) => (
+                        <li key={index}>{health}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {creativityReflection.length > 0 && (
+                  <div className="text-md whitespace-pre-wrap mt-4">
+                    <h4 className='text-accent'>Creativity Reflection:</h4>
+                    <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                      {creativityReflection.map((reflection: string, index: number) => (
+                        <li key={index}>{reflection}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {languageComplexity && (
+                  <div className="text-md whitespace-pre-wrap mt-4">
+                    <h4 className='text-accent'>Language Complexity:</h4>
+                    <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                      <li className='text-foreground'>Readability: <span className="text-muted-foreground">{languageComplexity.readability}</span></li>
+                      <li className='text-foreground'>Vocabulary Richness: <span className="text-muted-foreground">{languageComplexity.vocabulary_richness}</span></li>
+                      <li className='text-foreground'>Writing Style: <span className="text-muted-foreground">{languageComplexity.writing_style}</span></li>
+                    </ul>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   )

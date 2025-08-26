@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { useAiInsightStore } from '@/stores/ai-insight.store';
 import { useNavigate } from 'react-router-dom';
-import type { Period } from '@/types/Period';
+import type { Period } from '@/types/Period.type';
 import { Loader } from '@/components/Loader'; // Import Loader
 
 

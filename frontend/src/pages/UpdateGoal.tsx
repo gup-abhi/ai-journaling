@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useGoalStore } from '@/stores/goal.store';
-import type { Goal } from '@/types/Goal';
+import type { Goal } from '@/types/Goal.type';
 
 export function UpdateGoal() {
   const { id } = useParams<{ id: string }>();

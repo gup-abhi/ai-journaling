@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { api, safeRequest } from '@/lib/api'
-import type { SentimentTrend } from '@/types/SentimentTrends'
-import type { TopThemeTrends } from '@/types/TopThemeTrends'
+import type { SentimentTrend } from '@/types/SentimentTrends.type'
+import type { TopThemeTrends } from '@/types/TopThemeTrends.type'
 
 type AiInsightState = {
     moodTrends: number;

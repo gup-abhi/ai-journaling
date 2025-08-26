@@ -9,7 +9,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import moment from 'moment'
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'
 import { Mic, MicOff, RotateCcw } from 'lucide-react'
-import type { JournalTemplate } from '@/types/JournalTemplate'
+import type { JournalTemplate } from '@/types/JournalTemplate.type'
 import { api, safeRequest } from '@/lib/api'
 
 export function NewJournalEntry() {

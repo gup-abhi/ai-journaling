@@ -6,5 +6,5 @@ export type TopThemeTrends = {
 
 type TopTheme = {
     theme: string;
-    score: number;
+    frequency: number;
 }
