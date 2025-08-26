@@ -74,84 +74,88 @@ export function Trends() {
 
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8">
-      <Button variant="outline" onClick={() => navigate(-1)} className="mb-6">
-        Go Back
-      </Button>
-      <Card>
-        <CardHeader>
-          <CardTitle className='text-accent'>Sentiment Trends</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-end gap-2 mb-4">
-            <Button variant={period === 'week' ? 'default' : 'outline'} onClick={() => setPeriod('week')}>Weekly</Button>
-            <Button variant={period === 'month' ? 'default' : 'outline'} onClick={() => setPeriod('month')}>Monthly</Button>
-            <Button variant={period === 'year' ? 'default' : 'outline'} onClick={() => setPeriod('year')}>Yearly</Button>
-          </div>
-          {isSentimentLoading ? ( // Conditionally render Loader
-            <Loader className="h-64" />
-          ) : sentimentTrends.length > 0 ? (
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={sentimentTrends}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis domain={[-1, 1]} tickFormatter={formatYAxisTick} />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend />
-                <Line type="monotone" dataKey="sentiment" stroke="#8884d8" activeDot={{ r: 8 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex items-center justify-center h-64">
-              <p className="text-muted-foreground">No sentiment data available for this period.</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <div className="flex justify-between items-center mb-6">
+        <Button variant="outline" onClick={() => navigate(-1)}>
+          Go Back
+        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant={period === 'week' ? 'default' : 'outline'} onClick={() => setPeriod('week')}>Weekly</Button>
+          <Button variant={period === 'month' ? 'default' : 'outline'} onClick={() => setPeriod('month')}>Monthly</Button>
+          <Button variant={period === 'year' ? 'default' : 'outline'} onClick={() => setPeriod('year')}>Yearly</Button>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className='text-accent'>Sentiment Trends</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isSentimentLoading ? ( // Conditionally render Loader
+              <Loader className="h-64" />
+            ) : sentimentTrends.length > 0 ? (
+              <ResponsiveContainer width="100%" height={400}>
+                <LineChart data={sentimentTrends}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis domain={[-1, 1]} tickFormatter={formatYAxisTick} tick={{ fontSize: 12 }} label={{ value: 'Sentiment Score', angle: -90, position: 'insideLeft', offset: -20 }} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  <Line type="monotone" dataKey="sentiment" stroke="#8884d8" activeDot={{ r: 8 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-64">
+                <p className="text-muted-foreground">No sentiment data available for this period.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      <Card className="mt-6">
-        <CardHeader className="flex flex-row justify-between items-center">
-          <CardTitle className='text-accent'>Top Key Themes (Last {period.toUpperCase()})</CardTitle>
-          <Select value={String(limit)} onValueChange={(value) => setLimit(Number(value))}>
-            <SelectTrigger className="w-[100px]">
-              <SelectValue placeholder="Limit" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5">5</SelectItem>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-            </SelectContent>
-          </Select>
-        </CardHeader>
-        <CardContent>
-          {isThemesLoading ? ( // Conditionally render Loader
-            <Loader className="h-64" /> 
-          ) : topThemesTrends.top_themes.length > 0 ? (
-            <ResponsiveContainer width="100%" height={750}>
-              <BarChart layout="vertical" data={topThemesTrends.top_themes} margin={{ top: 20, right: 30, left: 120, bottom: 60 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" label={{ value: "frequency", position: "bottom", offset: 10, fill: "var(--primary)" }} />
-                <YAxis type="category" dataKey="theme" label={{ value: "Key Theme", angle: -90, position: "insideLeft", offset: -75, fill: "var(--primary)" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "var(--background)", // tooltip box background
-                    border: "1px solid var(--primary)",   // border color
-                    borderRadius: "8px",
-                    color: "var(--primary)"               // text color
-                  }}
-                  itemStyle={{ color: "var(--accent)" }}  // frequency text color
-                  labelStyle={{ color: "var(--primary)" }} // theme label color
-                />
-                <Legend verticalAlign="top" align="center" height={40} fill="var(--primary)" />
-                <Bar dataKey="frequency" name="frequency" fill="var(--primary)" />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex items-center justify-center h-64">
-              <p className="text-muted-foreground">No theme data available for this period.</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        <Card>
+          <CardHeader className="flex flex-row justify-between items-center">
+            <CardTitle className='text-accent'>Top Key Themes (Last {period.toUpperCase()})</CardTitle>
+            <Select value={String(limit)} onValueChange={(value) => setLimit(Number(value))}>
+              <SelectTrigger className="w-[100px]">
+                <SelectValue placeholder="Limit" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">5</SelectItem>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+              </SelectContent>
+            </Select>
+          </CardHeader>
+          <CardContent>
+            {isThemesLoading ? ( // Conditionally render Loader
+              <Loader className="h-64" /> 
+            ) : topThemesTrends.top_themes.length > 0 ? (
+              <ResponsiveContainer width="100%" height={750}>
+                <BarChart layout="vertical" data={topThemesTrends.top_themes} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" label={{ value: "frequency", position: "bottom", offset: 10, fill: "var(--primary)" }} />
+                  <YAxis type="category" dataKey="theme" width={150} tick={{ fontSize: 12 }} label={{ value: 'Key Theme', angle: -90, position: 'insideLeft' }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "var(--background)", // tooltip box background
+                      border: "1px solid var(--primary)",   // border color
+                      borderRadius: "8px",
+                      color: "var(--primary)"               // text color
+                    }}
+                    itemStyle={{ color: "var(--accent)" }}  // frequency text color
+                    labelStyle={{ color: "var(--primary)" }} // theme label color
+                  />
+                  <Legend verticalAlign="top" align="center" height={40} fill="var(--primary)" />
+                  <Bar dataKey="frequency" name="frequency" fill="var(--primary)" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-64">
+                <p className="text-muted-foreground">No theme data available for this period.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
