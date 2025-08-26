@@ -64,8 +64,10 @@ export function NewJournalEntry() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await addJournalEntry({ content, template_id: templateId })
-    navigate('/journals')
+    const newEntry = await addJournalEntry({ content, template_id: templateId })
+    if (newEntry) {
+      navigate(`/journals/${newEntry._id}`)
+    }
   }
 
   if (!browserSupportsSpeechRecognition) {

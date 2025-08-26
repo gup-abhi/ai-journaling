@@ -13,7 +13,7 @@ interface JournalStore {
   fetchTotalEntries: () => Promise<void>;
   fetchMonthlyEntries: () => Promise<void>;
   fetchJournalTemplates: () => Promise<void>;
-  addJournalEntry: (newEntry: { content: string, template_id: string | null }) => Promise<void>;
+  addJournalEntry: (newEntry: { content: string, template_id: string | null }) => Promise<JournalEntry | null>;
 }
 
 export const useJournalStore = create<JournalStore>((set) => ({
@@ -59,15 +59,17 @@ export const useJournalStore = create<JournalStore>((set) => ({
   },
 
   addJournalEntry: async (newEntry: { content: string, template_id: string | null }) => {
-    const response = await safeRequest(api.post('/journal', {
+    const response = await safeRequest(api.post<{ entry: JournalEntry }>('/journal', {
       content: newEntry.content,
       entry_date: new Date().toISOString(),
       template_id: newEntry.template_id
     }))
     if (response.ok) {
       toast.success('Journal entry added successfully')
+      return response.data.entry
     } else {
       toast.error('Failed to add journal entry')
+      return null
     }
   },
 }))

@@ -36,6 +36,7 @@ export function JournalView() {
   const [healthWellbeing, setHealthWellbeing] = useState<string[]>([]);
   const [creativityReflection, setCreativityReflection] = useState<string[]>([]);
   const [languageComplexity, setLanguageComplexity] = useState<LanguageComplexity | null>(null);
+  const [noInsights, setNoInsights] = useState(false);
 
   const fetchJournalSentiment = async (journalId: string) => {
     try {
@@ -54,10 +55,12 @@ export function JournalView() {
         setCreativityReflection(response.data.creativity_expression);
         setLanguageComplexity(response.data.language_complexity);
       } else {
+        setNoInsights(true);
         clearData();
       }
     } catch (error) {
       console.error("Error fetching journal sentiment:", error);
+      setNoInsights(true);
       clearData();
     }
   };
@@ -199,6 +202,11 @@ export function JournalView() {
                 <CardTitle className='text-center'>AI Insights</CardTitle>
               </CardHeader>
               <CardContent>
+                {noInsights && (
+                  <div className="text-center text-muted-foreground">
+                    <p>No AI insights available for this entry yet. Check back in few minutes.</p>
+                  </div>
+                )}
                 {summary && (
                   <div className="text-md whitespace-pre-wrap mt-4">
                     <h4 className='text-accent'>Summarized:</h4>
@@ -219,7 +227,7 @@ export function JournalView() {
                     <div className="flex flex-wrap gap-2">
                       {keyThemes.map((theme, index) => (
                         <Badge
-                          variant="secondary"
+                          variant="outline"
                           className="h-10 bg-accent-background text-muted-foreground text-sm"
                           key={index}
                         >
@@ -272,7 +280,7 @@ export function JournalView() {
                   </div>
                 )}
 
-                {entities && entities.people.length !== 0 && entities.organizations.length !== 0 && entities.locations.length !== 0 && entities.events.length !== 0 && entities.products.length !== 0 && (
+                {entities && (entities.people.length !== 0 || entities.organizations.length !== 0 || entities.locations.length !== 0 || entities.events.length !== 0 || entities.products.length !== 0) && (
                   <div className="text-md whitespace-pre-wrap mt-4">
                     <h4 className='text-accent'>Entities:</h4>
                     <div className="ml-4">
@@ -281,7 +289,7 @@ export function JournalView() {
                           <h5 className='text-accent ml-4'>People:</h5>
                           {/* <ul className="list-disc list-inside space-y-1 text-muted-foreground"> */}
                             {entities.people.map((entity: string, index: number) => (
-                              <Badge key={index} variant="secondary"
+                              <Badge key={index} variant="outline"
                                   className="h-10 bg-accent-background text-muted-foreground text-sm">
                                     {entity}
                               </Badge>
@@ -295,7 +303,7 @@ export function JournalView() {
                           <h5 className='text-accent'>Organizations:</h5>
                           {/* <ul className="list-disc list-inside space-y-1 text-muted-foreground"> */}
                             {entities.organizations.map((entity: string, index: number) => (
-                              <Badge key={index} variant="secondary"
+                              <Badge key={index} variant="outline"
                                 className="h-10 bg-accent-background text-muted-foreground text-sm">
                                   {entity}
                               </Badge>
@@ -309,7 +317,7 @@ export function JournalView() {
                           <h5 className='text-foreground'>Locations:</h5>
                           {/* <ul className="list-disc list-inside space-y-1 text-muted-foreground"> */}
                             {entities.locations.map((entity: string, index: number) => (
-                              <Badge key={index} variant="secondary"
+                              <Badge key={index} variant="outline"
                                 className="h-10 bg-accent-background text-muted-foreground text-sm">
                                   {entity}
                               </Badge>
@@ -323,7 +331,7 @@ export function JournalView() {
                           <h5 className='text-foreground'>Events:</h5>
                           {/* <ul className="list-disc list-inside space-y-1 text-muted-foreground"> */}
                             {entities.events.map((entity: string, index: number) => (
-                              <Badge key={index} variant="secondary"
+                              <Badge key={index} variant="outline"
                                 className="h-10 bg-accent-background text-muted-foreground text-sm">
                                   {entity}
                               </Badge>
@@ -337,7 +345,7 @@ export function JournalView() {
                           <h5 className='text-foreground'>Products:</h5>
                           {/* <ul className="list-disc list-inside space-y-1 text-muted-foreground"> */}
                             {entities.products.map((entity: string, index: number) => (
-                              <Badge key={index} variant="secondary"
+                              <Badge key={index} variant="outline"
                                 className="h-10 bg-accent-background text-muted-foreground text-sm">
                                   {entity}
                               </Badge>

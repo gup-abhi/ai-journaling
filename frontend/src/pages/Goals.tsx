@@ -103,7 +103,7 @@ export function Goals() {
                   variant="outline"
                   size="sm"
                   onClick={() => navigate(`/goals/${goal._id}/update`)}
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto text-accent"
                 >
                   <Pencil className="h-4 w-4 mr-2" />
                   Update
