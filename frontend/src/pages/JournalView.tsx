@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api, safeRequest } from '@/lib/api'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Calendar, Smile, Frown, Meh } from 'lucide-react'
 import moment from 'moment'
@@ -25,7 +25,6 @@ export function JournalView() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [template, setTemplate] = useState<JournalTemplate | null>(null)
-  const [trend, setTrend] = useState<Trend | null>(null)
   const [keyThemes, setKeyThemes] = useState<string[]>([])
   const [sentiment, setSentiment] = useState<Sentiment | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
@@ -43,7 +42,6 @@ export function JournalView() {
       const response = await safeRequest(api.get<Trend>(`/ai-insights/trends/journal/${journalId}`));
 
       if (response.ok && response.data) {
-        setTrend(response.data);
         setKeyThemes(response.data.themes_topics);
         setSentiment(response.data.sentiment);
         setSummary(response.data.summary);
@@ -65,7 +63,6 @@ export function JournalView() {
   };
 
   const clearData = () => {
-      setTrend(null);
       setKeyThemes([]);
       setSentiment(null);
       setSummary(null);
@@ -199,7 +196,7 @@ export function JournalView() {
           <div className="lg:col-span-1">
             <Card>
               <CardHeader>
-                <h2 className="text-lg text-accent font-bold text-center">AI Insights</h2>
+                <CardTitle className='text-center'>AI Insights</CardTitle>
               </CardHeader>
               <CardContent>
                 {summary && (
@@ -239,101 +236,113 @@ export function JournalView() {
                       Pattern:
                     </h4>
                     <div className="ml-4">
-                      <h4 className='text-accent'>Behavioral Patterns:</h4>
-                      <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
-                        {patterns.behavioral.map((pattern: string, index: number) => (
-                          <li key={index}>{pattern}</li>
-                        ))}
-                      </ul>
+                      {patterns && patterns.behavioral && patterns.behavioral.length > 0 && (
+                        <>
+                          <h4 className='text-accent'>Behavioral Patterns:</h4>
+                          <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                            {patterns.behavioral.map((pattern: string, index: number) => (
+                              <li key={index}>{pattern}</li>
+                            ))}
+                          </ul>
+                        </>
+                      )}
 
-                      <h4 className='text-accent'>Cognitive Patterns:</h4>
-                      <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
-                        {patterns.cognitive.map((pattern: string, index: number) => (
-                          <li key={index}>{pattern}</li>
-                        ))}
-                      </ul>
+                      {patterns && patterns.cognitive && patterns.cognitive.length > 0 && (
+                        <>
+                          <h4 className='text-accent'>Cognitive Patterns:</h4>
+                          <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                            {patterns.cognitive.map((pattern: string, index: number) => (
+                              <li key={index}>{pattern}</li>
+                            ))}
+                          </ul>
+                        </>
+                      )}
 
-                      <h4 className='text-accent'>Temporal Patterns:</h4>
-                      <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
-                        {patterns.temporal.map((pattern: string, index: number) => (
-                          <li key={index}>{pattern}</li>
-                        ))}
-                      </ul>
+                      {patterns && patterns.temporal && patterns.temporal.length > 0 && (
+                        <>
+                          <h4 className='text-accent'>Temporal Patterns:</h4>
+                          <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
+                            {patterns.temporal.map((pattern: string, index: number) => (
+                              <li key={index}>{pattern}</li>
+                            ))}
+                          </ul>
+                        </>
+                      )}
                     </div>
                   </div>
                 )}
 
-                {entities && (
+                {entities && entities.people.length !== 0 && entities.organizations.length !== 0 && entities.locations.length !== 0 && entities.events.length !== 0 && entities.products.length !== 0 && (
                   <div className="text-md whitespace-pre-wrap mt-4">
                     <h4 className='text-accent'>Entities:</h4>
                     <div className="ml-4">
                       {entities.people.length > 0 && (
                         <>
                           <h5 className='text-accent ml-4'>People:</h5>
-                          <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                          {/* <ul className="list-disc list-inside space-y-1 text-muted-foreground"> */}
                             {entities.people.map((entity: string, index: number) => (
                               <Badge key={index} variant="secondary"
                                   className="h-10 bg-accent-background text-muted-foreground text-sm">
                                     {entity}
                               </Badge>
                             ))}
-                          </ul>
+                          {/* </ul> */}
                         </>
                       )}
 
                       {entities.organizations.length > 0 && (
                         <>
                           <h5 className='text-accent'>Organizations:</h5>
-                          <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                          {/* <ul className="list-disc list-inside space-y-1 text-muted-foreground"> */}
                             {entities.organizations.map((entity: string, index: number) => (
                               <Badge key={index} variant="secondary"
                                 className="h-10 bg-accent-background text-muted-foreground text-sm">
                                   {entity}
                               </Badge>
                             ))}
-                          </ul>
+                          {/* </ul> */}
                         </>
                       )}
 
                       {entities.locations.length > 0 && (
                         <>
                           <h5 className='text-foreground'>Locations:</h5>
-                          <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                          {/* <ul className="list-disc list-inside space-y-1 text-muted-foreground"> */}
                             {entities.locations.map((entity: string, index: number) => (
                               <Badge key={index} variant="secondary"
                                 className="h-10 bg-accent-background text-muted-foreground text-sm">
                                   {entity}
                               </Badge>
                             ))}
-                          </ul>
+                          {/* </ul> */}
                         </>
                       )}
 
                       {entities.events.length > 0 && (
                         <>
                           <h5 className='text-foreground'>Events:</h5>
-                          <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                          {/* <ul className="list-disc list-inside space-y-1 text-muted-foreground"> */}
                             {entities.events.map((entity: string, index: number) => (
                               <Badge key={index} variant="secondary"
                                 className="h-10 bg-accent-background text-muted-foreground text-sm">
                                   {entity}
                               </Badge>
                             ))}
-                          </ul>
+                          {/* </ul> */}
                         </>
                       )}
 
                       {entities.products.length > 0 && (
                         <>
                           <h5 className='text-foreground'>Products:</h5>
-                          <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                          {/* <ul className="list-disc list-inside space-y-1 text-muted-foreground"> */}
                             {entities.products.map((entity: string, index: number) => (
                               <Badge key={index} variant="secondary"
                                 className="h-10 bg-accent-background text-muted-foreground text-sm">
                                   {entity}
                               </Badge>
                             ))}
-                          </ul>
+                          {/* </ul> */}
                         </>
                       )}
                     </div>
