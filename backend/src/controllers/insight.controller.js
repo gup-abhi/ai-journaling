@@ -199,7 +199,7 @@ export const getKeyThemesByPeriod = async (req, res) => {
       { $unwind: "$themes_topics" }, // flatten array
       {
         $group: {
-          _id: "$themes_topics",
+          _id: "$themes_topics.theme",
           count: { $sum: 1 }, // frequency of each theme
         },
       },
