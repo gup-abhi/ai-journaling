@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useJournalStore } from '@/stores/journal.store';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,12 +8,18 @@ import { Loader } from '@/components/Loader';
 export default function JournalTemplates() {
   const { journalTemplates, fetchJournalTemplates } = useJournalStore();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchJournalTemplates();
+    const fetchTemplates = async () => {
+      setIsLoading(true);
+      await fetchJournalTemplates();
+      setIsLoading(false);
+    };
+    fetchTemplates();
   }, [fetchJournalTemplates]);
 
-  if (!journalTemplates) {
+  if (isLoading) {
     return <Loader />;
   }
 
