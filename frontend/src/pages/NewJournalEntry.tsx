@@ -84,7 +84,10 @@ export function NewJournalEntry() {
         <CardHeader>
           <div className="flex justify-between items-center mb-2">
             <CardTitle className="text-2xl font-bold">New Journal Entry</CardTitle>
-            <Button variant="outline" size="sm" onClick={() => navigate(-1)}>Go Back</Button>
+            <div className="flex items-center gap-2">
+              <Button className='text-accent' variant="outline" size="sm" onClick={() => navigate('/journal-templates')}>Choose Journal Template</Button>
+              <Button variant="outline" size="sm" onClick={() => navigate('/dashboard')}>Go Back</Button>
+            </div>
           </div>
           <p className="text-sm text-muted-foreground">{currentDateTime}</p>
         </CardHeader>

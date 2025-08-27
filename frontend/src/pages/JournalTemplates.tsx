@@ -21,7 +21,7 @@ export default function JournalTemplates() {
     <div className="container mx-auto p-4 md:p-6 lg:p-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Journal Templates</h1>
-        <Button variant="outline" onClick={() => navigate(-1)}>Go Back</Button>
+        <Button variant="outline" onClick={() => navigate('/dashboard')}>Go Back</Button>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {journalTemplates.map((template) => (
