@@ -13,6 +13,7 @@ import { useAiInsightStore } from '@/stores/ai-insight.store';
 import { useNavigate } from 'react-router-dom';
 import type { Period } from '@/types/Period.type';
 import { Loader } from '@/components/Loader'; // Import Loader
+import EmotionDistributionChart from '../components/EmotionDistributionChart';
 
 
 interface CustomTooltipProps {
@@ -153,6 +154,14 @@ export function Trends() {
                 <p className="text-muted-foreground">No theme data available for this period.</p>
               </div>
             )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className='text-accent'>Emotion Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EmotionDistributionChart period={period} />
           </CardContent>
         </Card>
       </div>

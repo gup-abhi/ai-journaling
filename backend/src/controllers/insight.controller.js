@@ -225,3 +225,67 @@ export const getKeyThemesByPeriod = async (req, res) => {
     throw new AppError("Internal Server Error", 500);
   }
 };
+
+export const getEmotionDistribution = async (req, res) => {
+  try {
+    const { _id: user_id } = req.user;
+    const { period } = req.params;
+
+    let dateFilter = {};
+    if (period !== "all") {
+      const now = new Date();
+      let startDate;
+
+      switch (period) {
+        case "week":
+          startDate = new Date();
+          startDate.setDate(startDate.getDate() - 7);
+          break;
+        case "month":
+          startDate = new Date();
+          startDate.setMonth(startDate.getMonth() - 1);
+          break;
+        case "year":
+          startDate = new Date();
+          startDate.setFullYear(startDate.getFullYear() - 1);
+          break;
+        default:
+          startDate = null;
+      }
+
+      if (startDate) {
+        dateFilter = { processed_at: { $gte: startDate } };
+      }
+    }
+
+    const emotionDistribution = await Insight.aggregate([
+      {
+        $match: {
+          user_id: new mongoose.Types.ObjectId(user_id),
+          "sentiment.emotions": { $exists: true, $ne: [] },
+          ...dateFilter,
+        },
+      },
+      { $unwind: "$sentiment.emotions" },
+      {
+        $group: {
+          _id: "$sentiment.emotions.emotion",
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { count: -1 } },
+      {
+        $project: {
+          _id: 0,
+          emotion: "$_id",
+          count: 1,
+        },
+      },
+    ]);
+
+    res.status(200).json({ emotionDistribution });
+  } catch (error) {
+    logger.error(`Error fetching emotion distribution: ${error}`);
+    throw new AppError("Internal Server Error", 500);
+  }
+};
