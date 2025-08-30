@@ -1,5 +1,6 @@
 import Insight from "../models/Insights.model.js";
 import { generateInsights } from "../util/generateInsights.js"
+import logger from '../lib/logger.js';
 
 const storeAiInsight = async (req, res, data) => {
   const { user_id, journal_entry_id, content, processed_at } = data;
@@ -14,9 +15,9 @@ const storeAiInsight = async (req, res, data) => {
     });
 
     await insight.save();
-    console.log("AI Insight stored successfully:");
+    logger.info("AI Insight stored successfully:");
   } catch (error) {
-    console.error("Error storing AI Insight:", error);
+    logger.error("Error storing AI Insight:", error);
   }
 };
 

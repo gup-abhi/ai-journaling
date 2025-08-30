@@ -1,11 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 import 'dotenv/config'
+import logger from './logger.js';
 
 const { SUPABASE_URL, SUPABASE_ANON_KEY } = process.env;
 
 // Validate environment variables
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.error("❌ Missing Supabase configuration. Check your .env file.");
+  logger.error("❌ Missing Supabase configuration. Check your .env file.");
 }
 
 // Try creating client safely
@@ -16,9 +17,9 @@ try {
         flowType: 'pkce',
       },
     });
-  console.log("✅ Supabase client initialized successfully");
+  logger.info("✅ Supabase client initialized successfully");
 } catch (err) {
-  console.error("❌ Failed to initialize Supabase client:", err.message);
+  logger.error("❌ Failed to initialize Supabase client:", err.message);
 }
 
 export default supabase;

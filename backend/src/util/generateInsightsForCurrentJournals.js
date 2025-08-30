@@ -2,23 +2,24 @@ import journalEntry from '../models/JournalEntries.model.js';
 import { generateInsights } from './generateInsights.js';
 import connectDB from "../lib/mongo-connection.js";
 import Insights from '../models/Insights.model.js';
+import logger from '../lib/logger.js';
 
 async function generateInsightsForCurrentJournals() {
     try {
         const entries = await journalEntry.find(); // Fetch all journal entries
         const insights = [];
 
-        console.log("Fetched Journal Entries count:", entries.length);
+        logger.info("Fetched Journal Entries count:", entries.length);
         if (entries) {
             for (const [index, entry] of entries.entries()) {
                 if (index % 5 === 0) await new Promise(resolve => setTimeout(resolve, 10 * 1000)); // Throttle requests
-                console.log(`Generating insights for entry ${index + 1}/${entries.length} - id - ${entry._id}`);
+                logger.info(`Generating insights for entry ${index + 1}/${entries.length} - id - ${entry._id}`);
                 const insight = await generateInsights(entry.content);
                 await addInsightsToInsightsCollections(entry, insight, index, entries.length);
             }
         }
     } catch (error) {
-        console.error("Error generating insights for current journals:", error);
+        logger.error("Error generating insights for current journals:", error);
     }
 }
 
@@ -32,9 +33,9 @@ async function addInsightsToInsightsCollections(entry, insight, index, count) {
         };
         const newInsight = new Insights(data);
         await newInsight.save();
-        console.log(`Insight saved of ${index + 1}/${count}`);
+        logger.info(`Insight saved of ${index + 1}/${count}`);
     } catch (error) {
-        console.error("Error adding insights to the collection:", error);
+        logger.error("Error adding insights to the collection:", error);
     }
 }
 

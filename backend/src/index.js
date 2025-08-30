@@ -12,6 +12,7 @@ import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import errorHandler from './middlewares/error-handler.js'; // Import the error handler
+import logger from './lib/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -53,13 +54,13 @@ const server = http.createServer(app);
 
 server.listen(process.env.PORT, () => {
   connectDB();
-  console.log(`Server is running on port ${process.env.PORT}`);
+  logger.info(`Server is running on port ${process.env.PORT}`);
 });
 
 // Handle Uncaught Exceptions
 process.on('uncaughtException', (err) => {
-  console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
-  console.error(err.name, err.message, err.stack);
+  logger.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+  logger.error(err.name, err.message, err.stack);
   server.close(() => {
     process.exit(1); // Exit with failure code
   });
@@ -67,8 +68,8 @@ process.on('uncaughtException', (err) => {
 
 // Handle Unhandled Promise Rejections
 process.on('unhandledRejection', (err) => {
-  console.error('UNHANDLED REJECTION! 💥 Shutting down...');
-  console.error(err.name, err.message, err.stack);
+  logger.error('UNHANDLED REJECTION! 💥 Shutting down...');
+  logger.error(err.name, err.message, err.stack);
   server.close(() => {
     process.exit(1); // Exit with failure code
   });

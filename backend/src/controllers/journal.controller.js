@@ -3,6 +3,7 @@ import { countWords } from "../util/countWords.js";
 import storeAiInsight from "../util/storeInsights.js";
 import mongoose from "mongoose";
 import AppError from "../util/AppError.js";
+import logger from '../lib/logger.js';
 
 export const createJournalEntry = async (req, res) => {
   const { content, entry_date, template_id } = req.body;
@@ -37,7 +38,7 @@ export const createJournalEntry = async (req, res) => {
       });
     });
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     throw new AppError("Internal Server Error", 500);
   }
 };
@@ -49,7 +50,7 @@ export const getJournalEntries = async (req, res) => {
     }).sort({ entry_date: -1 });
     return res.status(200).json({ entries });
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     throw new AppError("Internal Server Error", 500);
   }
 };
@@ -66,7 +67,7 @@ export const getJournalEntryById = async (req, res) => {
 
     return res.status(200).json(entry);
   } catch (error) {
-    console.error(error)
+    logger.error(error)
     throw new AppError("Internal Server Error", 500);
   }
 };
@@ -76,10 +77,10 @@ export const getTotalJournalEntries = async (req, res) => {
     const totalEntries = await JournalEntry.countDocuments({
       user_id: req.user._id,
     });
-    console.log("Total journal entries:", totalEntries);
+    logger.info("Total journal entries:", totalEntries);
     return res.status(200).json({ totalEntries });
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     throw new AppError("Internal Server Error", 500);
   }
 };
@@ -104,7 +105,7 @@ export const getTotalMonthJournalEntries = async (req, res) => {
 
     return res.status(200).json({ totalMonthlyEntries });
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     throw new AppError("Internal Server Error", 500);
   }
 };
