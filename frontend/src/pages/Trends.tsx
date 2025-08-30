@@ -15,6 +15,7 @@ import type { Period } from '@/types/Period.type';
 import { Loader } from '@/components/Loader'; // Import Loader
 import EmotionDistributionChart from '../components/EmotionDistributionChart';
 import EmotionIntensityHeatmap from '../components/EmotionIntensityHeatmap';
+import ThematicSentimentChart from '../components/ThematicSentimentChart';
 
 
 interface CustomTooltipProps {
@@ -171,6 +172,14 @@ export function Trends() {
           </CardHeader>
           <CardContent>
             <EmotionIntensityHeatmap period={period} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className='text-accent'>Thematic Sentiment</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ThematicSentimentChart period={period} />
           </CardContent>
         </Card>
       </div>

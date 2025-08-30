@@ -52,7 +52,7 @@ const EmotionDistributionChart: React.FC<EmotionDistributionChartProps> = ({ per
   }
 
   return (
-    <div className="w-full h-80">
+    <div className="w-full h-[500px]">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie

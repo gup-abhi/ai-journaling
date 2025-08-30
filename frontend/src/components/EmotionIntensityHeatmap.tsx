@@ -81,7 +81,7 @@ const EmotionIntensityHeatmap: React.FC<EmotionIntensityHeatmapProps> = ({ perio
   };
 
   return (
-    <div className="w-full h-96">
+    <div className="w-full h-[600px]">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={data}

@@ -388,3 +388,125 @@ export const getEmotionIntensityHeatmap = async (req, res) => {
     throw new AppError("Internal Server Error", 500);
   }
 };
+
+export const getThematicSentiment = async (req, res) => {
+  try {
+    const { _id: user_id } = req.user;
+    const { period } = req.params;
+    const { limit = 10 } = req.query; // Default to top 10 themes
+
+    if (!period || !['day', 'week', 'month', 'year', 'all'].includes(period)) {
+      throw new AppError("Invalid period. Please specify 'day', 'week', 'month', 'year', or 'all'.", 400);
+    }
+
+    let dateFilter = {};
+    if (period !== "all") {
+      const now = new Date();
+      let startDate;
+
+      switch (period) {
+        case "day":
+          startDate = new Date(now.setDate(now.getDate() - 1));
+          break;
+        case "week":
+          startDate = new Date(now.setDate(now.getDate() - 7));
+          break;
+        case "month":
+          startDate = new Date(now.setMonth(now.getMonth() - 1));
+          break;
+        case "year":
+          startDate = new Date(now.setFullYear(now.getFullYear() - 1));
+          break;
+        default:
+          startDate = null;
+      }
+
+      if (startDate) {
+        dateFilter = { processed_at: { $gte: startDate } };
+      }
+    }
+
+    const thematicSentiment = await Insight.aggregate([
+      {
+        $match: {
+          user_id: new mongoose.Types.ObjectId(user_id),
+          "themes_topics": { $exists: true, $ne: [] },
+          ...dateFilter,
+        },
+      },
+      { $unwind: "$themes_topics" },
+      {
+        $group: {
+          _id: {
+            theme: "$themes_topics.theme",
+            sentiment: "$themes_topics.sentiment_towards_theme",
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $group: {
+          _id: "$_id.theme",
+          sentiments: {
+            $push: {
+              sentiment: "$_id.sentiment",
+              count: "$count",
+            },
+          },
+          total_count: { $sum: "$count" },
+        },
+      },
+      { $sort: { total_count: -1 } }, // Sort by total count to get top themes
+      { $limit: parseInt(limit) }, // Limit to top N themes
+      {
+        $project: {
+          _id: 0,
+          theme: "$_id",
+          positive: {
+            $sum: {
+              $map: {
+                input: "$sentiments",
+                as: "s",
+                in: { $cond: [{ $eq: ["$$s.sentiment", "positive"] }, "$$s.count", 0] },
+              },
+            },
+          },
+          negative: {
+            $sum: {
+              $map: {
+                input: "$sentiments",
+                as: "s",
+                in: { $cond: [{ $eq: ["$$s.sentiment", "negative"] }, "$$s.count", 0] },
+              },
+            },
+          },
+          neutral: {
+            $sum: {
+              $map: {
+                input: "$sentiments",
+                as: "s",
+                in: { $cond: [{ $eq: ["$$s.sentiment", "neutral"] }, "$$s.count", 0] },
+              },
+            },
+          },
+          mixed: {
+            $sum: {
+              $map: {
+                input: "$sentiments",
+                as: "s",
+                in: { $cond: [{ $eq: ["$$s.sentiment", "mixed"] }, "$$s.count", 0] },
+              },
+            },
+          },
+          total_count: 1,
+        },
+      },
+      { $sort: { total_count: -1 } }, // Final sort by total count
+    ]);
+
+    res.status(200).json({ thematicSentiment });
+  } catch (error) {
+    logger.error(`Error fetching thematic sentiment: ${error}`);
+    throw new AppError("Internal Server Error", 500);
+  }
+};
