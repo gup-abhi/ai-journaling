@@ -85,7 +85,6 @@ export const loginUser = async (req, res) => {
 
     // Store access token in secure cookie
     res.cookie("access_token", data.session.access_token, cookieOptions(60 * 60 * 1000));
-    res.cookie("user_id", user_id, cookieOptions(7 * 24 * 60 * 60 * 1000));
     res.cookie("refresh_token", data.session.refresh_token, cookieOptions(7 * 24 * 60 * 60 * 1000)); // 7 days for refresh token
 
     return res.status(200).json({ message: "User logged in successfully." });
@@ -107,7 +106,6 @@ export const logoutUser = async (req, res) => {
 
   // Always clear cookies
   res.clearCookie("access_token", cookieOptions());
-  res.clearCookie("user_id", cookieOptions());
   res.clearCookie("refresh_token", cookieOptions());
 
   if (!token) {
@@ -196,7 +194,6 @@ export const googleCallback = async (req, res) => {
         // 2️⃣ Set cookies for access & refresh tokens
         res.cookie("access_token", session.access_token, cookieOptions(60 * 1000));
         res.cookie("refresh_token", session.refresh_token, cookieOptions(7 * 24 * 60 * 60 * 1000));
-        res.cookie("user_id", dbUser._id.toString(), cookieOptions(7 * 24 * 60 * 60 * 1000));
 
         // 3️⃣ Redirect user to frontend dashboard
         return res.redirect(`${FRONTEND_URL}/dashboard`);

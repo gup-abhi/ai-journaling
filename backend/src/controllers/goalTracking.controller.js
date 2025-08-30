@@ -4,7 +4,7 @@ import AppError from "../util/AppError.js";
 
 export const createGoal = async (req, res) => {
     const { name, progress, description } = req.body;
-    const { user_id } = req.cookies;
+    const { _id: user_id } = req.user;
 
     if (!name) throw new AppError("Goal name is required", 400);
     if (!progress) throw new AppError("Progress is required", 400);
@@ -88,7 +88,7 @@ export const getGoal = async (req, res) => {
 
 
 export const getGoals = async (req, res) => {
-    const { user_id } = req.cookies;
+    const { _id: user_id } = req.user;
     const { progress } = req.query;
 
     try {
@@ -111,7 +111,7 @@ export const getGoals = async (req, res) => {
 
 
 export const getActiveGoals = async (req, res) => {
-    const { user_id } = req.cookies;
+    const { _id: user_id } = req.user;
 
     try {
         const goals = await GoalTracking.find({ user_id, progress: "in-progress" });

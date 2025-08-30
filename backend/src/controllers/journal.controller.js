@@ -16,7 +16,7 @@ export const createJournalEntry = async (req, res) => {
       content,
       entry_date,
       template_id: template_id ? new mongoose.Types.ObjectId(template_id) : null,
-      user_id: req.cookies.user_id,
+      user_id: req.user._id,
       word_count: countWords(content),
     });
 
@@ -45,7 +45,7 @@ export const createJournalEntry = async (req, res) => {
 export const getJournalEntries = async (req, res) => {
   try {
     const entries = await JournalEntry.find({
-      user_id: req.cookies.user_id,
+      user_id: req.user._id,
     }).sort({ entry_date: -1 });
     return res.status(200).json({ entries });
   } catch (error) {
@@ -74,7 +74,7 @@ export const getJournalEntryById = async (req, res) => {
 export const getTotalJournalEntries = async (req, res) => {
   try {
     const totalEntries = await JournalEntry.countDocuments({
-      user_id: req.cookies.user_id,
+      user_id: req.user._id,
     });
     console.log("Total journal entries:", totalEntries);
     return res.status(200).json({ totalEntries });
@@ -95,7 +95,7 @@ export const getTotalMonthJournalEntries = async (req, res) => {
     const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
     const totalMonthlyEntries = await JournalEntry.countDocuments({
-      user_id: req.cookies.user_id,
+      user_id: req.user._id,
       entry_date: {
         $gte: startOfMonth,
         $lt: startOfNextMonth,

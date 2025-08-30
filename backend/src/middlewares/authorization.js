@@ -1,6 +1,7 @@
 import supabase from "../lib/supabase-client.js";
 import cookieOptions from '../util/cookiesOptions.js';
 import AppError from "../util/AppError.js"; // Import AppError
+import User from '../models/Users.model.js';
 
 export const validateToken = async (req, res, next) => {
   try {
@@ -14,6 +15,8 @@ export const validateToken = async (req, res, next) => {
       throw new AppError("No token provided, try re-logging in", 401);
     }
 
+    let supabaseUser;
+
     if (access_token) {
       const { data, error } = await supabase.auth.getUser(access_token);
 
@@ -22,12 +25,22 @@ export const validateToken = async (req, res, next) => {
         // If it throws an error, it will be caught by the outer try-catch.
         const refreshed = await getNewToken(req, res, refresh_token);
         if (!refreshed) return; // If getNewToken handled the response, stop execution
+        supabaseUser = refreshed.user;
       } else {
-        req.user = data?.user.user_metadata;
+        supabaseUser = data?.user;
       }
     } else {
       const refreshed = await getNewToken(req, res, refresh_token);
       if (!refreshed) return; // If getNewToken handled the response, stop execution
+      supabaseUser = refreshed.user;
+    }
+
+    if (supabaseUser) {
+      const mongoUser = await User.findOne({ auth_uid: supabaseUser.id });
+      if (!mongoUser) {
+        throw new AppError("User not found in application database.", 404);
+      }
+      req.user = mongoUser;
     }
 
     next();
@@ -46,7 +59,6 @@ export const validateToken = async (req, res, next) => {
 
 const clearCookies = (res) => {
   res.clearCookie("access_token", cookieOptions());
-  res.clearCookie("user_id", cookieOptions());
   res.clearCookie("refresh_token", cookieOptions());
 }
 
@@ -61,10 +73,9 @@ const getNewToken = async (req, res, refresh_token) => {
       throw new AppError("Invalid or expired token", 401);
     }
 
-    req.user = refreshData.user.user_metadata;
     res.cookie("access_token", refreshData.session.access_token, cookieOptions(60 * 60 * 1000));
     res.cookie("refresh_token", refreshData.session.refresh_token, cookieOptions(7 * 24 * 60 * 60 * 1000));
-    return true; // Indicate that token was refreshed successfully
+    return { user: refreshData.user }; // Indicate that token was refreshed successfully
   } catch (err) {
     console.error("Error refreshing token:", err);
     clearCookies(res);
@@ -72,3 +83,11 @@ const getNewToken = async (req, res, refresh_token) => {
     throw new AppError("Error refreshing token", 500);
   }
 }
+
+export const checkUser = (req, res, next) => {
+  if (!req.user) {
+    // Throw AppError instead of sending response directly
+    throw new AppError("User not authenticated", 401);
+  }
+  next();
+};

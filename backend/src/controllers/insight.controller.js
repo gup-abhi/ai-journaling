@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import AppError from "../util/AppError.js";
 
 export const getSentimentTrendsByPeriod = async (req, res) => {
-    const { user_id } = req.cookies;
+    const { _id: user_id } = req.user;
     const period = req.params.period;
 
     if (!period || !['day', 'week', 'month', 'year'].includes(period)) {
@@ -99,7 +99,7 @@ export const getSentimentTrendsByPeriod = async (req, res) => {
 };
 
 export const getSentimentTrends = async (req, res) => {
-    const { user_id } = req.cookies;
+    const { _id: user_id } = req.user;
     try {
         const trends = await Insight.find({ user_id: new mongoose.Types.ObjectId(user_id) });
         return res.status(200).json({ trends });
@@ -128,7 +128,7 @@ export const getTrendsByJournalId = async (req, res) => {
 
 
 export const getOverallSentiment = async (req, res) => {
-    const { user_id } = req.cookies;
+    const { _id: user_id } = req.user;
 
     try {
         const overallSentiment = await Insight.aggregate([
@@ -157,7 +157,7 @@ export const getOverallSentiment = async (req, res) => {
 
 export const getKeyThemesByPeriod = async (req, res) => {
   try {
-    const { user_id } = req.cookies; // or req.user._id depending on your auth setup
+    const { _id: user_id } = req.user; // or req.user._id depending on your auth setup
     const { period = "all" } = req.params;
     const { limit = 10 } = req.query;
 
