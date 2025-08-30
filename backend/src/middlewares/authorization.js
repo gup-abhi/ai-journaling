@@ -2,6 +2,7 @@ import supabase from "../lib/supabase-client.js";
 import cookieOptions from '../util/cookiesOptions.js';
 import AppError from "../util/AppError.js"; // Import AppError
 import User from '../models/Users.model.js';
+import logger from "../lib/logger.js";
 
 export const validateToken = async (req, res, next) => {
   try {
@@ -45,7 +46,7 @@ export const validateToken = async (req, res, next) => {
 
     next();
   } catch (err) {
-    console.error("Token validation error:", err);
+    logger.error(`Token validation error: ${err}`);
     // If it's an AppError, re-throw it to be caught by the global error handler
     if (err instanceof AppError) {
       next(err);
@@ -77,7 +78,7 @@ const getNewToken = async (req, res, refresh_token) => {
     res.cookie("refresh_token", refreshData.session.refresh_token, cookieOptions(7 * 24 * 60 * 60 * 1000));
     return { user: refreshData.user }; // Indicate that token was refreshed successfully
   } catch (err) {
-    console.error("Error refreshing token:", err);
+    logger.error(`Error refreshing token: ${err}`);
     clearCookies(res);
     // Throw AppError for the global error handler
     throw new AppError("Error refreshing token", 500);

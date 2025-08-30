@@ -17,7 +17,7 @@ const storeAiInsight = async (req, res, data) => {
     await insight.save();
     logger.info("AI Insight stored successfully:");
   } catch (error) {
-    logger.error("Error storing AI Insight:", error);
+    logger.error(`Error storing AI Insight: ${error}`);
   }
 };
 

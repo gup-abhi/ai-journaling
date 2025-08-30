@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import GoalTracking from "../models/GoalTracking.model.js";
 import AppError from "../util/AppError.js";
+import logger from "../lib/logger.js";
 
 export const createGoal = async (req, res) => {
     const { name, progress, description } = req.body;
@@ -20,7 +21,7 @@ export const createGoal = async (req, res) => {
         await newGoal.save();
         res.status(201).json({ message: "Goal created successfully", newGoal });
     } catch (error) {
-        console.error("Error creating goal:", error);
+        logger.error(`Error creating goal: ${error}`);
         throw new AppError("Error creating goal", 500);
     }
 };
@@ -45,7 +46,7 @@ export const updateGoal = async (req, res) => {
 
         res.status(200).json({ message: "Goal updated successfully", updatedGoal });
     } catch (error) {
-        console.error("Error updating goal:", error);
+        logger.error(`Error updating goal: ${error}`);
         throw new AppError("Error updating goal", 500);
     }
 };
@@ -63,7 +64,7 @@ export const deleteGoal = async (req, res) => {
 
         res.status(200).json({ message: "Goal deleted successfully", deletedGoal });
     } catch (error) {
-        console.error("Error deleting goal:", error);
+        logger.error(`Error deleting goal: ${error}`);
         throw new AppError("Error deleting goal", 500);
     }
 };
@@ -81,7 +82,7 @@ export const getGoal = async (req, res) => {
 
         res.status(200).json(goal);
     } catch (error) {
-        console.error("Error fetching goal:", error);
+        logger.error(`Error fetching goal: ${error}`);
         throw new AppError("Error fetching goal", 500);
     }
 };
@@ -104,7 +105,7 @@ export const getGoals = async (req, res) => {
 
         res.status(200).json({ goals });
     } catch (error) {
-        console.error("Error fetching goals:", error);
+        logger.error(`Error fetching goals: ${error}`);
         throw new AppError("Error fetching goals", 500);
     }
 };
@@ -118,7 +119,7 @@ export const getActiveGoals = async (req, res) => {
 
         res.status(200).json({ goals });
     } catch (error) {
-        console.error("Error fetching active goals:", error);
+        logger.error(`Error fetching active goals: ${error}`);
         throw new AppError("Error fetching active goals", 500);
     }
 };

@@ -19,7 +19,7 @@ try {
     });
   logger.info("✅ Supabase client initialized successfully");
 } catch (err) {
-  logger.error("❌ Failed to initialize Supabase client:", err.message);
+  logger.error(`❌ Failed to initialize Supabase client: ${err.message}`);
 }
 
 export default supabase;

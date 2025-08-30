@@ -27,6 +27,6 @@ export async function generateInsights(journalEntry) {
 
         return parsed;
     } catch (error) {
-        logger.error("Error generating insights:", error);
+        logger.error(`Error generating insights: ${error}`);
     }
 }

@@ -1,5 +1,6 @@
 import JournalTemplate from '../models/JournalTemplates.model.js';
 import AppError from "../util/AppError.js";
+import logger from '../lib/logger.js';
 
 export const getAllJournalTemplates = async (req, res) => {
   try {
@@ -11,7 +12,7 @@ export const getAllJournalTemplates = async (req, res) => {
 
     res.status(200).json(templates);
   } catch (error) {
-    console.error("Error fetching journal templates:", error);
+    logger.error(`Error fetching journal templates: ${error}`);
     throw new AppError("Internal server error", 500);
   }
 };
@@ -25,7 +26,7 @@ export const getJournalTemplateById = async (req, res) => {
     }
     res.status(200).json(template);
   } catch (error) {
-    console.error("Error fetching journal template:", error);
+    logger.error(`Error fetching journal template: ${error}`);
     throw new AppError("Internal server error", 500);
   }
 };

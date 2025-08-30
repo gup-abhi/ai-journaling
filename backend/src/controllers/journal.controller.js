@@ -77,7 +77,7 @@ export const getTotalJournalEntries = async (req, res) => {
     const totalEntries = await JournalEntry.countDocuments({
       user_id: req.user._id,
     });
-    logger.info("Total journal entries:", totalEntries);
+    logger.info(`Total journal entries: ${totalEntries}`);
     return res.status(200).json({ totalEntries });
   } catch (error) {
     logger.error(error);

@@ -90,7 +90,7 @@ export const loginUser = async (req, res) => {
 
     return res.status(200).json({ message: "User logged in successfully." });
   } catch (error) {
-    logger.error("Login error:", error);
+    logger.error(`Login error: ${error}`);
     throw new AppError(error.message, 500);
   }
 };
@@ -117,14 +117,14 @@ export const logoutUser = async (req, res) => {
     const { error } = await supabase.auth.signOut({ JWT: token });
 
     if (error) {
-      logger.error("Supabase signOut error:", error.message);
+      logger.error(`Supabase signOut error: ${error}`);
       // Still return 200 since cookies are cleared
       return res.status(200).json({ message: "Logged out, but Supabase signOut failed." });
     }
 
     return res.status(200).json({ message: "User logged out successfully." });
   } catch (error) {
-    logger.error("Logout error:", error.message);
+    logger.error(`Logout error: ${error}`);
     throw new AppError(error.message, 500);
   }
 };
@@ -153,7 +153,7 @@ export const loginWithGoogle = async (req, res) => {
     // Redirect the user to Google login page
     return res.redirect(data.url);
   } catch (err) {
-    logger.error("Google login error:", err);
+    logger.error(`Google login error: ${err}`);
     throw new AppError("Internal server error", 500);
   }
 };
@@ -168,7 +168,7 @@ export const loginWithGoogle = async (req, res) => {
 export const googleCallback = async (req, res) => {
   const { code } = req.query;
 
-  logger.info("Google callback code:", code);
+  logger.info(`Google callback code: ${code}`);
 
   try {
     if (code) {
@@ -176,7 +176,7 @@ export const googleCallback = async (req, res) => {
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
       if (error) {
-        logger.error("Error exchanging code for session:", error);
+        logger.error(`Error exchanging code for session: ${error}`);
         throw new AppError("Failed to login with Google", 401);
       } else {
         const session = data.session;
@@ -203,7 +203,7 @@ export const googleCallback = async (req, res) => {
        throw new AppError('No code provided in callback.', 400);
     }
   } catch (err) {
-    logger.error("Google callback error:", err);
+    logger.error(`Google callback error: ${err}`);
     throw new AppError("Internal server error", 500);
   }
 };

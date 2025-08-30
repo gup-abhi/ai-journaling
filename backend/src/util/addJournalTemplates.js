@@ -6,5 +6,5 @@ import logger from '../lib/logger.js';
 
 await connectDB();
 const templatesResponse = await JournalTemplate.insertMany(templates);
-logger.info("Templates added:", templatesResponse);
+logger.info(`Templates added: ${templatesResponse}`);
 process.exit(0);

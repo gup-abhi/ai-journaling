@@ -1,6 +1,7 @@
 import Insight from '../models/Insights.model.js';
 import mongoose from 'mongoose';
 import AppError from "../util/AppError.js";
+import logger from '../lib/logger.js';
 
 export const getSentimentTrendsByPeriod = async (req, res) => {
     const { _id: user_id } = req.user;
@@ -93,7 +94,7 @@ export const getSentimentTrendsByPeriod = async (req, res) => {
 
         return res.status(200).json(sentimentTrend);
     } catch (error) {
-        console.error(error);
+        logger.error(`Error fetching sentiment trend: ${error}`);
         throw new AppError("Internal Server Error", 500);
     }
 };
@@ -104,7 +105,7 @@ export const getSentimentTrends = async (req, res) => {
         const trends = await Insight.find({ user_id: new mongoose.Types.ObjectId(user_id) });
         return res.status(200).json({ trends });
     } catch (error) {
-        console.error(error);
+        logger.error(`Error fetching sentiment trends: ${error}`);
         throw new AppError("Internal Server Error", 500);
     }
 };
@@ -121,7 +122,7 @@ export const getTrendsByJournalId = async (req, res) => {
 
         return res.status(200).json(trend);
     } catch (error) {
-        console.error(error);
+        logger.error(`Error fetching trend by journal ID: ${error}`);
         throw new AppError("Internal Server Error", 500);
     }
 };
@@ -149,7 +150,7 @@ export const getOverallSentiment = async (req, res) => {
             overallSentiment: overallSentiment[0]?.averageSentiment * 100 || 0, // return as percentage
         });
     } catch (error) {
-        console.error(error);
+        logger.error(`Error fetching overall sentiment: ${error}`);
         throw new AppError("Internal Server Error", 500);
     }
 };
@@ -220,7 +221,7 @@ export const getKeyThemesByPeriod = async (req, res) => {
       top_themes: themes,
     });
   } catch (error) {
-    console.error("Error fetching top themes:", error);
+    logger.error(`Error fetching top themes: ${error}`);
     throw new AppError("Internal Server Error", 500);
   }
 };
