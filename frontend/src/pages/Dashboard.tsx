@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/card'
@@ -8,20 +8,36 @@ import { useJournalStore } from '@/stores/journal.store'
 import type { JournalEntry } from '@/types/JournalEntry.type'
 import { useAiInsightStore } from '@/stores/ai-insight.store'
 import { useGoalStore } from '@/stores/goal.store'
+import { Loader } from '@/components/Loader'
+import toast from 'react-hot-toast'
 
 export function Dashboard() {
   const navigate = useNavigate()
+  const [isLoading, setIsLoading] = useState(true)
   const { fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, totalEntries, monthlyEntries, journalEntries } = useJournalStore() as { fetchTotalEntries: () => Promise<void>; fetchMonthlyEntries: () => Promise<void>; fetchJournalEntries: () => Promise<void>; totalEntries: number; monthlyEntries: number; journalEntries: JournalEntry[] }
   const { fetchMoodTrends, moodTrends } = useAiInsightStore() as { fetchMoodTrends: () => Promise<void>; moodTrends: number }
   const { activeGoals, getActiveGoals } = useGoalStore();
 
 
   useEffect(() => {
-    fetchTotalEntries()
-    fetchMonthlyEntries()
-    fetchJournalEntries()
-    fetchMoodTrends()
-    getActiveGoals()
+    const fetchData = async () => {
+      setIsLoading(true)
+      try {
+        await Promise.all([
+          fetchTotalEntries(),
+          fetchMonthlyEntries(),
+          fetchJournalEntries(),
+          fetchMoodTrends(),
+          getActiveGoals()
+        ])
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error)
+        toast.error('Failed to fetch dashboard data')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
   }, [fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, fetchMoodTrends, getActiveGoals]);
 
   const recentEntries = journalEntries.slice(0, 6).map(entry => ({
@@ -37,6 +53,10 @@ export function Dashboard() {
     { label: 'Mood Trend', value: `${moodTrends > 0 ? '+' : ''}${moodTrends.toFixed(2)}%`, icon: moodTrends > 0 ? TrendingUp : TrendingDown, color: moodTrends > 0 ? 'text-green-500' : 'text-red-500' },
     { label: 'Active Goals', value: activeGoals.length, icon: Brain, color: 'text-purple-500' },
   ]
+
+  if (isLoading) {
+    return <Loader />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
