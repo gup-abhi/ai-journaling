@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import type { Period } from '@/types/Period.type';
 import { Loader } from '@/components/Loader'; // Import Loader
 import EmotionDistributionChart from '../components/EmotionDistributionChart';
+import EmotionIntensityHeatmap from '../components/EmotionIntensityHeatmap';
 
 
 interface CustomTooltipProps {
@@ -162,6 +163,14 @@ export function Trends() {
           </CardHeader>
           <CardContent>
             <EmotionDistributionChart period={period} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className='text-accent'>Emotion Intensity Heatmap</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EmotionIntensityHeatmap period={period} />
           </CardContent>
         </Card>
       </div>

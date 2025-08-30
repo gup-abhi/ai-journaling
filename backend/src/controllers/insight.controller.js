@@ -289,3 +289,102 @@ export const getEmotionDistribution = async (req, res) => {
     throw new AppError("Internal Server Error", 500);
   }
 };
+
+export const getEmotionIntensityHeatmap = async (req, res) => {
+  try {
+    const { _id: user_id } = req.user;
+    const { period } = req.params;
+
+    if (!period || !['day', 'week', 'month', 'year'].includes(period)) {
+      throw new AppError("Invalid period. Please specify 'day', 'week', 'month', or 'year'.", 400);
+    }
+
+    let dateFilter = {};
+    const now = new Date();
+    let startDate;
+
+    switch (period) {
+      case 'day':
+        startDate = new Date(now.setDate(now.getDate() - 1)); // Last 24 hours
+        break;
+      case 'week':
+        startDate = new Date(now.setDate(now.getDate() - 7)); // Last 7 days
+        break;
+      case 'month':
+        startDate = new Date(now.setMonth(now.getMonth() - 1)); // Last month
+        break;
+      case 'year':
+        startDate = new Date(now.setFullYear(now.getFullYear() - 1)); // Last year
+        break;
+      default:
+        startDate = null;
+    }
+
+    if (startDate) {
+      dateFilter = { processed_at: { $gte: startDate } };
+    }
+
+    const intensityMap = await Insight.aggregate([
+      {
+        $match: {
+          user_id: new mongoose.Types.ObjectId(user_id),
+          "sentiment.emotions": { $exists: true, $ne: [] },
+          ...dateFilter,
+        },
+      },
+      { $unwind: "$sentiment.emotions" },
+      {
+        $project: {
+          _id: 0,
+          emotion: "$sentiment.emotions.emotion",
+          intensity: "$sentiment.emotions.intensity",
+          processed_at: "$processed_at",
+          // Map intensity to numerical value
+          intensity_value: {
+            $switch: {
+              branches: [
+                { case: { $eq: ["$sentiment.emotions.intensity", "low"] }, then: 1 },
+                { case: { $eq: ["$sentiment.emotions.intensity", "medium"] }, then: 2 },
+                { case: { $eq: ["$sentiment.emotions.intensity", "high"] }, then: 3 },
+              ],
+              default: 0 // Default for unknown intensity
+            }
+          }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            emotion: "$emotion",
+            time_unit: {
+              $dateToString: {
+                format: period === 'day' ? '%Y-%m-%d %H' : (period === 'week' ? '%Y-%m-%d' : (period === 'month' ? '%Y-%m' : '%Y')),
+                date: "$processed_at"
+              }
+            }
+          },
+          average_intensity: { $avg: "$intensity_value" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          emotion: "$_id.emotion",
+          time_unit: "$_id.time_unit",
+          average_intensity: { $round: ["$average_intensity", 2] } // Round to 2 decimal places
+        }
+      },
+      {
+        $sort: {
+          time_unit: 1,
+          emotion: 1
+        }
+      }
+    ]);
+
+    res.status(200).json({ intensityMap });
+  } catch (error) {
+    logger.error(`Error fetching emotion intensity heatmap: ${error}`);
+    throw new AppError("Internal Server Error", 500);
+  }
+};

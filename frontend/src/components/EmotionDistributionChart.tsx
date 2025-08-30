@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { Loader } from './Loader'; // Assuming Loader is in the same directory or a sibling directory
 
 interface EmotionData {
   emotion: string;
@@ -39,7 +40,7 @@ const EmotionDistributionChart: React.FC<EmotionDistributionChartProps> = ({ per
   }, [period]);
 
   if (loading) {
-    return <div className="text-center py-4">Loading emotion data...</div>;
+    return <Loader className="h-64" />;
   }
 
   if (error) {
@@ -64,7 +65,7 @@ const EmotionDistributionChart: React.FC<EmotionDistributionChartProps> = ({ per
             dataKey="count"
             nameKey="emotion"
           >
-            {data.map((entry, index) => (
+            {data.map((_, index) => (
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
