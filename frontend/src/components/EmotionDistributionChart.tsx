@@ -69,8 +69,17 @@ const EmotionDistributionChart: React.FC<EmotionDistributionChartProps> = ({ per
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
-          <Tooltip />
-          <Legend />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "var(--background)",
+              border: "1px solid var(--primary)",
+              borderRadius: "8px",
+              color: "var(--primary)"
+            }}
+            itemStyle={{ color: "var(--accent)" }}
+            labelStyle={{ color: "var(--primary)" }}
+          />
+          <Legend wrapperStyle={{ color: 'var(--accent)' }} />
         </PieChart>
       </ResponsiveContainer>
     </div>

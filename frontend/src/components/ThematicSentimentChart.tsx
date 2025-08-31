@@ -68,7 +68,16 @@ const ThematicSentimentChart: React.FC<ThematicSentimentChartProps> = ({ period 
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="theme" angle={-45} textAnchor="end" interval={0} height={80} tick={{ fontSize: 12 }} />
           <YAxis />
-          <Tooltip />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "var(--background)",
+              border: "1px solid var(--primary)",
+              borderRadius: "8px",
+              color: "var(--primary)"
+            }}
+            itemStyle={{ color: "var(--accent)" }}
+            labelStyle={{ color: "var(--primary)" }}
+          />
           <Legend verticalAlign="top" align="right" />
           <Bar dataKey="positive" stackId="a" fill="#82ca9d" name="Positive" />
           <Bar dataKey="negative" stackId="a" fill="#ffc658" name="Negative" />

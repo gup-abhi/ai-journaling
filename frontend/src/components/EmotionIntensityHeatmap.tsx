@@ -88,15 +88,24 @@ const EmotionIntensityHeatmap: React.FC<EmotionIntensityHeatmapProps> = ({ perio
           margin={{
             top: 20,
             right: 30,
-            left: 20,
+            left: 80, // Increased left margin
             bottom: 5,
           }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="time_unit" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
+          <YAxis width={100} /> // Increased Y-axis width
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "var(--background)",
+              border: "1px solid var(--primary)",
+              borderRadius: "8px",
+              color: "var(--primary)"
+            }}
+            itemStyle={{ color: "var(--accent)" }}
+            labelStyle={{ color: "var(--primary)" }}
+          />
+          <Legend verticalAlign="top" align="right" />
           {emotions.map((emotion) => (
             <Bar
               key={emotion}
