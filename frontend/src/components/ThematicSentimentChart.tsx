@@ -59,7 +59,7 @@ const ThematicSentimentChart: React.FC<ThematicSentimentChartProps> = ({ period 
         <BarChart
           data={data}
           margin={{
-            top: 20,
+            top: 40,
             right: 30,
             left: 20,
             bottom: 80, // Increased bottom margin for rotated labels

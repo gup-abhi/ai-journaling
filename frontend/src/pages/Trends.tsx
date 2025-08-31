@@ -147,7 +147,7 @@ export function Trends() {
                     itemStyle={{ color: "var(--accent)" }}  // frequency text color
                     labelStyle={{ color: "var(--primary)" }} // theme label color
                   />
-                  <Legend verticalAlign="top" align="center" height={40} fill="var(--primary)" />
+                  <Legend verticalAlign="top" align="right" height={40} fill="var(--primary)" />
                   <Bar dataKey="frequency" name="frequency" fill="var(--primary)" />
                 </BarChart>
               </ResponsiveContainer>
