@@ -16,6 +16,7 @@ import { Loader } from '@/components/Loader'; // Import Loader
 import EmotionDistributionChart from '../components/EmotionDistributionChart';
 import EmotionIntensityHeatmap from '../components/EmotionIntensityHeatmap';
 import ThematicSentimentChart from '../components/ThematicSentimentChart';
+import ThemeActionRadarChart from '../components/ThemeActionRadarChart';
 
 
 interface CustomTooltipProps {
@@ -58,7 +59,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
 export function Trends() {
   const [limit, setLimit] = useState(5);
   const [period, setPeriod] = useState<Period>('month');
-  const { sentimentTrends, fetchSentimentTrends, topThemesTrends, fetchTopThemes, isSentimentLoading, isThemesLoading } = useAiInsightStore(); // Get isLoading states
+  const { sentimentTrends, fetchSentimentTrends, topThemesTrends, fetchTopThemes, isSentimentLoading, isThemesLoading, themeActionRadarData, isThemeActionLoading, fetchThemeActionRadarData } = useAiInsightStore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -68,6 +69,10 @@ export function Trends() {
   useEffect(() => {
     fetchTopThemes(period, limit);
   }, [period, limit, fetchTopThemes]);
+
+  useEffect(() => {
+    fetchThemeActionRadarData(period);
+  }, [period, fetchThemeActionRadarData]);
 
   const formatYAxisTick = (tick: number) => {
     if (tick > 0.5) return 'Positive';
@@ -93,7 +98,7 @@ export function Trends() {
             <CardTitle className='text-accent'>Sentiment Trends</CardTitle>
           </CardHeader>
           <CardContent>
-            {isSentimentLoading ? ( // Conditionally render Loader
+            {isSentimentLoading ? (
               <Loader className="h-64" />
             ) : sentimentTrends.length > 0 ? (
               <ResponsiveContainer width="100%" height={400}>
@@ -129,7 +134,7 @@ export function Trends() {
             </Select>
           </CardHeader>
           <CardContent>
-            {isThemesLoading ? ( // Conditionally render Loader
+            {isThemesLoading ? (
               <Loader className="h-64" /> 
             ) : topThemesTrends.top_themes.length > 0 ? (
               <ResponsiveContainer width="100%" height={750}>
@@ -180,6 +185,22 @@ export function Trends() {
           </CardHeader>
           <CardContent>
             <ThematicSentimentChart period={period} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className='text-accent'>Theme Action Radar</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isThemeActionLoading ? (
+              <Loader className="h-64" />
+            ) : themeActionRadarData.length > 0 ? (
+              <ThemeActionRadarChart period={period} />
+            ) : (
+              <div className="flex items-center justify-center h-64">
+                <p className="text-muted-foreground">No theme action data available for this period.</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

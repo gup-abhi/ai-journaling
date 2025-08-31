@@ -510,3 +510,78 @@ export const getThematicSentiment = async (req, res) => {
     throw new AppError("Internal Server Error", 500);
   }
 };
+
+export const getThemeActionRadarData = async (req, res) => {
+  try {
+    const { _id: user_id } = req.user;
+    const { period } = req.params;
+    const { limit = 5 } = req.query; // Default to top 5 themes for radar chart
+
+    if (!period || !['day', 'week', 'month', 'year', 'all'].includes(period)) {
+      throw new AppError("Invalid period. Please specify 'day', 'week', 'month', 'year', or 'all'.", 400);
+    }
+
+    let dateFilter = {};
+    if (period !== "all") {
+      const now = new Date();
+      let startDate;
+
+      switch (period) {
+        case "day":
+          startDate = new Date(now.setDate(now.getDate() - 1));
+          break;
+        case "week":
+          startDate = new Date(now.setDate(now.getDate() - 7));
+          break;
+        case "month":
+          startDate = new Date(now.setMonth(now.getMonth() - 1));
+          break;
+        case "year":
+          startDate = new Date(now.setFullYear(now.getFullYear() - 1));
+          break;
+        default:
+          startDate = null;
+      }
+
+      if (startDate) {
+        dateFilter = { processed_at: { $gte: startDate } };
+      }
+    }
+
+    const themeActionData = await Insight.aggregate([
+      {
+        $match: {
+          user_id: new mongoose.Types.ObjectId(user_id),
+          "themes_topics": { $exists: true, $ne: [] },
+          ...dateFilter,
+        },
+      },
+      { $unwind: "$themes_topics" },
+      {
+        $match: {
+          "themes_topics.action_taken_or_planned": { $exists: true, $ne: null, $ne: "" },
+        },
+      },
+      {
+        $group: {
+          _id: "$themes_topics.theme",
+          action_count: { $sum: 1 },
+        },
+      },
+      { $sort: { action_count: -1 } },
+      { $limit: parseInt(limit) },
+      {
+        $project: {
+          _id: 0,
+          theme: "$_id",
+          action_count: 1,
+        },
+      },
+    ]);
+
+    res.status(200).json({ themeActionData });
+  } catch (error) {
+    logger.error(`Error fetching theme action radar data: ${error}`);
+    throw new AppError("Internal Server Error", 500);
+  }
+};
