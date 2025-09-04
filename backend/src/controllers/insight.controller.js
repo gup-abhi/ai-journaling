@@ -674,3 +674,78 @@ export const getEntitySentimentTreemap = async (req, res) => {
       throw new AppError('Internal Server Error', 500);
     }
   };
+
+  export const getCognitivePatternFrequency = async (req, res) => {
+    const { _id: user_id } = req.user;
+    const { period = 'all' } = req.params;
+    const { limit = 10 } = req.query;
+
+    let dateFilter = {};
+    if (period !== 'all') {
+        const now = new Date();
+        let startDate;
+
+        switch (period) {
+            case 'week':
+                startDate = new Date();
+                startDate.setDate(startDate.getDate() - 7);
+                break;
+            case 'month':
+                startDate = new Date();
+                startDate.setMonth(startDate.getMonth() - 1);
+                break;
+            case 'year':
+                startDate = new Date();
+                startDate.setFullYear(startDate.getFullYear() - 1);
+                break;
+            default:
+                startDate = null;
+        }
+
+        if (startDate) {
+            dateFilter = { createdAt: { $gte: startDate } };
+        }
+    }
+
+    try {
+        const cognitivePatterns = await Insight.aggregate([
+            {
+                $match: {
+                    user_id: new mongoose.Types.ObjectId(user_id),
+                    ...dateFilter,
+                },
+            },
+            { $unwind: '$patterns.cognitive' },
+            {
+                $group: {
+                    _id: '$patterns.cognitive.pattern',
+                    frequency: { $sum: 1 },
+                },
+            },
+            {
+                $sort: {
+                    frequency: -1,
+                },
+            },
+            {
+                $limit: parseInt(limit),
+            },
+            {
+                $project: {
+                    _id: 0,
+                    pattern: '$_id',
+                    frequency: '$frequency',
+                },
+            },
+        ]);
+
+        res.status(200).json({
+            user_id,
+            period,
+            cognitive_patterns: cognitivePatterns,
+        });
+    } catch (error) {
+        logger.error(`Error fetching cognitive pattern frequency data: ${error}`);
+        throw new AppError('Internal Server Error', 500);
+    }
+};

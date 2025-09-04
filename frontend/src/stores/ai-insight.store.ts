@@ -15,15 +15,18 @@ type AiInsightState = {
     topThemesTrends: TopThemeTrends;
     themeActionRadarData: ThemeActionData[];
     entitySentimentTreemap: any[];
+    cognitivePatternFrequency: any[];
     isSentimentLoading: boolean;
     isThemesLoading: boolean;
     isThemeActionLoading: boolean;
     isEntitySentimentLoading: boolean;
+    isCognitivePatternLoading: boolean;
     fetchMoodTrends: () => Promise<void>;
     fetchSentimentTrends: (period: 'week' | 'month' | 'year') => Promise<void>;
     fetchTopThemes: (period: 'week' | 'month' | 'year', limit: number) => Promise<void>;
     fetchThemeActionRadarData: (period: Period) => Promise<void>;
     fetchEntitySentimentTreemap: (period: Period, limit: number) => Promise<void>;
+    fetchCognitivePatternFrequency: (period: Period, limit: number) => Promise<void>;
 }
 
 export const useAiInsightStore = create<AiInsightState>((set) => ({
@@ -36,10 +39,12 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
     },
     themeActionRadarData: [],
     entitySentimentTreemap: [],
+    cognitivePatternFrequency: [],
     isSentimentLoading: false,
     isThemesLoading: false,
     isThemeActionLoading: false,
     isEntitySentimentLoading: false,
+    isCognitivePatternLoading: false,
 
     fetchMoodTrends: async () => {
         const response = await safeRequest(api.get<{ overallSentiment: number }>('/ai-insights/trends/overall'));
@@ -93,4 +98,14 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
           set({ entitySentimentTreemap: [], isEntitySentimentLoading: false });
         }
       },
+
+    fetchCognitivePatternFrequency: async (period: Period, limit: number) => {
+        set({ isCognitivePatternLoading: true });
+        const res = await safeRequest(api.get(`/ai-insights/trends/cognitive-pattern-frequency/period/${period}?limit=${limit}`));
+        if (res.ok) {
+            set({ cognitivePatternFrequency: res.data.cognitive_patterns, isCognitivePatternLoading: false });
+        } else {
+            set({ cognitivePatternFrequency: [], isCognitivePatternLoading: false });
+        }
+    },
 }));
