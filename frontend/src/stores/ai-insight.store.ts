@@ -14,13 +14,16 @@ type AiInsightState = {
     sentimentTrends: SentimentTrend[];
     topThemesTrends: TopThemeTrends;
     themeActionRadarData: ThemeActionData[];
+    entitySentimentTreemap: any[];
     isSentimentLoading: boolean;
     isThemesLoading: boolean;
     isThemeActionLoading: boolean;
+    isEntitySentimentLoading: boolean;
     fetchMoodTrends: () => Promise<void>;
     fetchSentimentTrends: (period: 'week' | 'month' | 'year') => Promise<void>;
     fetchTopThemes: (period: 'week' | 'month' | 'year', limit: number) => Promise<void>;
     fetchThemeActionRadarData: (period: Period) => Promise<void>;
+    fetchEntitySentimentTreemap: (period: Period, limit: number) => Promise<void>;
 }
 
 export const useAiInsightStore = create<AiInsightState>((set) => ({
@@ -32,9 +35,11 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
         top_themes: []
     },
     themeActionRadarData: [],
+    entitySentimentTreemap: [],
     isSentimentLoading: false,
     isThemesLoading: false,
     isThemeActionLoading: false,
+    isEntitySentimentLoading: false,
 
     fetchMoodTrends: async () => {
         const response = await safeRequest(api.get<{ overallSentiment: number }>('/ai-insights/trends/overall'));
@@ -78,4 +83,14 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
         set({ themeActionRadarData: [], isThemeActionLoading: false });
       }
     },
+
+    fetchEntitySentimentTreemap: async (period: Period, limit: number) => {
+        set({ isEntitySentimentLoading: true });
+        const res = await safeRequest(api.get(`/ai-insights/treemap/entity-sentiment/period/${period}?limit=${limit}`));
+        if (res.ok) {
+          set({ entitySentimentTreemap: res.data.top_entities, isEntitySentimentLoading: false });
+        } else {
+          set({ entitySentimentTreemap: [], isEntitySentimentLoading: false });
+        }
+      },
 }));

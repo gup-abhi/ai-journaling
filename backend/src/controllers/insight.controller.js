@@ -585,3 +585,92 @@ export const getThemeActionRadarData = async (req, res) => {
     throw new AppError("Internal Server Error", 500);
   }
 };
+
+export const getEntitySentimentTreemap = async (req, res) => {
+    const { _id: user_id } = req.user;
+    const { period = 'all' } = req.params;
+    const { limit = 20 } = req.query;
+  
+    let dateFilter = {};
+    if (period !== 'all') {
+      const now = new Date();
+      let startDate;
+  
+      switch (period) {
+        case 'week':
+          startDate = new Date();
+          startDate.setDate(startDate.getDate() - 7);
+          break;
+        case 'month':
+          startDate = new Date();
+          startDate.setMonth(startDate.getMonth() - 1);
+          break;
+        case 'year':
+          startDate = new Date();
+          startDate.setFullYear(startDate.getFullYear() - 1);
+          break;
+        default:
+          startDate = null;
+      }
+  
+      if (startDate) {
+        dateFilter = { createdAt: { $gte: startDate } };
+      }
+    }
+  
+    try {
+      const entityTypes = ['people', 'organizations', 'locations', 'events', 'products'];
+      let allEntities = [];
+  
+      for (const type of entityTypes) {
+        const entities = await Insight.aggregate([
+          {
+            $match: {
+              user_id: new mongoose.Types.ObjectId(user_id),
+              ...dateFilter,
+            },
+          },
+          { $unwind: `$entities.${type}` },
+          {
+            $group: {
+              _id: `$entities.${type}.name`,
+              frequency: { $sum: 1 },
+              sentimentScore: {
+                $sum: {
+                  $switch: {
+                    branches: [
+                      { case: { $eq: [`$entities.${type}.sentiment`, 'positive'] }, then: 1 },
+                      { case: { $eq: [`$entities.${type}.sentiment`, 'negative'] }, then: -1 },
+                    ],
+                    default: 0,
+                  },
+                },
+              },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              name: '$_id',
+              type: type,
+              frequency: '$frequency',
+              avgSentiment: { $divide: ['$sentimentScore', '$frequency'] },
+            },
+          },
+        ]);
+        allEntities = allEntities.concat(entities);
+      }
+  
+      allEntities.sort((a, b) => b.frequency - a.frequency);
+      const topEntities = allEntities.slice(0, parseInt(limit));
+  
+      res.status(200).json({
+        user_id,
+        period,
+        top_entities: topEntities,
+      });
+    } catch (error) {
+      logger.error(`Error fetching entity sentiment treemap data: ${error}`);
+      throw new AppError('Internal Server Error', 500);
+    }
+  };

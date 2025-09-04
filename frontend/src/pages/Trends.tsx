@@ -17,6 +17,7 @@ import EmotionDistributionChart from '../components/EmotionDistributionChart';
 import EmotionIntensityHeatmap from '../components/EmotionIntensityHeatmap';
 import ThematicSentimentChart from '../components/ThematicSentimentChart';
 import ThemeActionRadarChart from '../components/ThemeActionRadarChart';
+import EntitySentimentTreemap from '../components/EntitySentimentTreemap';
 
 
 interface CustomTooltipProps {
@@ -57,7 +58,8 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
 
 
 export function Trends() {
-  const [limit, setLimit] = useState(5);
+  const [limit, setLimit] = useState(10);
+  const [treemapLimit, setTreemapLimit] = useState(10);
   const [period, setPeriod] = useState<Period>('month');
   const { sentimentTrends, fetchSentimentTrends, topThemesTrends, fetchTopThemes, isSentimentLoading, isThemesLoading, themeActionRadarData, isThemeActionLoading, fetchThemeActionRadarData } = useAiInsightStore();
   const navigate = useNavigate();
@@ -129,7 +131,7 @@ export function Trends() {
               <SelectContent>
                 <SelectItem value="5">5</SelectItem>
                 <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="15">15</SelectItem>
               </SelectContent>
             </Select>
           </CardHeader>
@@ -201,6 +203,24 @@ export function Trends() {
                 <p className="text-muted-foreground">No theme action data available for this period.</p>
               </div>
             )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row justify-between items-center">
+            <CardTitle className='text-accent'>Entity Sentiment Treemap</CardTitle>
+            <Select value={String(treemapLimit)} onValueChange={(value) => setTreemapLimit(Number(value))}>
+              <SelectTrigger className="w-[100px]">
+                <SelectValue placeholder="Limit" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">5</SelectItem>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="15">15</SelectItem>
+              </SelectContent>
+            </Select>
+          </CardHeader>
+          <CardContent>
+            <EntitySentimentTreemap period={period} limit={treemapLimit} />
           </CardContent>
         </Card>
       </div>
