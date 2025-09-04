@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ResponsiveContainer, Treemap, Tooltip } from 'recharts';
 import { useAiInsightStore } from '@/stores/ai-insight.store';
 import { Loader } from '@/components/Loader';
 import type { Period } from '@/types/Period.type';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
@@ -32,36 +33,58 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-const EntitySentimentTreemap = ({ period, limit }: { period: Period, limit: number }) => {
+const EntitySentimentTreemap = () => {
+  const [period, setPeriod] = useState<Period>('month');
+  const [limit, setLimit] = useState(10);
   const { entitySentimentTreemap, isEntitySentimentLoading, fetchEntitySentimentTreemap } = useAiInsightStore();
 
   useEffect(() => {
     fetchEntitySentimentTreemap(period, limit);
   }, [period, limit, fetchEntitySentimentTreemap]);
 
-  if (isEntitySentimentLoading) {
-    return <Loader className="h-64" />;
-  }
-
-  if (entitySentimentTreemap.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">No entity data available for this period.</p>
-      </div>
-    );
-  }
-
   return (
-    <ResponsiveContainer width="100%" height={400}>
-      <Treemap
-        data={entitySentimentTreemap}
-        dataKey="frequency"
-        stroke="#fff"
-        content={<CustomizedContent />}
-      >
-        <Tooltip content={<CustomTooltip />} />
-      </Treemap>
-    </ResponsiveContainer>
+    <div>
+        <div className="flex justify-end gap-4 mb-4">
+            <Select value={String(limit)} onValueChange={(value) => setLimit(Number(value))}>
+                <SelectTrigger className="w-[100px]">
+                    <SelectValue placeholder="Limit" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="15">15</SelectItem>
+                </SelectContent>
+            </Select>
+            <Select value={period} onValueChange={(value: Period) => setPeriod(value)}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select period" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="week">Weekly</SelectItem>
+                    <SelectItem value="month">Monthly</SelectItem>
+                    <SelectItem value="year">Yearly</SelectItem>
+                </SelectContent>
+            </Select>
+        </div>
+        {isEntitySentimentLoading ? (
+            <Loader className="h-64" />
+        ) : entitySentimentTreemap.length > 0 ? (
+            <ResponsiveContainer width="100%" height={400}>
+            <Treemap
+                data={entitySentimentTreemap}
+                dataKey="frequency"
+                stroke="#fff"
+                content={<CustomizedContent />}
+            >
+                <Tooltip content={<CustomTooltip />} />
+            </Treemap>
+            </ResponsiveContainer>
+        ) : (
+            <div className="flex items-center justify-center h-64">
+                <p className="text-muted-foreground">No entity data available for this period.</p>
+            </div>
+        )}
+    </div>
   );
 };
 

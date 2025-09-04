@@ -17,12 +17,18 @@ type AiInsightState = {
     entitySentimentTreemap: any[];
     cognitivePatternFrequency: any[];
     topStressors: any[];
+    emotionDistribution: any[];
+    emotionIntensityHeatmap: any[];
+    thematicSentiment: any[];
     isSentimentLoading: boolean;
     isThemesLoading: boolean;
     isThemeActionLoading: boolean;
     isEntitySentimentLoading: boolean;
     isCognitivePatternLoading: boolean;
     isTopStressorsLoading: boolean;
+    isEmotionDistributionLoading: boolean;
+    isEmotionIntensityHeatmapLoading: boolean;
+    isThematicSentimentLoading: boolean;
     fetchMoodTrends: () => Promise<void>;
     fetchSentimentTrends: (period: 'week' | 'month' | 'year') => Promise<void>;
     fetchTopThemes: (period: 'week' | 'month' | 'year', limit: number) => Promise<void>;
@@ -30,6 +36,9 @@ type AiInsightState = {
     fetchEntitySentimentTreemap: (period: Period, limit: number) => Promise<void>;
     fetchCognitivePatternFrequency: (period: Period, limit: number) => Promise<void>;
     fetchTopStressors: (period: Period, limit: number) => Promise<void>;
+    fetchEmotionDistribution: (period: Period) => Promise<void>;
+    fetchEmotionIntensityHeatmap: (period: Period) => Promise<void>;
+    fetchThematicSentiment: (period: Period) => Promise<void>;
 }
 
 export const useAiInsightStore = create<AiInsightState>((set) => ({
@@ -44,12 +53,18 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
     entitySentimentTreemap: [],
     cognitivePatternFrequency: [],
     topStressors: [],
+    emotionDistribution: [],
+    emotionIntensityHeatmap: [],
+    thematicSentiment: [],
     isSentimentLoading: false,
     isThemesLoading: false,
     isThemeActionLoading: false,
     isEntitySentimentLoading: false,
     isCognitivePatternLoading: false,
     isTopStressorsLoading: false,
+    isEmotionDistributionLoading: false,
+    isEmotionIntensityHeatmapLoading: false,
+    isThematicSentimentLoading: false,
 
     fetchMoodTrends: async () => {
         const response = await safeRequest(api.get<{ overallSentiment: number }>('/ai-insights/trends/overall'));
@@ -121,6 +136,36 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
             set({ topStressors: res.data.top_stressors, isTopStressorsLoading: false });
         } else {
             set({ topStressors: [], isTopStressorsLoading: false });
+        }
+    },
+
+    fetchEmotionDistribution: async (period: Period) => {
+        set({ isEmotionDistributionLoading: true });
+        const res = await safeRequest(api.get(`/ai-insights/emotion-distribution/period/${period}`));
+        if (res.ok) {
+            set({ emotionDistribution: res.data.emotionDistribution, isEmotionDistributionLoading: false });
+        } else {
+            set({ emotionDistribution: [], isEmotionDistributionLoading: false });
+        }
+    },
+
+    fetchEmotionIntensityHeatmap: async (period: Period) => {
+        set({ isEmotionIntensityHeatmapLoading: true });
+        const res = await safeRequest(api.get(`/ai-insights/emotion-intensity-heatmap/period/${period}`));
+        if (res.ok) {
+            set({ emotionIntensityHeatmap: res.data.intensityMap, isEmotionIntensityHeatmapLoading: false });
+        } else {
+            set({ emotionIntensityHeatmap: [], isEmotionIntensityHeatmapLoading: false });
+        }
+    },
+
+    fetchThematicSentiment: async (period: Period) => {
+        set({ isThematicSentimentLoading: true });
+        const res = await safeRequest(api.get(`/ai-insights/thematic-sentiment/period/${period}`));
+        if (res.ok) {
+            set({ thematicSentiment: res.data.thematicSentiment, isThematicSentimentLoading: false });
+        } else {
+            set({ thematicSentiment: [], isThematicSentimentLoading: false });
         }
     },
 }));
