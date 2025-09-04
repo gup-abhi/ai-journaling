@@ -53,7 +53,7 @@ export function Trends() {
             <CardTitle className='text-accent'>Emotion Intensity Heatmap</CardTitle>
           </CardHeader>
           <CardContent>
-            <EmotionIntensityHeatmap period='month' />
+            <EmotionIntensityHeatmap />
           </CardContent>
         </Card>
         <Card>
