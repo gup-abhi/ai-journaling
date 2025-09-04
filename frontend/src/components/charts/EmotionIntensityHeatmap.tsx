@@ -86,68 +86,67 @@ const EmotionIntensityHeatmap = () => {
   };
 
   return (
-    <div className="w-full h-[600px]">
-      <div className="flex justify-end mb-4">
+    <div className="w-full h-[500px]">  {/* Control chart height inside card */}
+    <div className="flex justify-end mb-4">
         <Select
-          value={period}
-          onValueChange={(value: Period) => setPeriod(value)}
+        value={period}
+        onValueChange={(value: Period) => setPeriod(value)}
         >
-          <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select period" />
-          </SelectTrigger>
-          <SelectContent>
+        </SelectTrigger>
+        <SelectContent>
             <SelectItem value="week">Weekly</SelectItem>
             <SelectItem value="month">Monthly</SelectItem>
             <SelectItem value="year">Yearly</SelectItem>
-          </SelectContent>
+        </SelectContent>
         </Select>
-      </div>
+    </div>
 
-      {/* Conditional rendering */}
-      {loading ? (
+    {loading ? (
         <Loader className="h-64" />
-      ) : error ? (
+    ) : error ? (
         <div className="text-center py-4 text-red-500">{error}</div>
-      ) : data.length === 0 ? (
+    ) : data.length === 0 ? (
         <div className="text-center py-4 text-gray-500">
-          No emotion intensity data available for this period.
+        No emotion intensity data available for this period.
         </div>
-      ) : (
+    ) : (
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart
+        <BarChart
             data={data}
             margin={{
-              top: 20,
-              right: 30,
-              left: 80, // Increased left margin
-              bottom: 5,
+            top: 20,
+            right: 20,
+            left: 40,   // smaller left margin
+            bottom: 20,
             }}
-          >
+        >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="time_unit" />
-            <YAxis width={100} /> // Increased Y-axis width
+            <YAxis width={60} /> {/* just a number, no inline comment */}
             <Tooltip
-              contentStyle={{
+            contentStyle={{
                 backgroundColor: "var(--background)",
                 border: "1px solid var(--primary)",
                 borderRadius: "8px",
                 color: "var(--primary)",
-              }}
-              itemStyle={{ color: "var(--accent)" }}
-              labelStyle={{ color: "var(--primary)" }}
+            }}
+            itemStyle={{ color: "var(--accent)" }}
+            labelStyle={{ color: "var(--primary)" }}
             />
             <Legend verticalAlign="top" align="right" />
             {emotions.map((emotion) => (
-              <Bar
+            <Bar
                 key={emotion}
                 dataKey={emotion}
-                stackId="a" // Stack bars if multiple emotions per time unit
-                fill={getIntensityColor((data[0]?.[emotion] as number) || 0)} // This will apply the color based on the first data point's intensity for that emotion. Needs refinement for true heatmap.
-              />
+                stackId="a"
+                fill={getIntensityColor((data[0]?.[emotion] as number) || 0)}
+            />
             ))}
-          </BarChart>
+        </BarChart>
         </ResponsiveContainer>
-      )}
+    )}
     </div>
   );
 };
