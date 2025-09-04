@@ -16,17 +16,20 @@ type AiInsightState = {
     themeActionRadarData: ThemeActionData[];
     entitySentimentTreemap: any[];
     cognitivePatternFrequency: any[];
+    topStressors: any[];
     isSentimentLoading: boolean;
     isThemesLoading: boolean;
     isThemeActionLoading: boolean;
     isEntitySentimentLoading: boolean;
     isCognitivePatternLoading: boolean;
+    isTopStressorsLoading: boolean;
     fetchMoodTrends: () => Promise<void>;
     fetchSentimentTrends: (period: 'week' | 'month' | 'year') => Promise<void>;
     fetchTopThemes: (period: 'week' | 'month' | 'year', limit: number) => Promise<void>;
     fetchThemeActionRadarData: (period: Period) => Promise<void>;
     fetchEntitySentimentTreemap: (period: Period, limit: number) => Promise<void>;
     fetchCognitivePatternFrequency: (period: Period, limit: number) => Promise<void>;
+    fetchTopStressors: (period: Period, limit: number) => Promise<void>;
 }
 
 export const useAiInsightStore = create<AiInsightState>((set) => ({
@@ -40,11 +43,13 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
     themeActionRadarData: [],
     entitySentimentTreemap: [],
     cognitivePatternFrequency: [],
+    topStressors: [],
     isSentimentLoading: false,
     isThemesLoading: false,
     isThemeActionLoading: false,
     isEntitySentimentLoading: false,
     isCognitivePatternLoading: false,
+    isTopStressorsLoading: false,
 
     fetchMoodTrends: async () => {
         const response = await safeRequest(api.get<{ overallSentiment: number }>('/ai-insights/trends/overall'));
@@ -106,6 +111,16 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
             set({ cognitivePatternFrequency: res.data.cognitive_patterns, isCognitivePatternLoading: false });
         } else {
             set({ cognitivePatternFrequency: [], isCognitivePatternLoading: false });
+        }
+    },
+
+    fetchTopStressors: async (period: Period, limit: number) => {
+        set({ isTopStressorsLoading: true });
+        const res = await safeRequest(api.get(`/ai-insights/trends/top-stressors?period=${period}&limit=${limit}`));
+        if (res.ok) {
+            set({ topStressors: res.data.top_stressors, isTopStressorsLoading: false });
+        } else {
+            set({ topStressors: [], isTopStressorsLoading: false });
         }
     },
 }));

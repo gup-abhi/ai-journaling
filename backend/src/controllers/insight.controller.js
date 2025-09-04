@@ -749,3 +749,154 @@ export const getEntitySentimentTreemap = async (req, res) => {
         throw new AppError('Internal Server Error', 500);
     }
 };
+
+export const getTemporalMoodFluctuation = async (req, res) => {
+    const { _id: user_id } = req.user;
+    const { period = 'week' } = req.params; // 'week' for day of the week, 'day' for time of day
+
+    let groupBy = {};
+    let sortOrder = {};
+
+    if (period === 'week') {
+        groupBy = {
+            $dayOfWeek: '$processed_at'
+        };
+        sortOrder = { _id: 1 };
+    } else if (period === 'day') {
+        groupBy = {
+            $hour: '$processed_at'
+        };
+        sortOrder = { _id: 1 };
+    } else {
+        throw new AppError("Invalid period. Please specify 'week' or 'day'.", 400);
+    }
+
+    try {
+        const temporalData = await Insight.aggregate([
+            {
+                $match: {
+                    user_id: new mongoose.Types.ObjectId(user_id),
+                },
+            },
+            {
+                $group: {
+                    _id: groupBy,
+                    avgSentiment: { $avg: '$sentiment.score' },
+                },
+            },
+            {
+                $sort: sortOrder,
+            },
+            {
+                $project: {
+                    _id: 0,
+                    time_unit: '$_id',
+                    avgSentiment: '$avgSentiment',
+                },
+            },
+        ]);
+
+        const dayMapping = ["", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        if (period === 'week') {
+            temporalData.forEach(item => {
+                item.time_unit = dayMapping[item.time_unit];
+            });
+        }
+
+        res.status(200).json({
+            user_id,
+            period,
+            temporal_data: temporalData,
+        });
+    } catch (error) {
+        logger.error(`Error fetching temporal mood fluctuation data: ${error}`);
+        throw new AppError('Internal Server Error', 500);
+    }
+};
+
+export const getTopStressors = async (req, res) => {
+    const { _id: user_id } = req.user;
+    const { period = 'all', limit = 10 } = req.query;
+
+    let dateFilter = {};
+    if (period !== 'all') {
+        const now = new Date();
+        let startDate;
+
+        switch (period) {
+            case 'week':
+                startDate = new Date();
+                startDate.setDate(startDate.getDate() - 7);
+                break;
+            case 'month':
+                startDate = new Date();
+                startDate.setMonth(startDate.getMonth() - 1);
+                break;
+            case 'year':
+                startDate = new Date();
+                startDate.setFullYear(startDate.getFullYear() - 1);
+                break;
+            default:
+                startDate = null;
+        }
+
+        if (startDate) {
+            dateFilter = { createdAt: { $gte: startDate } };
+        }
+    }
+
+    try {
+        const topStressors = await Insight.aggregate([
+            {
+                $match: {
+                    user_id: new mongoose.Types.ObjectId(user_id),
+                    ...dateFilter,
+                },
+            },
+            { $unwind: '$stressors_triggers' },
+            {
+                $group: {
+                    _id: '$stressors_triggers.trigger',
+                    frequency: { $sum: 1 },
+                    avgImpactLevel: {
+                        $avg: {
+                            $switch: {
+                                branches: [
+                                    { case: { $eq: ['$stressors_triggers.impact_level', 'high'] }, then: 3 },
+                                    { case: { $eq: ['$stressors_triggers.impact_level', 'medium'] }, then: 2 },
+                                    { case: { $eq: ['$stressors_triggers.impact_level', 'low'] }, then: 1 },
+                                ],
+                                default: 0,
+                            },
+                        },
+                    },
+                },
+            },
+            {
+                $sort: {
+                    frequency: -1,
+                },
+            },
+            {
+                $limit: parseInt(limit),
+            },
+            {
+                $project: {
+                    _id: 0,
+                    trigger: '$_id',
+                    frequency: '$frequency',
+                    avgImpactLevel: '$avgImpactLevel',
+                },
+            },
+        ]);
+
+        res.status(200).json({
+            user_id,
+            period,
+            top_stressors: topStressors,
+        });
+    } catch (error) {
+        logger.error(`Error fetching top stressors data: ${error}`);
+        throw new AppError('Internal Server Error', 500);
+    }
+};

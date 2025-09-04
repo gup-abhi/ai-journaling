@@ -1,6 +1,6 @@
 import express from 'express';
 import { validateToken } from '../middlewares/authorization.js';
-import { getSentimentTrends, getSentimentTrendsByPeriod, getTrendsByJournalId, getOverallSentiment, getKeyThemesByPeriod, getEmotionDistribution, getEmotionIntensityHeatmap, getThematicSentiment, getThemeActionRadarData, getEntitySentimentTreemap, getCognitivePatternFrequency } from '../controllers/insight.controller.js';
+import { getSentimentTrends, getSentimentTrendsByPeriod, getTrendsByJournalId, getOverallSentiment, getKeyThemesByPeriod, getEmotionDistribution, getEmotionIntensityHeatmap, getThematicSentiment, getThemeActionRadarData, getEntitySentimentTreemap, getCognitivePatternFrequency, getTemporalMoodFluctuation, getTopStressors } from '../controllers/insight.controller.js';
 
 const router = express.Router();
 
@@ -15,5 +15,7 @@ router.get("/thematic-sentiment/period/:period", validateToken, getThematicSenti
 router.get("/theme-action-radar/period/:period", validateToken, getThemeActionRadarData);
 router.get("/treemap/entity-sentiment/period/:period", validateToken, getEntitySentimentTreemap);
 router.get("/trends/cognitive-pattern-frequency/period/:period", validateToken, getCognitivePatternFrequency);
+router.get("/trends/temporal-mood-fluctuation/period/:period", validateToken, getTemporalMoodFluctuation);
+router.get("/trends/top-stressors", validateToken, getTopStressors);
 
 export default router;
