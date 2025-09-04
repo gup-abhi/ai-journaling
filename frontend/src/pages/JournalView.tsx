@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { api, safeRequest } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Calendar, Smile, Frown, Meh } from 'lucide-react'
+import { Calendar, Smile, Frown, Meh, CheckCircle, Hourglass, XCircle, PauseCircle } from 'lucide-react'
 import moment from 'moment'
 import { Loader } from '@/components/Loader'
 import { Badge } from '@/components/ui/badge'
@@ -96,6 +96,21 @@ export function JournalView() {
     if (label === 'low') return 'text-green-500'
     return ''
   }
+
+  const getProgressIcon = (progress: string) => {
+    switch (progress) {
+      case "not-started":
+        return <XCircle className="h-4 w-4 text-gray-500" />;
+      case "in-progress":
+        return <Hourglass className="h-4 w-4 text-blue-500" />;
+      case "completed":
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case "on-hold":
+        return <PauseCircle className="h-4 w-4 text-yellow-500" />;
+      default:
+        return null;
+    }
+  };
 
   if (isLoading) {
     return <Loader />
@@ -294,7 +309,10 @@ export function JournalView() {
                             {trend.entities.people.map((entity, index) => (
                               <Badge key={index} variant="outline"
                                   className="h-10 bg-accent-background text-muted-foreground text-sm">
-                                    {entity.name} ({entity.sentiment})
+                                    {entity.name}{' '}
+                                    <span className={getSentimentColorClass(entity.sentiment)}>
+                                      ({entity.sentiment})
+                                    </span>
                               </Badge>
                             ))}
                         </>
@@ -306,7 +324,10 @@ export function JournalView() {
                             {trend.entities.organizations.map((entity, index) => (
                               <Badge key={index} variant="outline"
                                 className="h-10 bg-accent-background text-muted-foreground text-sm">
-                                  {entity.name} ({entity.sentiment})
+                                  {entity.name}{' '}
+                                  <span className={getSentimentColorClass(entity.sentiment)}>
+                                    ({entity.sentiment})
+                                  </span>
                               </Badge>
                             ))}
                         </>
@@ -314,11 +335,14 @@ export function JournalView() {
 
                       {trend.entities.locations.length > 0 && (
                         <>
-                          <h5 className='text-foreground'>Locations:</h5>
+                          <h5 className='text-accent'>Locations:</h5>
                             {trend.entities.locations.map((entity, index) => (
                               <Badge key={index} variant="outline"
                                 className="h-10 bg-accent-background text-muted-foreground text-sm">
-                                  {entity.name} ({entity.sentiment})
+                                  {entity.name}{' '}
+                                  <span className={getSentimentColorClass(entity.sentiment)}>
+                                    ({entity.sentiment})
+                                  </span>
                               </Badge>
                             ))}
                         </>
@@ -326,11 +350,14 @@ export function JournalView() {
 
                       {trend.entities.events.length > 0 && (
                         <>
-                          <h5 className='text-foreground'>Events:</h5>
+                          <h5 className='text-accent'>Events:</h5>
                             {trend.entities.events.map((entity, index) => (
                               <Badge key={index} variant="outline"
                                 className="h-10 bg-accent-background text-muted-foreground text-sm">
-                                  {entity.name} ({entity.sentiment})
+                                  {entity.name}{' '}
+                                  <span className={getSentimentColorClass(entity.sentiment)}>
+                                    ({entity.sentiment})
+                                  </span>
                               </Badge>
                             ))}
                         </>
@@ -338,11 +365,14 @@ export function JournalView() {
 
                       {trend.entities.products.length > 0 && (
                         <>
-                          <h5 className='text-foreground'>Products:</h5>
+                          <h5 className='text-accent'>Products:</h5>
                             {trend.entities.products.map((entity, index) => (
                               <Badge key={index} variant="outline"
                                 className="h-10 bg-accent-background text-muted-foreground text-sm">
-                                  {entity.name} ({entity.sentiment})
+                                  {entity.name}{' '}
+                                  <span className={getSentimentColorClass(entity.sentiment)}>
+                                    ({entity.sentiment})
+                                  </span>
                               </Badge>
                             ))}
                         </>
@@ -359,7 +389,7 @@ export function JournalView() {
                         <li key={index}>
                           <span className="text-foreground">{goal.goal}</span>
                           <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
-                            <li>Status: {goal.status}</li>
+                            <li className="flex items-center gap-2">Status: {getProgressIcon(goal.status)} {goal.status}</li>
                             <li>Progress: {goal.progress_indicator}</li>
                           </ul>
                         </li>
@@ -390,7 +420,7 @@ export function JournalView() {
                     <h4 className='text-accent'>Relationships & Social Dynamics:</h4>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
                       {trend.relationships_social_dynamics.map((relationship, index) => (
-                        <li key={index}>{relationship.person_or_group}: {relationship.interaction_summary} ({relationship.emotional_tone})</li>
+                        <li key={index}>{relationship.person_or_group}: {relationship.interaction_summary} <span className={getSentimentColorClass(relationship.emotional_tone)}>({relationship.emotional_tone})</span></li>
                       ))}
                     </ul>
                   </div>
@@ -401,7 +431,7 @@ export function JournalView() {
                     <h4 className='text-accent'>Health & Wellbeing:</h4>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
                       {trend.health_wellbeing.map((health, index) => (
-                        <li key={index}><span className="text-foreground">{health_wellbeing_mapping[health.aspect]}</span>: {health.status_or_change} (Mood Impact: {health.impact_on_mood})</li>
+                        <li key={index}><span className="text-foreground">{health_wellbeing_mapping[health.aspect]}</span>: {health.status_or_change} (Mood Impact: <span className={getSentimentColorClass(health.impact_on_mood)}>{health.impact_on_mood}</span>)</li>
                       ))}
                     </ul>
                   </div>
