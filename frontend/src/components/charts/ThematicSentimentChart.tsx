@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { Loader } from './Loader';
+import { Loader } from '@/components/Loader';
 
 interface ThematicSentimentData {
   theme: string;

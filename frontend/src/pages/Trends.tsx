@@ -12,15 +12,15 @@ import { useAiInsightStore } from '@/stores/ai-insight.store';
 import { useNavigate } from 'react-router-dom';
 import type { Period } from '@/types/Period.type';
 import { Loader } from '@/components/Loader'; // Import Loader
-import EmotionDistributionChart from '../components/EmotionDistributionChart';
-import EmotionIntensityHeatmap from '../components/EmotionIntensityHeatmap';
-import ThematicSentimentChart from '../components/ThematicSentimentChart';
-import ThemeActionRadarChart from '../components/ThemeActionRadarChart';
-import EntitySentimentTreemap from '../components/EntitySentimentTreemap';
-import CognitivePatternFrequencyChart from '../components/CognitivePatternFrequencyChart';
-import TopStressorsChart from '../components/TopStressorsChart';
-import SentimentTrendsChart from '../components/SentimentTrendsChart';
-import TopKeyThemesChart from '../components/TopKeyThemesChart';
+import EmotionDistributionChart from '../components/charts/EmotionDistributionChart';
+import EmotionIntensityHeatmap from '../components/charts/EmotionIntensityHeatmap';
+import ThematicSentimentChart from '../components/charts/ThematicSentimentChart';
+import ThemeActionRadarChart from '../components/charts/ThemeActionRadarChart';
+import EntitySentimentTreemap from '../components/charts/EntitySentimentTreemap';
+import CognitivePatternFrequencyChart from '../components/charts/CognitivePatternFrequencyChart';
+import TopStressorsChart from '../components/charts/TopStressorsChart';
+import SentimentTrendsChart from '../components/charts/SentimentTrendsChart';
+import TopKeyThemesChart from '../components/charts/TopKeyThemesChart';
 
 
 export function Trends() {

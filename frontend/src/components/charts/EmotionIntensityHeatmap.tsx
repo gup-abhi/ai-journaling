@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { Loader } from './Loader'; // Assuming Loader is in the same directory or a sibling directory
+import { Loader } from '@/components/Loader'; // Assuming Loader is in the same directory or a sibling directory
 
 interface HeatmapDataPoint {
   emotion: string;

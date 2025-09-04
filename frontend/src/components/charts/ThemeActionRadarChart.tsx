@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { Loader } from './Loader';
+import { Loader } from '@/components/Loader';
 
 interface ThemeActionData {
   theme: string;

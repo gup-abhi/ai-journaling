@@ -28,7 +28,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label })
         }
 
         return (
-            <div className="bg-card p-3 border border-border rounded-md shadow-md">
+            <div className="bg-card p-3 border border-border rounded-md shadow-md" style={{ backgroundColor: 'var(--background)' }}>
                 <p className="text-sm text-muted-foreground">{`Date: ${label}`}</p>
                 <p className={`text-lg font-semibold ${sentimentColor}`}>
                     {`Sentiment: ${sentiment.toFixed(4)} (${sentimentLabel})`}
