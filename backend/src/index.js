@@ -52,8 +52,8 @@ app.use(errorHandler);
 
 const server = http.createServer(app);
 
-server.listen(process.env.PORT, () => {
-  connectDB();
+server.listen(process.env.PORT, async () => {
+  await connectDB();
   logger.info(`Server is running on port ${process.env.PORT}`);
 });
 

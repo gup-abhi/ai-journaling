@@ -1,128 +1,163 @@
 export const prompt = `
 {
   "role": "Psychologist",
-  "task": "Analyze the following journal entry to extract comprehensive AI insights, including sentiment, emotions, themes, entities, patterns, goals, stressors, relationships, health, and creative expression. Provide the output in a structured JSON format. Ensure all fields are filled, even if empty. Include a supportive acknowledgment of the writer's emotions and validate their concerns.",
+  "task": "Analyze the following journal entry to extract comprehensive AI insights. You MUST use only the exact values specified for each field and make sure all the fields are present in the final response. Any deviation from the allowed values will result in an invalid response.",
+
+  "CRITICAL_CONSTRAINTS": {
+    "sentiment_values": ["positive", "negative", "neutral"],
+    "intensity_values": ["low", "medium", "high"],
+    "status_values": ["not-started", "in-progress", "completed", "on-hold"],
+    "frequency_values": ["daily", "weekly", "occasional", "monthly", "yearly"],
+    "impact_levels": ["low", "medium", "high"],
+    "health_aspects": ["physical_health", "sleep", "energy_level", "diet", "exercise", "mental_health", "emotional_wellbeing"],
+    "emotional_tones": ["positive", "negative", "neutral"]
+  },
+
+  "VALIDATION_RULES": [
+    "sentiment.overall MUST be exactly one of: positive, negative, neutral",
+    "sentiment.score MUST be a number between -1 and 1",
+    "All emotion intensities MUST be exactly one of: low, medium, high",
+    "All sentiment fields MUST be exactly one of: positive, negative, neutral",
+    "All status fields MUST be exactly one of: not-started, in-progress, completed, on-hold",
+    "All frequency_indicator fields MUST be exactly one of: daily, weekly, occasional, monthly, yearly",
+    "All impact_level fields MUST be exactly one of: low, medium, high",
+    "All health aspects MUST be exactly one of: physical_health, sleep, energy_level, diet, exercise, mental_health, emotional_wellbeing",
+    "If no data exists for a field, use empty array [] or empty string \"\""
+  ],
+
   "output_format": {
     "sentiment": {
-      "overall": "<must be one of: positive, negative, or neutral (never 'mixed')>",
-      "score": <numeric score from -1 to 1>,
+      "overall": "REQUIRED: Must be exactly 'positive', 'negative', or 'neutral' - no other values allowed",
+      "score": "REQUIRED: Numeric value between -1.0 and 1.0",
       "emotions": [
         {
-          "emotion": "<e.g., sadness, joy, anger, fear, frustration, anxiety>",
-          "intensity": "<low | medium | high>",
-          "trigger": "<brief description of what caused this emotion, if detectable>"
+          "emotion": "Single word emotion (e.g., sadness, joy, anger, fear, frustration, anxiety)",
+          "intensity": "REQUIRED: Must be exactly 'low', 'medium', or 'high' - no other values allowed",
+          "trigger": "Brief description or empty string if none"
         }
       ],
-      "acknowledgement": "<empathetic statement acknowledging the writer's feelings and validating their concerns>"
+      "acknowledgement": "Empathetic statement acknowledging feelings"
     },
     "themes_topics": [
       {
-        "theme": "<recurring theme or topic>",
-        "sentiment_towards_theme": "<must be one of: positive, negative, or neutral (never 'mixed')>",
-        "action_taken_or_planned": "<brief description of any action taken or planned related to this theme, if mentioned>"
+        "theme": "Recurring theme or topic as string",
+        "sentiment_towards_theme": "REQUIRED: Must be exactly 'positive', 'negative', or 'neutral' - no other values allowed",
+        "action_taken_or_planned": "Brief description or empty string"
       }
     ],
     "entities": {
       "people": [
         {
-          "name": "<list of people mentioned>",
-          "sentiment": "<must be one of: positive, negative, or neutral (never 'mixed')>"
+          "name": "Person's name as string",
+          "sentiment": "REQUIRED: Must be exactly 'positive', 'negative', or 'neutral' - no other values allowed"
         }
       ],
       "organizations": [
         {
-          "name": "<list of organizations mentioned>",
-          "sentiment": "<must be one of: positive, negative, or neutral (never 'mixed')>"
+          "name": "Organization name as string",
+          "sentiment": "REQUIRED: Must be exactly 'positive', 'negative', or 'neutral' - no other values allowed"
         }
       ],
       "locations": [
         {
-          "name": "<list of locations mentioned>",
-          "sentiment": "<must be one of: positive, negative, or neutral (never 'mixed')>"
+          "name": "Location name as string",
+          "sentiment": "REQUIRED: Must be exactly 'positive', 'negative', or 'neutral' - no other values allowed"
         }
       ],
       "events": [
         {
-          "name": "<list of events mentioned>",
-          "sentiment": "<must be one of: positive, negative, or neutral (never 'mixed')>"
+          "name": "Event name as string",
+          "sentiment": "REQUIRED: Must be exactly 'positive', 'negative', or 'neutral' - no other values allowed"
         }
       ],
       "products": [
         {
-          "name": "<list of products mentioned>",
-          "sentiment": "<must be one of: positive, negative, or neutral (never 'mixed')>"
+          "name": "Product name as string",
+          "sentiment": "REQUIRED: Must be exactly 'positive', 'negative', or 'neutral' - no other values allowed"
         }
       ]
     },
-    "summary": "<concise summary of the journal entry>",
+    "summary": "Concise summary of the journal entry",
     "patterns": {
       "behavioral": [
         {
-          "pattern": "<detected behavioral pattern, routine, or habit>",
-          "frequency_indicator": "<daily | weekly | occasional | monthly | yearly>"
+          "pattern": "Behavioral pattern as string",
+          "frequency_indicator": "REQUIRED: Must be exactly 'daily', 'weekly', 'occasional', 'monthly', or 'yearly' - no other values allowed"
         }
       ],
       "cognitive": [
         {
-          "pattern": "<detected thinking style, bias, or cognitive tendency>",
-          "example_phrase": "<short phrase from entry illustrating the pattern>"
+          "pattern": "Cognitive pattern as string",
+          "example_phrase": "Example phrase as string"
         }
       ],
       "temporal": [
         {
-          "pattern": "<mood swing, recurring trigger, or seasonal effect>",
-          "associated_time_period": "<e.g., mornings, weekends, specific month, after work>"
+          "pattern": "Temporal pattern as string",
+          "associated_time_period": "Time period as string"
         }
       ]
     },
     "goals_aspirations": [
       {
-        "goal": "<short-term or long-term goal>",
-        "status": "<not-started | in-progress | completed | on-hold>",
-        "progress_indicator": "<brief mention of progress or specific steps taken>"
+        "goal": "Goal description as string",
+        "status": "REQUIRED: Must be exactly 'not-started', 'in-progress', 'completed', or 'on-hold' - no other values allowed",
+        "progress_indicator": "Progress description as string"
       }
     ],
     "stressors_triggers": [
       {
-        "trigger": "<event, person, or situation causing stress, anxiety, or negative emotions>",
-        "impact_level": "<low | medium | high>",
-        "coping_mechanism_mentioned": "<brief description of any coping mechanism used or planned, if mentioned>"
+        "trigger": "Stressor or trigger as string",
+        "impact_level": "REQUIRED: Must be exactly 'low', 'medium', or 'high' - no other values allowed",
+        "coping_mechanism_mentioned": "Coping mechanism as string or empty string"
       }
     ],
     "relationships_social_dynamics": [
       {
-        "person_or_group": "<name of person or group>",
-        "emotional_tone": "<must be one of: positive, negative, or neutral (never 'mixed')>",
-        "interaction_summary": "<brief summary of the interaction or dynamic>"
+        "person_or_group": "Person or group name as string",
+        "emotional_tone": "REQUIRED: Must be exactly 'positive', 'negative', or 'neutral' - no other values allowed",
+        "interaction_summary": "Interaction summary as string"
       }
     ],
     "health_wellbeing": [
       {
-        "aspect": "<physical_health | sleep | energy_level | diet | exercise | mental_health | emotional_wellbeing>",
-        "status_or_change": "<brief description of current status or any change>",
-        "impact_on_mood": "<must be one of: positive, negative, or neutral (never 'mixed')>"
+        "aspect": "REQUIRED: Must be exactly one of 'physical_health', 'sleep', 'energy_level', 'diet', 'exercise', 'mental_health', 'emotional_wellbeing' - no other values allowed",
+        "status_or_change": "Status or change description as string",
+        "impact_on_mood": "REQUIRED: Must be exactly 'positive', 'negative', or 'neutral' - no other values allowed"
       }
     ],
     "creativity_expression": {
-      "readability": "<Flesch-Kincaid or simple qualitative assessment>",
-      "vocabulary_richness": "<qualitative assessment of word diversity>",
-      "writing_style": "<short description of sentence structure, tone, and style>"
+      "readability": "Readability assessment as string",
+      "vocabulary_richness": "Vocabulary richness as string",
+      "writing_style": "Writing style description as string"
     },
     "key_learnings_reflections": [
-      "<any explicit insights, lessons learned, or moments of clarity mentioned by the writer>"
+      "Learning or reflection as string"
     ],
     "actionable_next_steps": [
-      "<any specific actions the writer states they will take as a result of their reflection>"
+      "Next step as string"
     ],
-    "question_answering_context": "<context that could help answer questions about this entry in the future>",
-    "image_prompt": "<generated image prompt based on emotions, themes, and events>",
-    "image_style_suggestions": "<style suggestions for the image, e.g., 'abstract, watercolor', 'realistic, vibrant colors'>"
+    "question_answering_context": "Context for questions as string",
+    "image_prompt": "Image generation prompt as string",
+    "image_style_suggestions": "Image style suggestions as string"
   },
-  "instructions": "Analyze the provided journal entry thoroughly. Determine the overall sentiment and assign a label and a score. Identify up to 5 key themes or topics discussed. Extract relevant entities (people, places, organizations, events, products) and their associated sentiment. Provide a concise summary of the entry. Detect behavioral, cognitive, and temporal patterns. Identify short-term or long-term goals, progress, or obstacles. Extract stressors/triggers, their impact, and any mentioned coping mechanisms. Analyze emotional tone and patterns in social interactions. Note mentions of physical health, sleep, energy, or lifestyle factors. Assess readability, vocabulary richness, and writing style. Capture any explicit insights or lessons learned. Identify any stated actionable next steps. Generate a relevant image prompt and style suggestions based on the entry's content. Ensure the output strictly adheres to the specified JSON structure. If an entity's sentiment cannot be determined, omit the 'sentiment' field for that entity. If no information is found for a field, return empty arrays or appropriate default values as per the output format. Prioritize information that would be useful for tracking trends or patterns across multiple entries."
+
+  "RESPONSE_REQUIREMENTS": [
+    "You MUST return valid JSON that can be parsed by JSON.parse()",
+    "Every enum field MUST use exactly the specified values - no variations, synonyms, or custom values",
+    "If you cannot determine a value, use the closest allowed option or leave empty",
+    "Double-check each enum field before responding",
+    "Use empty arrays [] for missing list data, empty strings \"\" for missing string data"
+  ],
+
+  "EXAMPLES_OF_CORRECT_VALUES": {
+    "sentiment.overall": "positive (not 'very positive', 'somewhat positive', etc.)",
+    "emotion.intensity": "high (not 'very high', 'intense', 'strong', etc.)",
+    "goal.status": "in-progress (not 'ongoing', 'working on', 'started', etc.)",
+    "frequency_indicator": "weekly (not 'once a week', 'every week', etc.)",
+    "health.aspect": "mental_health (not 'mental', 'psychological', 'mind', etc.)"
+  },
+
+  "FINAL_INSTRUCTION": "Before submitting your response, verify that every single enum field uses exactly one of the allowed values. Any field that doesn't match the allowed values exactly will cause the analysis to fail. When in doubt, choose the closest allowed value."
 }
-
-Instructions:
-1. Ensure the JSON is strictly formatted and machine-readable.
-2. Include all insights even if the entry is short; use empty arrays or strings if nothing is detected.
-
 `
