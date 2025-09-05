@@ -3,11 +3,12 @@ import { useNavigate, Link } from 'react-router-dom'
 import { Button } from '../components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/card'
 import { Badge } from '../components/ui/badge'
-import { Mic, PenTool, Brain, TrendingUp, Calendar, TrendingDown } from 'lucide-react'
+import { Mic, PenTool, Brain, TrendingUp, Calendar, TrendingDown, Flame } from 'lucide-react'
 import { useJournalStore } from '@/stores/journal.store'
 import type { JournalEntry } from '@/types/JournalEntry.type'
 import { useAiInsightStore } from '@/stores/ai-insight.store'
 import { useGoalStore } from '@/stores/goal.store'
+import { useStreakStore } from '@/stores/streak.store'
 import { Loader } from '@/components/Loader'
 import toast from 'react-hot-toast'
 
@@ -17,6 +18,7 @@ export function Dashboard() {
   const { fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, totalEntries, monthlyEntries, journalEntries } = useJournalStore() as { fetchTotalEntries: () => Promise<void>; fetchMonthlyEntries: () => Promise<void>; fetchJournalEntries: () => Promise<void>; totalEntries: number; monthlyEntries: number; journalEntries: JournalEntry[] }
   const { fetchMoodTrends, moodTrends } = useAiInsightStore() as { fetchMoodTrends: () => Promise<void>; moodTrends: number }
   const { activeGoals, getActiveGoals } = useGoalStore();
+  const { streakData, getStreakData } = useStreakStore();
 
 
   useEffect(() => {
@@ -28,7 +30,8 @@ export function Dashboard() {
           fetchMonthlyEntries(),
           fetchJournalEntries(),
           fetchMoodTrends(),
-          getActiveGoals()
+          getActiveGoals(),
+          getStreakData(),
         ])
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error)
@@ -38,7 +41,7 @@ export function Dashboard() {
       }
     }
     fetchData()
-  }, [fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, fetchMoodTrends, getActiveGoals]);
+  }, [fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, fetchMoodTrends, getActiveGoals, getStreakData]);
 
   const recentEntries = journalEntries.slice(0, 6).map(entry => ({
     id: entry._id,
@@ -50,6 +53,8 @@ export function Dashboard() {
   const quickStats = [
     { label: 'Total Entries', value: totalEntries, icon: PenTool, color: 'text-blue-500' },
     { label: 'This Month', value: monthlyEntries, icon: Calendar, color: 'text-green-500' },
+    { label: 'Current Streak', value: `${streakData?.currentStreak || 0} Days`, icon: Flame, color: 'text-orange-500' },
+    { label: 'Longest Streak', value: `${streakData?.longestStreak || 0} Days`, icon: Flame, color: 'text-red-500' },
     { label: 'Mood Trend', value: `${moodTrends > 0 ? '+' : ''}${moodTrends.toFixed(2)}%`, icon: moodTrends > 0 ? TrendingUp : TrendingDown, color: moodTrends > 0 ? 'text-green-500' : 'text-red-500' },
     { label: 'Active Goals', value: activeGoals.length, icon: Brain, color: 'text-purple-500' },
   ]

@@ -12,7 +12,10 @@ export const getStreakData = async (req, res) => {
       throw new AppError("User not found.", 404);
     }
 
-    return res.status(200).json(user.streakData);
+    return res.status(200).json({
+      streakData: user.streakData,
+      journalingDays: user.journalingDays,
+    });
   } catch (error) {
     logger.error(error);
     throw new AppError("Internal Server Error", 500);
