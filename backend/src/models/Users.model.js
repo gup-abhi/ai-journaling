@@ -40,8 +40,8 @@ const userSchema = new mongoose.Schema({
   },
   journalingDays: {
     type: Map,
-    of: String,
-    default: {},
+    of: Boolean,
+    default: new Map(),
     comment: "Map of YYYY-MM-DD strings to boolean, indicating a journaling day. For efficient lookup."
   }
 }, { timestamps: true });
