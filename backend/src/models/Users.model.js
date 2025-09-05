@@ -18,6 +18,31 @@ const userSchema = new mongoose.Schema({
   display_name: {
     type: String,
     required: true
+  },
+  streakData: {
+    currentStreak: {
+      type: Number,
+      default: 0,
+      min: 0,
+      comment: "Number of consecutive days the user has journaled."
+    },
+    longestStreak: {
+      type: Number,
+      default: 0,
+      min: 0,
+      comment: "The longest streak achieved by the user."
+    },
+    lastJournalDate: {
+      type: Date,
+      default: null,
+      comment: "The UTC date of the last journal entry. Used for calculating streak continuity."
+    }
+  },
+  journalingDays: {
+    type: Map,
+    of: String,
+    default: {},
+    comment: "Map of YYYY-MM-DD strings to boolean, indicating a journaling day. For efficient lookup."
   }
 }, { timestamps: true });
 

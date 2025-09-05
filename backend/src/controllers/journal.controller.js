@@ -4,6 +4,7 @@ import storeAiInsight from "../util/storeInsights.js";
 import mongoose from "mongoose";
 import AppError from "../util/AppError.js";
 import logger from '../lib/logger.js';
+import calculateStreak from "../util/streak.js";
 
 export const createJournalEntry = async (req, res) => {
   const { content, entry_date, template_id } = req.body;
@@ -36,6 +37,7 @@ export const createJournalEntry = async (req, res) => {
         content: newEntry.content,
         processed_at: newEntry.entry_date,
       });
+      calculateStreak(newEntry.user_id);
     });
   } catch (error) {
     logger.error(error);

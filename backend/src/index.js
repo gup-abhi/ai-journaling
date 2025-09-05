@@ -8,6 +8,7 @@ import journalRoutes from './routes/journal.route.js';
 import aiInsightRoutes from './routes/insight.route.js';
 import journalTemplateRoutes from './routes/journalTemplate.route.js';
 import goalTrackingRoutes from './routes/goalTracking.route.js';
+import streakRoutes from './routes/user.route.js';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -39,6 +40,7 @@ app.use(`${API_ROUTE_START}/auth`, authRoutes);
 app.use(`${API_ROUTE_START}/journal`, journalRoutes);
 app.use(`${API_ROUTE_START}/ai-insights`, aiInsightRoutes);
 app.use(`${API_ROUTE_START}/journal-template`, journalTemplateRoutes);
+app.use(`${API_ROUTE_START}/user`, streakRoutes);
 app.use(`${API_ROUTE_START}/goal-tracking`, goalTrackingRoutes);
 
 // The "catchall" handler: for any request that doesn't
