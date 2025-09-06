@@ -206,7 +206,7 @@ export const googleCallback = async (req, res) => {
 
         // 3️⃣ Handle redirect based on client type
         if (isMobile) {
-          // For mobile app, return a success page that the WebView can detect
+          // For mobile app, return a success page that includes tokens for the mobile app
           return res.send(`
             <!DOCTYPE html>
             <html>
@@ -219,11 +219,13 @@ export const googleCallback = async (req, res) => {
                 <h2>✅ Google Sign-In Successful!</h2>
                 <p>You can now close this window and return to the app.</p>
                 <script>
-                  // Notify the mobile app that authentication was successful
+                  // Notify the mobile app that authentication was successful with tokens
                   if (window.ReactNativeWebView) {
                     window.ReactNativeWebView.postMessage(JSON.stringify({
                       type: 'AUTH_SUCCESS',
-                      message: 'Google sign-in successful'
+                      message: 'Google sign-in successful',
+                      access_token: '${session.access_token}',
+                      refresh_token: '${session.refresh_token}'
                     }));
                   }
                 </script>
