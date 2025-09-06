@@ -82,6 +82,7 @@ export default function AppNavigator() {
             <Stack.Screen name="NewJournalEntry" component={NewJournalEntry} />
             <Stack.Screen name="JournalView" component={JournalView} />
             <Stack.Screen name="JournalTemplates" component={JournalTemplates} />
+            <Stack.Screen name="Journals" component={Journals} />
           </>
         ) : (
           <>

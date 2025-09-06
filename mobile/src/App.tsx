@@ -6,9 +6,14 @@ import { useAuthStore } from './stores/auth.store'
 import { useThemeColors } from './theme/colors'
 
 export default function App() {
-  const { restore } = useAuthStore()
+  const { restore, isLoading } = useAuthStore()
   const colors = useThemeColors()
-  useEffect(() => { restore() }, [])
+  
+  useEffect(() => { 
+    // Initialize authentication state on app start
+    restore() 
+  }, [])
+  
   return (
     <SafeAreaProvider>
       <View style={{ flex: 1, backgroundColor: colors.background }}>

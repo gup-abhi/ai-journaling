@@ -143,6 +143,9 @@ export const logoutUser = async (req, res) => {
  */
 export const loginWithGoogle = async (req, res) => {
   try {
+    // Check if user wants to force account selection (default: true)
+    const forceAccountSelection = req.query.force_account_selection !== 'false';
+    
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -150,6 +153,14 @@ export const loginWithGoogle = async (req, res) => {
             flowType: 'pkce', 
             // Make sure this is the full URL to your callback route
             redirectTo: `${BACKEND_URL}/api/v1/auth/google/callback`, 
+            // Force account selection - this will show the account picker
+            // Users can choose from multiple Google accounts
+            queryParams: forceAccountSelection ? {
+              prompt: 'select_account',
+              access_type: 'offline'
+            } : {
+              access_type: 'offline'
+            }
         },
     });
 

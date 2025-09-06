@@ -15,7 +15,11 @@ import { useAuthStore } from '../stores/auth.store';
 import { useThemeColors } from '../theme/colors';
 import { ENV } from '../config/env';
 
-export default function GoogleOAuth() {
+interface GoogleOAuthProps {
+  forceAccountSelection?: boolean;
+}
+
+export default function GoogleOAuth({ forceAccountSelection = true }: GoogleOAuthProps) {
   const navigation = useNavigation();
   const { signInWithGoogle } = useAuthStore();
   const colors = useThemeColors();
@@ -28,15 +32,14 @@ export default function GoogleOAuth() {
     
     console.log('WebView navigation to:', url);
     
-    // Check if this is a callback URL (contains success/error indicators)
-    if (url.includes('/auth/google/callback') || url.includes('success=true') || url.includes('error=') || url.includes('code=')) {
-      // Handle the callback
+    // Check if this is the OAuth callback URL
+    if (url.includes('/auth/google/callback')) {
+      console.log('OAuth callback detected, processing...');
       handleOAuthCallback(url);
     }
     
     // Check if we've been redirected to the frontend (this means OAuth was successful)
-    if (url.includes('ai-journaling.onrender.com/sign-in') || url.includes('ai-journaling.onrender.com/dashboard') || 
-        url.includes('localhost:5173/sign-in') || url.includes('localhost:5173/dashboard')) {
+    if (url.includes('ai-journaling.onrender.com') || url.includes('localhost:5173')) {
       console.log('Redirected to frontend, assuming OAuth success');
       handleAuthSuccess();
     }
@@ -48,28 +51,42 @@ export default function GoogleOAuth() {
       console.log('WebView message received:', data);
       
       if (data.type === 'AUTH_SUCCESS') {
-        // Authentication was successful
-        handleAuthSuccess();
+        // Authentication was successful, handle tokens if provided
+        handleAuthSuccess(data);
       }
     } catch (error) {
       console.log('WebView message parse error:', error);
     }
   };
 
-  const handleAuthSuccess = async () => {
+  const handleAuthSuccess = async (data?: any) => {
     try {
-      // Check if we're authenticated now
-      await useAuthStore.getState().restore();
-      const { isAuthenticated } = useAuthStore.getState();
-      if (isAuthenticated) {
-        Alert.alert('Success', 'Google sign-in successful!', [
-          { text: 'OK', onPress: () => {
-            // Navigation will automatically switch to authenticated stack
-            // No need to navigate manually
-          }}
-        ]);
+      console.log('Handling OAuth success...', data);
+      
+      // If we have tokens from the WebView message, store them first
+      if (data && data.access_token) {
+        console.log('Storing OAuth tokens...');
+        const { handleGoogleOAuthTokens } = useAuthStore.getState();
+        const tokenResult = await handleGoogleOAuthTokens(data.access_token, data.refresh_token);
+        
+        if (tokenResult.ok) {
+          console.log('Google OAuth successful, user authenticated');
+          // Navigation will automatically switch to authenticated stack
+          return;
+        } else {
+          throw new Error('Failed to store OAuth tokens');
+        }
       } else {
-        throw new Error('Authentication failed after OAuth');
+        // Fallback to the original method if no tokens provided
+        const result = await useAuthStore.getState().handleGoogleOAuthSuccess();
+        
+        if (result.ok) {
+          console.log('Google OAuth successful, user authenticated');
+          // Navigation will automatically switch to authenticated stack
+          return;
+        } else {
+          throw new Error('Authentication failed after OAuth');
+        }
       }
     } catch (err: any) {
       console.error('Auth success error:', err);
@@ -87,32 +104,24 @@ export default function GoogleOAuth() {
     try {
       console.log('Handling OAuth callback for URL:', url);
       
-      // Check if this is the callback URL from the backend
-      if (url.includes('/auth/google/callback')) {
-        // The backend should have set the cookies and redirected to the frontend
-        // Let's check if we're authenticated now
-        await useAuthStore.getState().restore();
-        const { isAuthenticated } = useAuthStore.getState();
-        if (isAuthenticated) {
-          Alert.alert('Success', 'Google sign-in successful!', [
-            { text: 'OK', onPress: () => {
-              // Navigation will automatically switch to authenticated stack
-              // No need to navigate manually
-            }}
-          ]);
-        } else {
-          throw new Error('Authentication failed after OAuth');
-        }
-      } else if (url.includes('error=')) {
-        // Extract error from URL
+      // Check for error in URL parameters
+      if (url.includes('error=')) {
         const urlParams = new URLSearchParams(url.split('?')[1] || '');
         const error = urlParams.get('error');
         throw new Error(error ? decodeURIComponent(error) : 'OAuth error occurred');
-      } else if (url.includes('code=')) {
-        // This might be the authorization code from Google
-        // The backend should handle this automatically
-        console.log('Received authorization code, waiting for backend processing...');
       }
+      
+      // The backend should have processed the OAuth callback and set cookies
+      // Wait a moment for the backend to process, then check authentication
+      setTimeout(async () => {
+        try {
+          await handleAuthSuccess();
+        } catch (err: any) {
+          console.error('Delayed auth success error:', err);
+          setError(err.message || 'OAuth callback processing failed');
+        }
+      }, 1000); // Wait 1 second for backend processing
+      
     } catch (err: any) {
       console.error('OAuth callback error:', err);
       setError(err.message || 'OAuth callback failed');
@@ -250,7 +259,9 @@ export default function GoogleOAuth() {
         ref={webViewRef}
         style={styles.webView}
         source={{ 
-          uri: `${ENV.API_BASE}/auth/google/login?mobile=true`,
+          // This URL will show Google's account selection screen
+          // Users can choose from multiple Google accounts
+          uri: `${ENV.API_BASE}/auth/google/login?mobile=true&force_account_selection=${forceAccountSelection}`,
           headers: {
             'X-Mobile-App': 'true',
             'User-Agent': 'ReactNative-Mobile-App/1.0'
