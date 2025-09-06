@@ -1,5 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import { Feather } from '@expo/vector-icons'
 import React from 'react'
 import SignIn from '../screens/SignIn'
 import SignUp from '../screens/SignUp'
@@ -9,25 +11,61 @@ import NewJournalEntry from '../screens/NewJournalEntry'
 import JournalView from '../screens/JournalView'
 import { useAuthStore } from '../stores/auth.store'
 import { View, ActivityIndicator } from 'react-native'
+import { useThemeColors } from '../theme/colors'
+import Goals from '../screens/Goals'
+import Trends from '../screens/Trends'
 
 export type RootStackParamList = {
   SignIn: undefined
   SignUp: undefined
-  Dashboard: undefined
+  Root: undefined
   Journals: undefined
   NewJournalEntry: undefined
   JournalView: { id: string }
 }
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
+const Tab = createBottomTabNavigator()
+
+function AuthedTabs() {
+  const colors = useThemeColors()
+  return (
+    <Tab.Navigator
+      id={undefined}
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.muted,
+        tabBarStyle: { backgroundColor: colors.cardBg, borderTopColor: colors.border },
+        tabBarIcon: ({ color, size }) => {
+          const iconMap: Record<string, any> = { 
+            Dashboard: 'home', 
+            Journals: 'book-open', 
+            Goals: 'check-circle', 
+            Trends: 'bar-chart-2' 
+          }
+          const iconName = iconMap[route.name] || 'circle'
+          return <Feather name={iconName} size={size} color={color} />
+        },
+      })}
+    >
+      <Tab.Screen name="Dashboard" component={Dashboard} />
+      <Tab.Screen name="Journals" component={Journals} />
+      <Tab.Screen name="Goals" component={Goals} />
+      <Tab.Screen name="Trends" component={Trends} />
+    </Tab.Navigator>
+  )
+}
 
 export default function AppNavigator() {
   const { isAuthenticated } = useAuthStore()
   const isLoading = useAuthStore(s => s.isLoading)
+  const colors = useThemeColors()
+  
   if (isLoading) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" />
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     )
   }
@@ -36,8 +74,7 @@ export default function AppNavigator() {
       <Stack.Navigator id={undefined} screenOptions={{ headerShown: false }}>
         {isAuthenticated ? (
           <>
-            <Stack.Screen name="Dashboard" component={Dashboard} />
-            <Stack.Screen name="Journals" component={Journals} />
+            <Stack.Screen name="Root" component={AuthedTabs} />
             <Stack.Screen name="NewJournalEntry" component={NewJournalEntry} />
             <Stack.Screen name="JournalView" component={JournalView} />
           </>
