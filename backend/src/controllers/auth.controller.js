@@ -173,9 +173,10 @@ export const loginWithGoogle = async (req, res) => {
 export const googleCallback = async (req, res) => {
   const { code } = req.query;
   const userAgent = req.get('User-Agent') || '';
-  const isMobile = userAgent.includes('Mobile') || userAgent.includes('Android') || userAgent.includes('iPhone');
+  const isMobileApp = req.get('X-Mobile-App') === 'true' || req.query.mobile === 'true';
+  const isMobile = isMobileApp || userAgent.includes('Mobile') || userAgent.includes('Android') || userAgent.includes('iPhone') || userAgent.includes('ReactNative') || userAgent.includes('Expo');
 
-  logger.info(`Google callback code: ${code}, isMobile: ${isMobile}`);
+  logger.info(`Google callback code: ${code}, isMobile: ${isMobile}, isMobileApp: ${isMobileApp}, User-Agent: ${userAgent}`);
 
   try {
     if (code) {
@@ -270,4 +271,24 @@ export const checkAuth = async (req, res) => {
  */
 export const getUserDetails = async (req, res) => {
   res.status(200).json(req.user);
+};
+
+/**
+ * Test mobile detection
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>}
+ */
+export const testMobileDetection = async (req, res) => {
+  const userAgent = req.get('User-Agent') || '';
+  const isMobileApp = req.get('X-Mobile-App') === 'true' || req.query.mobile === 'true';
+  const isMobile = isMobileApp || userAgent.includes('Mobile') || userAgent.includes('Android') || userAgent.includes('iPhone') || userAgent.includes('ReactNative') || userAgent.includes('Expo');
+
+  res.status(200).json({
+    userAgent,
+    isMobileApp,
+    isMobile,
+    headers: req.headers,
+    query: req.query
+  });
 };
