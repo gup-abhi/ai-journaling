@@ -14,6 +14,8 @@ import { View, ActivityIndicator } from 'react-native'
 import { useThemeColors } from '../theme/colors'
 import Goals from '../screens/Goals'
 import Trends from '../screens/Trends'
+import JournalTemplates from '../screens/JournalTemplates'
+import GoogleOAuth from '../screens/GoogleOAuth'
 
 export type RootStackParamList = {
   SignIn: undefined
@@ -22,6 +24,8 @@ export type RootStackParamList = {
   Journals: undefined
   NewJournalEntry: undefined
   JournalView: { id: string }
+  JournalTemplates: undefined
+  GoogleOAuth: undefined
 }
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
@@ -77,11 +81,13 @@ export default function AppNavigator() {
             <Stack.Screen name="Root" component={AuthedTabs} />
             <Stack.Screen name="NewJournalEntry" component={NewJournalEntry} />
             <Stack.Screen name="JournalView" component={JournalView} />
+            <Stack.Screen name="JournalTemplates" component={JournalTemplates} />
           </>
         ) : (
           <>
             <Stack.Screen name="SignIn" component={SignIn} />
             <Stack.Screen name="SignUp" component={SignUp} />
+            <Stack.Screen name="GoogleOAuth" component={GoogleOAuth} />
           </>
         )}
       </Stack.Navigator>

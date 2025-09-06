@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { api, safeRequest, type ApiErr, type ApiOk } from '../lib/api'
 import * as SecureStore from 'expo-secure-store'
+import { Linking } from 'react-native'
+import { ENV } from '../config/env'
 
 export type AuthUser = {
   display_name: string
@@ -38,7 +40,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     const valid = (res as any).ok && (res as any).data && (res as any).data.message === 'User is authenticated.'
     set({ isLoading: false, isAuthenticated: valid })
     if (valid) {
-      useAuthStore.getState().getUser()
+      await useAuthStore.getState().getUser()
     } else {
       set({ user: null })
     }
@@ -75,8 +77,16 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   signInWithGoogle: async () => {
-    // On mobile we can open backend OAuth in a WebView or Linking; placeholder
-    return { ok: false }
+    set({ isLoading: true, error: null });
+    try {
+      // Navigate to GoogleOAuth screen - the WebView will handle the OAuth flow
+      // We'll return success immediately as the navigation will handle the rest
+      set({ isLoading: false });
+      return { ok: true };
+    } catch (err: any) {
+      set({ isLoading: false, error: err.message || 'Google Sign-In failed' });
+      return { ok: false };
+    }
   },
 
   signOut: async () => {

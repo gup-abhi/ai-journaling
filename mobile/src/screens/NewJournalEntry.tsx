@@ -1,45 +1,265 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native'
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  StyleSheet, 
+  ScrollView, 
+  Alert 
+} from 'react-native'
 import { useJournalStore } from '../stores/journal.store'
 import { useNavigation } from '@react-navigation/native'
+import { useThemeColors } from '../theme/colors'
+import { Feather } from '@expo/vector-icons'
 
 export default function NewJournalEntry() {
-  const { addJournalEntry, fetchJournalTemplates, journalTemplates } = useJournalStore()
+  const { 
+    addJournalEntry, 
+    selectedTemplate, 
+    setSelectedTemplate 
+  } = useJournalStore()
   const [content, setContent] = useState('')
-  const [templateId, setTemplateId] = useState<string | null>(null)
-  const nav = useNavigation<any>()
+  const navigation = useNavigation<any>()
+  const colors = useThemeColors()
 
-  useEffect(() => { fetchJournalTemplates() }, [])
+  useEffect(() => {
+    // Clear template when component unmounts
+    return () => {
+      setSelectedTemplate(null)
+    }
+  }, [setSelectedTemplate])
 
   const onSubmit = async () => {
-    const entry = await addJournalEntry({ content, template_id: templateId })
-    if (entry) nav.goBack()
+    if (!content.trim()) {
+      Alert.alert('Error', 'Please write something before saving.')
+      return
+    }
+
+    const entry = await addJournalEntry({ 
+      content: content.trim(), 
+      template_id: selectedTemplate?._id || null 
+    })
+    
+    if (entry) {
+      setSelectedTemplate(null)
+      navigation.goBack()
+    } else {
+      Alert.alert('Error', 'Failed to save journal entry. Please try again.')
+    }
+  }
+
+  const handleRemoveTemplate = () => {
+    setSelectedTemplate(null)
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>New Journal Entry</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Write your thoughts..."
-        value={content}
-        onChangeText={setContent}
-        multiline
-      />
-      {/* Minimal template selection placeholder to keep parity */}
-      <TouchableOpacity style={styles.button} onPress={onSubmit}>
-        <Text style={styles.buttonText}>Save</Text>
-      </TouchableOpacity>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Feather name="arrow-left" size={24} color={colors.text} />
+        </TouchableOpacity>
+        <Text style={[styles.title, { color: colors.text }]}>New Journal Entry</Text>
+        <TouchableOpacity
+          style={[styles.templatesButton, { backgroundColor: colors.accent }]}
+          onPress={() => navigation.navigate('JournalTemplates')}
+        >
+          <Feather name="file-text" size={16} color={colors.background} />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {selectedTemplate && (
+          <View style={[styles.templateCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+            <View style={styles.templateHeader}>
+              <Text style={[styles.templateTitle, { color: colors.accent }]}>
+                Template: {selectedTemplate.name}
+              </Text>
+              <TouchableOpacity onPress={handleRemoveTemplate}>
+                <Feather name="x" size={20} color={colors.muted} />
+              </TouchableOpacity>
+            </View>
+            
+            {selectedTemplate.prompts && selectedTemplate.prompts.length > 0 && (
+              <View style={styles.templateSection}>
+                <Text style={[styles.templateSectionTitle, { color: colors.text }]}>
+                  Prompts:
+                </Text>
+                {selectedTemplate.prompts.map((prompt, index) => (
+                  <Text key={index} style={[styles.templatePrompt, { color: colors.muted }]}>
+                    • {prompt}
+                  </Text>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+
+        {!selectedTemplate && (
+          <View style={styles.templatePromptContainer}>
+            <TouchableOpacity
+              style={[styles.pickTemplateButton, { backgroundColor: colors.cardBg, borderColor: colors.border }]}
+              onPress={() => navigation.navigate('JournalTemplates')}
+            >
+              <Feather name="file-plus" size={24} color={colors.accent} />
+              <View style={styles.pickTemplateTextContainer}>
+                <Text style={[styles.pickTemplateTitle, { color: colors.text }]}>
+                  Pick a Template
+                </Text>
+                <Text style={[styles.pickTemplateSubtitle, { color: colors.muted }]}>
+                  Get writing prompts and guidance
+                </Text>
+              </View>
+              <Feather name="chevron-right" size={20} color={colors.muted} />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={[
+              styles.input, 
+              { 
+                backgroundColor: colors.cardBg, 
+                borderColor: colors.border, 
+                color: colors.text 
+              }
+            ]}
+            placeholder="Write your thoughts..."
+            placeholderTextColor={colors.muted}
+            value={content}
+            onChangeText={setContent}
+            multiline
+            textAlignVertical="top"
+          />
+        </View>
+
+        <TouchableOpacity 
+          style={[
+            styles.saveButton, 
+            { backgroundColor: colors.accent },
+            !content.trim() && { opacity: 0.5 }
+          ]} 
+          onPress={onSubmit}
+          disabled={!content.trim()}
+        >
+          <Text style={[styles.saveButtonText, { color: colors.background }]}>
+            Save Journal Entry
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, paddingTop: 48 },
-  title: { fontSize: 24, fontWeight: '700', marginBottom: 12 },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, minHeight: 160, textAlignVertical: 'top' },
-  button: { backgroundColor: '#2ecc71', padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 12 },
-  buttonText: { color: 'white', fontWeight: '700' },
+  container: {
+    flex: 1,
+    paddingTop: 48,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  backButton: {
+    padding: 8,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  templatesButton: {
+    padding: 8,
+    borderRadius: 8,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  templateCard: {
+    margin: 16,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  templateHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  templateTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+  },
+  templateSection: {
+    gap: 8,
+  },
+  templateSectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  templatePrompt: {
+    fontSize: 14,
+    lineHeight: 20,
+    paddingLeft: 8,
+  },
+  templatePromptContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  pickTemplateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+  },
+  pickTemplateTextContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  pickTemplateTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  pickTemplateSubtitle: {
+    fontSize: 14,
+    lineHeight: 18,
+  },
+  inputContainer: {
+    padding: 16,
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 16,
+    minHeight: 200,
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  saveButton: {
+    margin: 16,
+    marginTop: 0,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
 })
 
 

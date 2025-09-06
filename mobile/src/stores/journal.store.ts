@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { api, safeRequest } from '../lib/api'
+import { JournalTemplate } from '../types/JournalTemplate'
 
 export type JournalEntry = {
   _id: string
@@ -8,21 +9,19 @@ export type JournalEntry = {
   template_id?: string | null
 }
 
-export interface JournalTemplate {
-  _id: string
-  title: string
-  prompt: string
-}
 
 interface JournalStore {
   journalEntries: JournalEntry[]
   totalEntries: number
   monthlyEntries: number
   journalTemplates: JournalTemplate[]
+  selectedTemplate: JournalTemplate | null
   fetchJournalEntries: () => Promise<void>
   fetchTotalEntries: () => Promise<void>
   fetchMonthlyEntries: () => Promise<void>
   fetchJournalTemplates: () => Promise<void>
+  fetchJournalTemplate: (templateId: string) => Promise<JournalTemplate | null>
+  setSelectedTemplate: (template: JournalTemplate | null) => void
   addJournalEntry: (newEntry: { content: string; template_id: string | null }) => Promise<JournalEntry | null>
 }
 
@@ -31,6 +30,7 @@ export const useJournalStore = create<JournalStore>((set) => ({
   totalEntries: 0,
   monthlyEntries: 0,
   journalTemplates: [],
+  selectedTemplate: null,
 
   fetchJournalEntries: async () => {
     const response = await safeRequest(api.get<{ entries: JournalEntry[] }>('/journal'))
@@ -66,6 +66,19 @@ export const useJournalStore = create<JournalStore>((set) => ({
     } else {
       set({ journalTemplates: [] })
     }
+  },
+
+  fetchJournalTemplate: async (templateId: string) => {
+    const response = await safeRequest(api.get<JournalTemplate>(`/journal-template/${templateId}`))
+    if (response.ok) {
+      return response.data
+    } else {
+      return null
+    }
+  },
+
+  setSelectedTemplate: (template: JournalTemplate | null) => {
+    set({ selectedTemplate: template })
   },
 
   addJournalEntry: async (newEntry) => {

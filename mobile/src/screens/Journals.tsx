@@ -12,12 +12,23 @@ export default function Journals() {
   useEffect(() => { fetchJournalEntries() }, [])
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background, flex: 1 }] }>
-      <Text style={[styles.title, { color: colors.text }]}>Journals</Text>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => nav.goBack()}
+        >
+          <Feather name="arrow-left" size={24} color={colors.text} />
+        </TouchableOpacity>
+        <Text style={[styles.title, { color: colors.text }]}>Journals</Text>
+        <View style={styles.placeholder} />
+      </View>
+      
       <FlatList
-        style={{ backgroundColor: colors.background }}
+        style={styles.flatList}
         data={journalEntries}
         keyExtractor={(item) => item._id}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
           <View style={[styles.card, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
             <TouchableOpacity 
@@ -37,11 +48,54 @@ export default function Journals() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, paddingTop: 48 },
-  title: { fontSize: 24, fontWeight: '700', marginBottom: 12 },
-  card: { backgroundColor: '#f2f2f2', padding: 12, borderRadius: 8, marginBottom: 8, borderWidth: 1, position: 'relative' },
-  date: { fontWeight: '600', marginBottom: 4 },
-  viewBtnAbsolute: { position: 'absolute', top: 8, right: 8, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8, borderWidth: 1 },
+  container: { 
+    flex: 1, 
+    paddingTop: 48 
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  backButton: {
+    padding: 8,
+  },
+  title: { 
+    fontSize: 20, 
+    fontWeight: '700' 
+  },
+  placeholder: {
+    width: 40,
+  },
+  flatList: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  card: { 
+    backgroundColor: '#f2f2f2', 
+    padding: 12, 
+    borderRadius: 12, 
+    marginBottom: 12, 
+    borderWidth: 1, 
+    position: 'relative' 
+  },
+  date: { 
+    fontWeight: '600', 
+    marginBottom: 4 
+  },
+  viewBtnAbsolute: { 
+    position: 'absolute', 
+    top: 8, 
+    right: 8, 
+    paddingVertical: 6, 
+    paddingHorizontal: 10, 
+    borderRadius: 8, 
+    borderWidth: 1 
+  },
 })
 
 
