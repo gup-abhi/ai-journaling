@@ -172,8 +172,10 @@ export const loginWithGoogle = async (req, res) => {
  */
 export const googleCallback = async (req, res) => {
   const { code } = req.query;
+  const userAgent = req.get('User-Agent') || '';
+  const isMobile = userAgent.includes('Mobile') || userAgent.includes('Android') || userAgent.includes('iPhone');
 
-  logger.info(`Google callback code: ${code}`);
+  logger.info(`Google callback code: ${code}, isMobile: ${isMobile}`);
 
   try {
     if (code) {
@@ -201,8 +203,37 @@ export const googleCallback = async (req, res) => {
         res.cookie("access_token", session.access_token, cookieOptions(60 * 1000));
         res.cookie("refresh_token", session.refresh_token, cookieOptions(7 * 24 * 60 * 60 * 1000));
 
-        // 3️⃣ Redirect user to frontend dashboard
-        return res.redirect(`${FRONTEND_URL}/dashboard`);
+        // 3️⃣ Handle redirect based on client type
+        if (isMobile) {
+          // For mobile app, return a success page that the WebView can detect
+          return res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <title>Google Sign-In Success</title>
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            </head>
+            <body>
+              <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+                <h2>✅ Google Sign-In Successful!</h2>
+                <p>You can now close this window and return to the app.</p>
+                <script>
+                  // Notify the mobile app that authentication was successful
+                  if (window.ReactNativeWebView) {
+                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                      type: 'AUTH_SUCCESS',
+                      message: 'Google sign-in successful'
+                    }));
+                  }
+                </script>
+              </div>
+            </body>
+            </html>
+          `);
+        } else {
+          // For web app, redirect to dashboard
+          return res.redirect(`${FRONTEND_URL}/dashboard`);
+        }
       }
     } else {
        throw new AppError('No code provided in callback.', 400);
