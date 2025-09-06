@@ -88,7 +88,12 @@ export const loginUser = async (req, res) => {
     res.cookie("access_token", data.session.access_token, cookieOptions(60 * 60 * 1000));
     res.cookie("refresh_token", data.session.refresh_token, cookieOptions(7 * 24 * 60 * 60 * 1000)); // 7 days for refresh token
 
-    return res.status(200).json({ message: "User logged in successfully." });
+    // Also return tokens in body for mobile clients that cannot use cookies
+    return res.status(200).json({
+      message: "User logged in successfully.",
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+    });
   } catch (error) {
     logger.error(`Login error: ${error}`);
     throw new AppError(error.message, 500);
