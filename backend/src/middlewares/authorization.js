@@ -7,6 +7,8 @@ import logger from "../lib/logger.js";
 export const validateToken = async (req, res, next) => {
   try {
     // First try Authorization header
+    console.log(`Access Token - ${req.headers["authorization"]?.split(" ")[1]}`)
+    console.log(`Refresh Token - ${req.headers["refresh"]?.split(" ")[1]}`)
     let access_token = req.cookies.access_token || req.headers["authorization"]?.split(" ")[1];
     let refresh_token = req.cookies.refresh_token || req.headers["refresh"]?.split(" ")[1];
 
