@@ -14,7 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../stores/auth.store';
 import { useThemeColors } from '../theme/colors';
 import { ENV } from '../config/env';
-import { setAuthTokens } from '../lib/api';
+import { setAuthTokens } from '../lib/auth-tokens';
 
 interface GoogleOAuthProps {
   forceAccountSelection?: boolean;

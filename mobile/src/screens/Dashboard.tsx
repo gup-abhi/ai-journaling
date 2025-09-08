@@ -19,17 +19,17 @@ export default function Dashboard() {
   const colors = useThemeColors()
   const [isDelaying, setIsDelaying] = useState(true);
 
-  useEffect(() => {
-    console.log(`isAuthenticated - ${isAuthenticated}`)
-    if (isAuthenticated) {
-      setTimeout(() => {
-        setIsDelaying(false);
-      }, 2000)
-    }
-  }, [isAuthenticated])
+  // useEffect(() => {
+  //   console.log(`isAuthenticated - ${isAuthenticated}`)
+  //   if (isAuthenticated) {
+  //     setTimeout(() => {
+  //       setIsDelaying(false);
+  //     }, 2000)
+  //   }
+  // }, [isAuthenticated])
 
   useEffect(() => {
-    if (!isDelaying) {
+    // if (!isDelaying) {
       fetchTotalEntries()
       fetchMonthlyEntries()
       fetchJournalEntries()
@@ -37,11 +37,11 @@ export default function Dashboard() {
       getActiveGoals()
       getStreakData()
       // Ensure user data is loaded
-      if (!user) {
-        getUser()
-      }
-    }
-  }, [user, getUser, isDelaying])
+      // if (!user) {
+      //   getUser()
+      // }
+    // }
+  }, [])
 
   const recent = useMemo(() => (journalEntries || []).slice(0, 6), [journalEntries])
   const moodValue = useMemo(() => `${moodTrends > 0 ? '+' : ''}${moodTrends.toFixed(2)}%`, [moodTrends])
@@ -68,13 +68,13 @@ export default function Dashboard() {
     )
   }
 
-  if (isDelaying) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
-        <ActivityIndicator size="large" color={colors.accent} />
-      </View>
-    );
-  }
+  // if (isDelaying) {
+  //   return (
+  //     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
+  //       <ActivityIndicator size="large" color={colors.accent} />
+  //     </View>
+  //   );
+  // }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>

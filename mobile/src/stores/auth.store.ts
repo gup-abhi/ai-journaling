@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import { api, removeAuthTokens, safeRequest, type ApiErr, type ApiOk, getAuthTokens, setAuthTokens } from '../lib/api'
-import * as SecureStore from 'expo-secure-store'
+import { api, safeRequest, type ApiErr, type ApiOk } from '../lib/api'
+import { getAuthTokens, setAuthTokens, removeAuthTokens } from '../lib/auth-tokens'
 
 export type AuthUser = {
   display_name: string
@@ -165,11 +165,11 @@ export const useAuthStore = create<AuthState>((set) => ({
         set({ user: res.data })
       } else {
         console.error('Failed to get user data:', (res as ApiErr).error)
-        set({ user: null, isAuthenticated: false })
+        set({ user: null })
       }
     } catch (error) {
       console.error('Get user error:', error)
-      set({ user: null, isAuthenticated: false })
+      set({ user: null })
     }
   },
 }))
