@@ -23,24 +23,12 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, etc.)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Refresh']
-};
-
-
-app.use(cors(corsOptions));
+app.use(cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Refresh"], // Ensure Authorization allowed
+    credentials: true
+}));
 
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, '../../frontend/dist')));
@@ -91,3 +79,9 @@ process.on('unhandledRejection', (err) => {
 });
 
 export default server;
+
+
+// curl -X GET "https://ai-journaling.onrender.com/api/v1/auth/user" \
+//   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsImtpZCI6Im1vYW9udk4rZisrWmxOdDkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NjbGZ0amRkaG1jbnJ0bmJka2tnLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiIxNzFlZTFhYi1kMGIyLTQ4YmUtODk3MS01Mzc2ZGU4M2QzMTUiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzU3MzAwMTk1LCJpYXQiOjE3NTcyOTY1OTUsImVtYWlsIjoiYWd1cHRhLmVuZ2luZWVyLmVtYWlsQGdtYWlsLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiLCJnb29nbGUiXX0sInVzZXJfbWV0YWRhdGEiOnsiYXZhdGFyX3VybCI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0ozaXNpdFVXSkgxa3NLX0xZeHh2eEFtbmZhS1B3U19HdldOblZFcHRDMWFxYmgwc3M9czk2LWMiLCJkaXNwbGF5X25hbWUiOiJBYmhpc2hlayBHdXB0YSIsImVtYWlsIjoiYWd1cHRhLmVuZ2luZWVyLmVtYWlsQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmdWxsX25hbWUiOiJBYmhpc2hlayBHdXB0dGEiLCJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYW1lIjoiQWJoaXNoZWsgR3VwdHRhIiwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSjNpc2l0VVdKSDFrc0tfTFl4eHZ4QW1uZmFLUHdTX0d2V05uVkVwdEMxYXFiaDBzcz1zOTYtYyIsInByb3ZpZGVyX2lkIjoiMTA3MjYxNjk1NzM5Mzc1NzM2OTY3Iiwic3ViIjoiMTA3MjYxNjk1NzM5Mzc1NzM2OTY3In0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoib2F1dGgiLCJ0aW1lc3RhbXAiOjE3NTcyOTY1OTV9XSwic2Vzc2lvbl9pZCI6IjI3YTNhMThjLTNhY2MtNDMwMy04ZjRkLTBkMTU0MGNmYjNlNyIsImlzX2Fub255bW91cyI6ZmFsc2V9.JdKBOZWiKLptdwEEfm64vCctBCduvc5EBhQwREU1EDY" \
+//   -H "Refresh: Bearer pxnb62ta4e7q" \
+//   -H "Content-Type: application/json"
