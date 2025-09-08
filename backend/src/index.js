@@ -24,6 +24,8 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
     origin: ['http://localhost:5173', 'https://ai-journaling.onrender.com'],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"], // Ensure Authorization allowed
     credentials: true
 }));
 
