@@ -1,38 +1,38 @@
-import { NavigationContainer } from '@react-navigation/native'
-import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import { Feather } from '@expo/vector-icons'
-import React from 'react'
-import SignIn from '../screens/SignIn'
-import SignUp from '../screens/SignUp'
-import Dashboard from '../screens/Dashboard'
-import Journals from '../screens/Journals'
-import NewJournalEntry from '../screens/NewJournalEntry'
-import JournalView from '../screens/JournalView'
-import { useAuthStore } from '../stores/auth.store'
-import { View, ActivityIndicator } from 'react-native'
-import { useThemeColors } from '../theme/colors'
-import Goals from '../screens/Goals'
-import Trends from '../screens/Trends'
-import JournalTemplates from '../screens/JournalTemplates'
-import GoogleOAuth from '../screens/GoogleOAuth'
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Feather } from '@expo/vector-icons';
+import React, { useEffect, useState } from 'react';
+import SignIn from '../screens/SignIn';
+import SignUp from '../screens/SignUp';
+import Dashboard from '../screens/Dashboard';
+import Journals from '../screens/Journals';
+import NewJournalEntry from '../screens/NewJournalEntry';
+import JournalView from '../screens/JournalView';
+import { useAuthStore } from '../stores/auth.store';
+import { View, ActivityIndicator } from 'react-native';
+import { useThemeColors } from '../theme/colors';
+import Goals from '../screens/Goals';
+import Trends from '../screens/Trends';
+import JournalTemplates from '../screens/JournalTemplates';
+import GoogleOAuth from '../screens/GoogleOAuth';
 
 export type RootStackParamList = {
-  SignIn: undefined
-  SignUp: undefined
-  Root: undefined
-  Journals: undefined
-  NewJournalEntry: undefined
-  JournalView: { id: string }
-  JournalTemplates: undefined
-  GoogleOAuth: undefined
-}
+  SignIn: undefined;
+  SignUp: undefined;
+  Root: undefined;
+  Journals: undefined;
+  NewJournalEntry: undefined;
+  JournalView: { id: string };
+  JournalTemplates: undefined;
+  GoogleOAuth: undefined;
+};
 
-const Stack = createNativeStackNavigator<RootStackParamList>()
-const Tab = createBottomTabNavigator()
+const Stack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator();
 
 function AuthedTabs() {
-  const colors = useThemeColors()
+  const colors = useThemeColors();
   return (
     <Tab.Navigator
       id={undefined}
@@ -42,14 +42,14 @@ function AuthedTabs() {
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: { backgroundColor: colors.cardBg, borderTopColor: colors.border },
         tabBarIcon: ({ color, size }) => {
-          const iconMap: Record<string, any> = { 
-            Dashboard: 'home', 
-            Journals: 'book-open', 
-            Goals: 'check-circle', 
-            Trends: 'bar-chart-2' 
-          }
-          const iconName = iconMap[route.name] || 'circle'
-          return <Feather name={iconName} size={size} color={color} />
+          const iconMap: Record<string, any> = {
+            Dashboard: 'home',
+            Journals: 'book-open',
+            Goals: 'check-circle',
+            Trends: 'bar-chart-2',
+          };
+          const iconName = iconMap[route.name] || 'circle';
+          return <Feather name={iconName} size={size} color={color} />;
         },
       })}
     >
@@ -58,21 +58,25 @@ function AuthedTabs() {
       <Tab.Screen name="Goals" component={Goals} />
       <Tab.Screen name="Trends" component={Trends} />
     </Tab.Navigator>
-  )
+  );
 }
 
 export default function AppNavigator() {
-  const { isAuthenticated } = useAuthStore()
-  const isLoading = useAuthStore(s => s.isLoading)
-  const colors = useThemeColors()
-  
+  const { isAuthenticated, isLoading, restore } = useAuthStore();
+  const colors = useThemeColors();
+
+  useEffect(() => {
+    restore();
+  }, []);
+
   if (isLoading) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
         <ActivityIndicator size="large" color={colors.accent} />
       </View>
-    )
+    );
   }
+
   return (
     <NavigationContainer>
       <Stack.Navigator id={undefined} screenOptions={{ headerShown: false }}>
@@ -93,6 +97,7 @@ export default function AppNavigator() {
         )}
       </Stack.Navigator>
     </NavigationContainer>
-  )
+  );
 }
+
 

@@ -14,6 +14,7 @@ export const api = axios.create({
 api.interceptors.request.use(async (config) => {
   // Mobile: try auth header from secure storage
   const { access_token, refresh_token } = await getAuthTokens()
+  // console.log("Tokens:", access_token, refresh_token); // check if tokens exist
   if (access_token && config.headers && !config.headers['Authorization']) {
     config.headers['Authorization'] = `Bearer ${access_token}`
     config.headers['Refresh'] = `Bearer ${refresh_token}`
@@ -38,6 +39,7 @@ export const removeAuthTokens = async () => {
 }
 
 export const setAuthTokens = async (accessToken: string, refreshToken?: string) => {
+  // console.log(`Adding tokens to secure store - ${accessToken} ${refreshToken}`)
   await SecureStore.setItemAsync('auth_token', accessToken)
   await SecureStore.setItemAsync('refresh_token', refreshToken)
 }

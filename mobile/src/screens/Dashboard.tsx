@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert } from 'react-native'
+import React, { useEffect, useMemo, useState } from 'react'
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert, ActivityIndicator } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useJournalStore } from '../stores/journal.store'
 import { useNavigation } from '@react-navigation/native'
@@ -14,22 +14,34 @@ export default function Dashboard() {
   const { fetchMoodTrends, moodTrends } = useAiInsightStore()
   const { getActiveGoals, activeGoals } = useGoalStore()
   const { getStreakData, streakData } = useStreakStore()
-  const { user, signOut, getUser } = useAuthStore()
+  const { user, signOut, getUser, isAuthenticated } = useAuthStore()
   const nav = useNavigation<any>()
   const colors = useThemeColors()
+  const [isDelaying, setIsDelaying] = useState(true);
 
   useEffect(() => {
-    fetchTotalEntries()
-    fetchMonthlyEntries()
-    fetchJournalEntries()
-    fetchMoodTrends()
-    getActiveGoals()
-    getStreakData()
-    // Ensure user data is loaded
-    if (!user) {
-      getUser()
+    console.log(`isAuthenticated - ${isAuthenticated}`)
+    if (isAuthenticated) {
+      setTimeout(() => {
+        setIsDelaying(false);
+      }, 2000)
     }
-  }, [user, getUser])
+  }, [isAuthenticated])
+
+  useEffect(() => {
+    if (!isDelaying) {
+      fetchTotalEntries()
+      fetchMonthlyEntries()
+      fetchJournalEntries()
+      fetchMoodTrends()
+      getActiveGoals()
+      getStreakData()
+      // Ensure user data is loaded
+      if (!user) {
+        getUser()
+      }
+    }
+  }, [user, getUser, isDelaying])
 
   const recent = useMemo(() => (journalEntries || []).slice(0, 6), [journalEntries])
   const moodValue = useMemo(() => `${moodTrends > 0 ? '+' : ''}${moodTrends.toFixed(2)}%`, [moodTrends])
@@ -54,6 +66,14 @@ export default function Dashboard() {
       ],
       { cancelable: true }
     )
+  }
+
+  if (isDelaying) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={colors.accent} />
+      </View>
+    );
   }
 
   return (

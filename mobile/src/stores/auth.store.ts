@@ -17,10 +17,10 @@ type AuthState = {
   error: string | null
   isAuthenticated: boolean
   setIsAuthenticated: (value: boolean) => void
+  setIsLoading: (value: boolean) => void
   signUp: (payload: { email: string; password: string; display_name: string }) => Promise<{ ok: boolean; message?: string }>
   signIn: (payload: { email: string; password: string }) => Promise<{ ok: boolean }>
   signInWithGoogle: () => Promise<{ ok: boolean }>
-  handleGoogleOAuthSuccess: () => Promise<{ ok: boolean }>
   handleGoogleOAuthTokens: (accessToken: string, refreshToken?: string) => Promise<{ ok: boolean }>
   signOut: () => Promise<void>
   restore: () => void
@@ -34,6 +34,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
 
   setIsAuthenticated: (value) => set({ isAuthenticated: value }),
+  setIsLoading: (value) => set({ isLoading: value }),
 
   restore: async () => {
     try {
@@ -42,7 +43,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       // Check if we have a stored token first
       const { access_token, refresh_token } = await getAuthTokens()
 
-      console.log('Restoring auth, checking token:', access_token, refresh_token)
+      // console.log('Restoring auth, checking token:', access_token, refresh_token)
 
       // If no token, set unauthenticated state
       if (!access_token && !refresh_token) {
@@ -54,7 +55,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const res = await safeRequest(api.get('/auth/check', { withCredentials: true }))
       const valid = (res as any).ok;
 
-      console.log('Token validation result:', res);
+      // console.log('Token validation result:', res);
       
       if (valid) {
         set({ isAuthenticated: true, isLoading: false })
@@ -121,58 +122,37 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  handleGoogleOAuthSuccess: async () => {
-    try {
-      set({ isLoading: true, error: null });
-      
-      // Check if we're authenticated now by calling restore
-      await useAuthStore.getState().restore();
-      const { isAuthenticated } = useAuthStore.getState();
-      
-      if (isAuthenticated) {
-        set({ isLoading: false });
-        return { ok: true };
-      } else {
-        set({ isLoading: false, error: 'Authentication failed after Google OAuth' });
-        return { ok: false };
-      }
-    } catch (error) {
-      console.error('Google OAuth success handling error:', error);
-      set({ isLoading: false, error: 'Failed to complete Google sign-in' });
-      return { ok: false };
-    }
-  },
-
   handleGoogleOAuthTokens: async (accessToken: string, refreshToken?: string) => {
     try {
       set({ isLoading: true, error: null });
+
+      // console.log(`Setting Tokens - ${accessToken} ${refreshToken}`)
       
       // Store the access token
-      await SecureStore.setItemAsync('auth_token', accessToken);
+      await setAuthTokens(accessToken, refreshToken);
       
       // Set authenticated state immediately
-      set({ isAuthenticated: true, isLoading: false });
-      
-      // Fetch user details
-      await useAuthStore.getState().getUser();
+      set({ isAuthenticated: true });
       
       return { ok: true };
     } catch (error) {
       console.error('Google OAuth token handling error:', error);
       set({ isLoading: false, error: 'Failed to store OAuth tokens' });
       return { ok: false };
+    } finally {
+      set({ isLoading: false })
     }
   },
 
   signOut: async () => {
     try {
       await safeRequest(api.get('/auth/logout', { withCredentials: true }))
+      await removeAuthTokens();
     } catch (error) {
       console.error('Logout API error:', error)
       // Continue with local cleanup even if API call fails
     } finally {
       // Always clear local state and token
-      await SecureStore.deleteItemAsync('auth_token')
       set({ user: null, isAuthenticated: false, isLoading: false, error: null })
     }
   },
@@ -180,18 +160,16 @@ export const useAuthStore = create<AuthState>((set) => ({
   getUser: async () => {
     try {
       const res = await safeRequest(api.get('/auth/user', { withCredentials: true }))
+      // console.log(`/auth/user response - ${JSON.stringify(res)}`)
       if (res.ok) {
         set({ user: res.data })
       } else {
         console.error('Failed to get user data:', (res as ApiErr).error)
         set({ user: null, isAuthenticated: false })
-        // Clear invalid token if user fetch fails
-        await SecureStore.deleteItemAsync('auth_token')
       }
     } catch (error) {
       console.error('Get user error:', error)
       set({ user: null, isAuthenticated: false })
-      await SecureStore.deleteItemAsync('auth_token')
     }
   },
 }))

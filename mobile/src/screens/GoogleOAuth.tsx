@@ -14,6 +14,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../stores/auth.store';
 import { useThemeColors } from '../theme/colors';
 import { ENV } from '../config/env';
+import { setAuthTokens } from '../lib/api';
 
 interface GoogleOAuthProps {
   forceAccountSelection?: boolean;
@@ -21,7 +22,7 @@ interface GoogleOAuthProps {
 
 export default function GoogleOAuth({ forceAccountSelection = true }: GoogleOAuthProps) {
   const navigation = useNavigation();
-  const { signInWithGoogle } = useAuthStore();
+  const { setIsLoading: setIsLoadingAuth, setIsAuthenticated } = useAuthStore();
   const colors = useThemeColors();
   const webViewRef = useRef<WebView>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,19 +37,16 @@ export default function GoogleOAuth({ forceAccountSelection = true }: GoogleOAut
     if (url.includes('/auth/google/callback')) {
       console.log('OAuth callback detected, processing...');
       handleOAuthCallback(url);
+      return false;
     }
-    
-    // Check if we've been redirected to the frontend (this means OAuth was successful)
-    if (url.includes('ai-journaling.onrender.com') || url.includes('localhost:5173')) {
-      console.log('Redirected to frontend, assuming OAuth success');
-      handleAuthSuccess();
-    }
+
+    return true;
   };
 
   const handleMessage = (event: any) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
-      console.log('WebView message received:', data);
+      // console.log('WebView message received:', data);
       
       if (data.type === 'AUTH_SUCCESS') {
         // Authentication was successful, handle tokens if provided
@@ -61,33 +59,10 @@ export default function GoogleOAuth({ forceAccountSelection = true }: GoogleOAut
 
   const handleAuthSuccess = async (data?: any) => {
     try {
-      console.log('Handling OAuth success...', data);
-      
-      // If we have tokens from the WebView message, store them first
-      if (data && data.access_token) {
-        console.log('Storing OAuth tokens...');
-        const { handleGoogleOAuthTokens } = useAuthStore.getState();
-        const tokenResult = await handleGoogleOAuthTokens(data.access_token, data.refresh_token);
-        
-        if (tokenResult.ok) {
-          console.log('Google OAuth successful, user authenticated');
-          // Navigation will automatically switch to authenticated stack
-          return;
-        } else {
-          throw new Error('Failed to store OAuth tokens');
-        }
-      } else {
-        // Fallback to the original method if no tokens provided
-        const result = await useAuthStore.getState().handleGoogleOAuthSuccess();
-        
-        if (result.ok) {
-          console.log('Google OAuth successful, user authenticated');
-          // Navigation will automatically switch to authenticated stack
-          return;
-        } else {
-          throw new Error('Authentication failed after OAuth');
-        }
-      }
+        await setAuthTokens(data.access_token, data.refresh_token);
+        setIsAuthenticated(true);
+        setIsLoadingAuth(false);
+
     } catch (err: any) {
       console.error('Auth success error:', err);
       setError(err.message || 'Authentication failed');
@@ -102,7 +77,7 @@ export default function GoogleOAuth({ forceAccountSelection = true }: GoogleOAut
 
   const handleOAuthCallback = async (url: string) => {
     try {
-      console.log('Handling OAuth callback for URL:', url);
+      // console.log('Handling OAuth callback for URL:', url);
       
       // Check for error in URL parameters
       if (url.includes('error=')) {
@@ -110,17 +85,6 @@ export default function GoogleOAuth({ forceAccountSelection = true }: GoogleOAut
         const error = urlParams.get('error');
         throw new Error(error ? decodeURIComponent(error) : 'OAuth error occurred');
       }
-      
-      // The backend should have processed the OAuth callback and set cookies
-      // Wait a moment for the backend to process, then check authentication
-      setTimeout(async () => {
-        try {
-          await handleAuthSuccess();
-        } catch (err: any) {
-          console.error('Delayed auth success error:', err);
-          setError(err.message || 'OAuth callback processing failed');
-        }
-      }, 1000); // Wait 1 second for backend processing
       
     } catch (err: any) {
       console.error('OAuth callback error:', err);
