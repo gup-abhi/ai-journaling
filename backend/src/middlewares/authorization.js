@@ -70,6 +70,7 @@ const clearCookies = (res) => {
 
 const getNewToken = async (req, res, refresh_token) => {
   // get new access token using refresh token
+  console.log(`Refresh token in getNewToken - ${refresh_token}`)
   try {
     const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession({ refresh_token });
 
