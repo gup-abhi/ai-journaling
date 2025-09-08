@@ -1,8 +1,6 @@
 import { create } from 'zustand'
-import { api, safeRequest, type ApiErr, type ApiOk } from '../lib/api'
+import { api, removeAuthTokens, safeRequest, type ApiErr, type ApiOk, getAuthTokens, setAuthTokens } from '../lib/api'
 import * as SecureStore from 'expo-secure-store'
-import { Linking } from 'react-native'
-import { ENV } from '../config/env'
 
 export type AuthUser = {
   display_name: string
@@ -42,31 +40,32 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ isLoading: true, error: null })
       
       // Check if we have a stored token first
-      const storedToken = await SecureStore.getItemAsync('auth_token')
-      if (!storedToken) {
+      const { access_token, refresh_token } = await getAuthTokens()
+
+      console.log('Restoring auth, checking token:', access_token, refresh_token)
+
+      // If no token, set unauthenticated state
+      if (!access_token && !refresh_token) {
         set({ isLoading: false, isAuthenticated: false, user: null })
         return
       }
 
       // Try to validate the token with the backend
       const res = await safeRequest(api.get('/auth/check', { withCredentials: true }))
-      const valid = (res as any).ok && (res as any).data && (res as any).data.message === 'User is authenticated.'
+      const valid = (res as any).ok;
+
+      console.log('Token validation result:', res);
       
       if (valid) {
         set({ isAuthenticated: true, isLoading: false })
-        // Fetch user details after successful authentication
-        await useAuthStore.getState().getUser()
-      } else {
-        // Clear invalid token and reset state
-        await SecureStore.deleteItemAsync('auth_token')
-        set({ isLoading: false, isAuthenticated: false, user: null })
       }
     } catch (error) {
       console.error('Auth restore error:', error)
       // Clear any stored token on error
-      await SecureStore.deleteItemAsync('auth_token')
-      await SecureStore.deleteItemAsync('refresh_token')
-      set({ isLoading: false, isAuthenticated: false, user: null, error: 'Authentication failed' })
+      await removeAuthTokens()
+      set({ isAuthenticated: false, user: null, error: 'Authentication failed' })
+    } finally {
+      set({ isLoading: false })
     }
   },
 
@@ -89,26 +88,23 @@ export const useAuthStore = create<AuthState>((set) => ({
       if ((res as ApiOk<any>).ok) {
         // Store the access token from the response
         const anyRes = res as any
-        const token = anyRes.data?.access_token as string | undefined
-        if (token) {
-          await SecureStore.setItemAsync('auth_token', token)
-          // Set authenticated state immediately after storing token
-          set({ isAuthenticated: true, isLoading: false })
-          // Fetch user details
-          await useAuthStore.getState().getUser()
-        } else {
-          // If no token in response, try restore to check cookie-based auth
-          await useAuthStore.getState().restore()
-        }
+        const access_token = anyRes.data?.access_token as string | undefined
+        const refresh_token = anyRes.data?.refresh_token as string | undefined
+        
+        await setAuthTokens(access_token, refresh_token)
+        set({ error: null, isAuthenticated: true })
+
         return { ok: true }
       } else {
-        set({ isLoading: false, error: (res as ApiErr).error || 'Sign in failed.', isAuthenticated: false })
+        set({ error: (res as ApiErr).error || 'Sign in failed.', isAuthenticated: false })
         return { ok: false }
       }
     } catch (error) {
       console.error('Sign in error:', error)
       set({ isLoading: false, error: 'Sign in failed. Please try again.', isAuthenticated: false })
       return { ok: false }
+    } finally {
+      set({ isLoading: false })
     }
   },
 
