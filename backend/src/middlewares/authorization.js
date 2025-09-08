@@ -7,10 +7,11 @@ import logger from "../lib/logger.js";
 export const validateToken = async (req, res, next) => {
   try {
     // First try Authorization header
-    console.log(`Access Token - ${req.headers["authorization"]?.split(" ")[1]}`)
-    console.log(`Refresh Token - ${req.headers["refresh"]?.split(" ")[1]}`)
     let access_token = req.cookies.access_token || req.headers["authorization"]?.split(" ")[1];
     let refresh_token = req.cookies.refresh_token || req.headers["refresh"]?.split(" ")[1];
+
+    console.log(`Access Token - ${access_token}`)
+    console.log(`Refresh Token - ${refresh_token}`)
 
     if (!access_token && !refresh_token) {
       clearCookies(res);
@@ -22,6 +23,8 @@ export const validateToken = async (req, res, next) => {
 
     if (access_token) {
       const { data, error } = await supabase.auth.getUser(access_token);
+
+      console.log(`Error to getuser using access_token - ${JSON.stringify(error)}`);
 
       if (error) {
         // If getNewToken sends a response, it will return true.
@@ -69,6 +72,8 @@ const getNewToken = async (req, res, refresh_token) => {
   // get new access token using refresh token
   try {
     const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession({ refresh_token });
+
+    console.log(`refresh Error - ${JSON.stringify(refreshError)}`);
     
     if (refreshError) {
       clearCookies(res);
