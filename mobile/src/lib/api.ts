@@ -14,11 +14,22 @@ export const api = axios.create({
 api.interceptors.request.use(async (config) => {
   // Mobile: try auth header from secure storage
   const { access_token, refresh_token } = await getAuthTokens()
-  // console.log("Tokens:", access_token, refresh_token); // check if tokens exist
-  if (access_token && config.headers && !config.headers['Authorization']) {
+
+  // Debug logging
+  console.log('API Request - Tokens retrieved:', {
+    hasAccessToken: !!access_token,
+    hasRefreshToken: !!refresh_token,
+    url: config.url
+  })
+
+  // Only set headers if tokens exist
+  if (access_token) {
     config.headers['Authorization'] = `Bearer ${access_token}`
+  }
+  if (refresh_token) {
     config.headers['Refresh'] = `Bearer ${refresh_token}`
   }
+
   return config
 })
 
@@ -27,8 +38,28 @@ api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     if (error.response?.status === 401) {
-      // Clear tokens on authentication failure
-      await removeAuthTokens()
+      // Check if we already have a refresh attempt in progress to prevent loops
+      const refreshInProgress = (error.config as any)?._retry
+      if (refreshInProgress) {
+        console.log("Token refresh already in progress, rejecting request")
+        return Promise.reject(error)
+      }
+
+      // Mark this request as having attempted refresh
+      ;(error.config as any)._retry = true
+
+      console.log("Attempting token refresh due to 401 error")
+      const res = await useAuthStore.getState().refreshToken()
+
+      if (res.ok) {
+        console.log("Token refresh successful, retrying original request")
+        // Retry the original request with new tokens
+        return api(error.config!)
+      } else {
+        console.log("Token refresh failed, clearing authentication")
+        await removeAuthTokens()
+        useAuthStore.getState().setIsAuthenticated(false)
+      }
     }
     return Promise.reject(error)
   }

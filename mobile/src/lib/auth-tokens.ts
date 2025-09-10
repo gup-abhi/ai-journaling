@@ -18,3 +18,4 @@ export const getAuthTokens = async (): Promise<{ access_token: string | null; re
   const refresh_token = await SecureStore.getItemAsync('refresh_token')
   return { access_token, refresh_token }
 }
+

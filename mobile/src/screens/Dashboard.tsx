@@ -30,8 +30,10 @@ export default function Dashboard() {
 
   useEffect(() => {
     // if (!isDelaying) {
+      console.log('Dashboard: Starting to fetch all data...')
       fetchTotalEntries()
       fetchMonthlyEntries()
+      console.log('Dashboard: Fetching journal entries...')
       fetchJournalEntries()
       fetchMoodTrends()
       getActiveGoals()
@@ -96,7 +98,7 @@ export default function Dashboard() {
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Actions</Text>
           <View style={styles.actionsRow}>
             <ActionButton label="Start Journal" onPress={() => nav.navigate('NewJournalEntry')} accent={colors.accent} />
-            <ActionButton label="View Journals" variant="secondary" onPress={() => nav.getParent()?.navigate('Journals')} accentBg={colors.accentBg} accentText={colors.accentText} />
+            <ActionButton label="View Journals" variant="secondary" onPress={() => nav.navigate('Journals')} accentBg={colors.accentBg} accentText={colors.accentText} />
             <ActionButton label="Templates" variant="secondary" onPress={() => nav.navigate('JournalTemplates')} accentBg={colors.accentBg} accentText={colors.accentText} />
           </View>
         </View>

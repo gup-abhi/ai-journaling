@@ -7,6 +7,6 @@ const fallbackBase = Platform.select({
 }) as string
 
 export const ENV = {
-  API_BASE: process.env.EXPO_PUBLIC_API_BASE,
+  API_BASE: process.env.EXPO_PUBLIC_API_BASE || fallbackBase,
 }
 

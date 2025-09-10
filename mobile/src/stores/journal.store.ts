@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { api, safeRequest } from '../lib/api'
+import { api, ApiErr, safeRequest } from '../lib/api'
 import { JournalTemplate } from '../types/JournalTemplate'
 
 export type JournalEntry = {
@@ -33,10 +33,13 @@ export const useJournalStore = create<JournalStore>((set) => ({
   selectedTemplate: null,
 
   fetchJournalEntries: async () => {
+    console.log('Journal Store: Starting to fetch journal entries...')
     const response = await safeRequest(api.get<{ entries: JournalEntry[] }>('/journal'))
     if (response.ok) {
+      console.log('Journal Store: Journal entries fetched successfully, count:', response.data.entries.length)
       set({ journalEntries: response.data.entries })
     } else {
+      console.log('Journal Store: Failed to fetch journal entries:', (response as ApiErr).error, 'Status:', (response as ApiErr).status)
       set({ journalEntries: [] })
     }
   },

@@ -9,7 +9,10 @@ export default function Journals() {
   const { journalEntries, fetchJournalEntries } = useJournalStore()
   const nav = useNavigation<any>()
   const colors = useThemeColors()
-  useEffect(() => { fetchJournalEntries() }, [])
+  useEffect(() => {
+    console.log('Journals screen: Fetching journal entries...')
+    fetchJournalEntries()
+  }, [])
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>

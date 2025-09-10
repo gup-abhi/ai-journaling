@@ -288,10 +288,11 @@ export const getUserDetails = async (req, res) => {
 
 /**
  * Refresh token for mobile devices
- * @param {*} req 
- * @param {*} res 
+ * @param {*} req
+ * @param {*} res
+ * @param {*} next
  */
-export const refreshTokenMobile = async (req, res) => {
+export const refreshTokenMobile = async (req, res, next) => {
   try {
     const refresh_token = req.headers["refresh"]?.split(" ")[1];
 

@@ -4,11 +4,22 @@ import { View } from 'react-native'
 import AppNavigator from './navigation'
 import { useAuthStore } from './stores/auth.store'
 import { useThemeColors } from './theme/colors'
+import { getAuthTokens } from './lib/auth-tokens'
 
 export default function App() {
-  const { restore, isLoading } = useAuthStore()
+  const { restore, setIsAuthenticated } = useAuthStore()
   const colors = useThemeColors()
+
+  const checkAuthTokenInStore = async () => {
+    const { access_token } = await getAuthTokens();
+
+    if (access_token) setIsAuthenticated(true);
+  }
   
+  useEffect(() => { 
+     checkAuthTokenInStore();
+  }, [checkAuthTokenInStore])
+
   useEffect(() => { 
     // Initialize authentication state on app start
     restore() 
