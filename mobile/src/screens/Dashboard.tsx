@@ -71,14 +71,6 @@ export default function Dashboard() {
     )
   }
 
-  // if (isDelaying) {
-  //   return (
-  //     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
-  //       <ActivityIndicator size="large" color={colors.accent} />
-  //     </View>
-  //   );
-  // }
-
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}

@@ -13,6 +13,8 @@ import { useAuthStore } from '../stores/auth.store';
 import { View, ActivityIndicator } from 'react-native';
 import { useThemeColors } from '../theme/colors';
 import Goals from '../screens/Goals';
+import NewGoal from '../screens/NewGoal';
+import UpdateGoal from '../screens/UpdateGoal';
 import Trends from '../screens/Trends';
 import JournalTemplates from '../screens/JournalTemplates';
 import GoogleOAuth from '../screens/GoogleOAuth';
@@ -25,6 +27,8 @@ export type RootStackParamList = {
   NewJournalEntry: undefined;
   JournalView: { id: string };
   JournalTemplates: undefined;
+  NewGoal: undefined;
+  UpdateGoal: { goalId: string };
   GoogleOAuth: undefined;
 };
 
@@ -86,6 +90,8 @@ export default function AppNavigator() {
             <Stack.Screen name="NewJournalEntry" component={NewJournalEntry} />
             <Stack.Screen name="JournalView" component={JournalView} />
             <Stack.Screen name="JournalTemplates" component={JournalTemplates} />
+            <Stack.Screen name="NewGoal" component={NewGoal} />
+            <Stack.Screen name="UpdateGoal" component={UpdateGoal} />
           </>
         ) : (
           <>

@@ -28,7 +28,7 @@ export function useThemeColors(): ThemeColors {
   return {
     accent: toHex(tokens.primary),
     accentBg: toHex(tokens.accent),
-    accentText: toHex(tokens.accentForeground || tokens.accentForeground || tokens.foreground),
+    accentText: toHex(tokens.accentForeground || tokens.foreground),
     text: toHex(tokens.foreground),
     muted: toHex(tokens.mutedForeground || tokens.foreground),
     mutedBg: toHex(tokens.muted),
