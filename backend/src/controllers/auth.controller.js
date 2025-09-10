@@ -287,21 +287,42 @@ export const getUserDetails = async (req, res) => {
 };
 
 /**
- * Test mobile detection
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
+ * Refresh token for mobile devices
+ * @param {*} req 
+ * @param {*} res 
  */
-export const testMobileDetection = async (req, res) => {
-  const userAgent = req.get('User-Agent') || '';
-  const isMobileApp = req.get('X-Mobile-App') === 'true' || req.query.mobile === 'true';
-  const isMobile = isMobileApp || userAgent.includes('Mobile') || userAgent.includes('Android') || userAgent.includes('iPhone') || userAgent.includes('ReactNative') || userAgent.includes('Expo');
+export const refreshTokenMobile = async (req, res) => {
+  try {
+    const refresh_token = req.headers["refresh"]?.split(" ")[1];
 
-  res.status(200).json({
-    userAgent,
-    isMobileApp,
-    isMobile,
-    headers: req.headers,
-    query: req.query
-  });
+    logger.info(`refresh token received - ${refresh_token}`)
+
+    if (!refresh_token) {
+      throw new AppError("Refresh token is required", 400);
+    }
+
+    // Refresh session using Supabase
+    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession({
+      refresh_token
+    });
+
+    if (refreshError) {
+      logger.error(`Refresh token error: ${refreshError.message}`);
+      throw new AppError("Invalid or expired refresh token", 401);
+    }
+
+    // Return the new tokens and user info
+    res.status(200).json({
+      message: "Tokens refreshed successfully",
+      access_token: refreshData.session.access_token,
+      refresh_token: refreshData.session.refresh_token,
+    });
+  } catch (err) {
+    logger.error(`refreshTokenMobile error: ${err}`);
+    if (err instanceof AppError) {
+      next(err);
+    } else {
+      next(new AppError("Internal server error", 500));
+    }
+  }
 };
