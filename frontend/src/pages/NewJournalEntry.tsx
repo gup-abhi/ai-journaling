@@ -14,6 +14,7 @@ import { api, safeRequest } from '@/lib/api'
 
 export function NewJournalEntry() {
   const [content, setContent] = useState('')
+  const [promptResponses, setPromptResponses] = useState<{[key: number]: string}>({})
   const addJournalEntry = useJournalStore((state) => state.addJournalEntry)
   const navigate = useNavigate()
   const currentDateTime = moment().format('MMMM Do YYYY, h:mm:ss a')
@@ -40,6 +41,12 @@ export function NewJournalEntry() {
         const response = await safeRequest(api.get<JournalTemplate>(`/journal-template/${templateId}`));
         if (response.ok) {
           setTemplate(response.data);
+          // Initialize prompt responses for each prompt
+          const initialResponses: {[key: number]: string} = {};
+          response.data.prompts?.forEach((_, index) => {
+            initialResponses[index] = '';
+          });
+          setPromptResponses(initialResponses);
         } else {
           setTemplate(null);
         }
@@ -60,11 +67,66 @@ export function NewJournalEntry() {
   const handleReset = () => {
     resetTranscript();
     setContent('');
+    // Reset prompt responses
+    const resetResponses: {[key: number]: string} = {};
+    template?.prompts?.forEach((_, index) => {
+      resetResponses[index] = '';
+    });
+    setPromptResponses(resetResponses);
+  };
+
+  const handlePromptResponseChange = (index: number, value: string) => {
+    setPromptResponses(prev => ({
+      ...prev,
+      [index]: value
+    }));
+  };
+
+  const combineContentWithPrompts = () => {
+    let combinedContent = '';
+
+    if (template?.prompts && template.prompts.length > 0) {
+      template.prompts.forEach((prompt, index) => {
+        const response = promptResponses[index] || '';
+        if (response.trim()) {
+          combinedContent += `${prompt}\n\n${response}\n\n`;
+        }
+      });
+    }
+
+    // Add any additional content from the main textarea
+    if (content.trim()) {
+      combinedContent += content.trim();
+    }
+
+    return combinedContent || content;
+  };
+
+  const isContentValid = () => {
+    // If there's a template, ALL prompts must be filled OR main content must have text
+    if (template?.prompts && template.prompts.length > 0) {
+      const hasAllPromptResponses = template.prompts.every((_, index) =>
+        promptResponses[index] && promptResponses[index].trim().length > 0
+      );
+      const hasMainContent = content.trim().length > 0;
+      return hasAllPromptResponses || hasMainContent;
+    }
+
+    // If no template, main content is required
+    return content.trim().length > 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const newEntry = await addJournalEntry({ content, template_id: templateId })
+    const finalContent = combineContentWithPrompts();
+
+    // If no template, content is required
+    if (!template && !finalContent.trim()) {
+      alert('Please write your journal entry content.')
+      return
+    }
+
+    const newEntry = await addJournalEntry({ content: finalContent, template_id: templateId })
     if (newEntry) {
       navigate(`/journals/${newEntry._id}`)
     }
@@ -95,28 +157,45 @@ export function NewJournalEntry() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {template && (
               <div className="mb-4 p-4 border rounded-md bg-muted/50">
-                <h2 className="text-xl font-semibold mb-2">Template: {template.name}</h2>
+                <h2 className="text-xl font-semibold mb-4">Template: {template.name}</h2>
                 {template.prompts && template.prompts.length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-medium mb-1">Prompts:</h3>
-                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                      {template.prompts.map((prompt, index) => (
-                        <li key={index}>{prompt}</li>
-                      ))}
-                    </ul>
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Prompts:</h3>
+                    {template.prompts.map((prompt, index) => (
+                      <div key={index} className="space-y-2">
+                        <Label htmlFor={`prompt-${index}`} className="text-sm font-medium text-muted-foreground">
+                          {prompt}
+                        </Label>
+                        <Textarea
+                          id={`prompt-${index}`}
+                          value={promptResponses[index] || ''}
+                          onChange={(e) => handlePromptResponseChange(index, e.target.value)}
+                          placeholder="Write your response here..."
+                          className="min-h-[80px]"
+                        />
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
             )}
             <div>
-              <Label htmlFor="content" className='text-xl'>Content</Label>
+              <Label htmlFor="content" className='text-xl'>
+                {template ? 'Additional Content (Optional)' : 'Content'}
+              </Label>
+              {template && (
+                <p className="text-sm text-muted-foreground mb-2">
+                  Add any additional thoughts or notes that don't fit the prompts above.
+                </p>
+              )}
               <div className="relative mt-2">
                 <Textarea
                   id="content"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  required
-                  className="min-h-[200px] pr-20"
+                  required={!template}
+                  className="min-h-[150px] pr-20"
+                  placeholder={template ? "Write any additional thoughts here..." : "Write your journal entry..."}
                 />
                 <div className="absolute top-2 right-2 flex flex-col gap-2">
                   <Button
@@ -138,7 +217,13 @@ export function NewJournalEntry() {
                 </div>
               </div>
             </div>
-            <Button type="submit" className="w-full">Save Entry</Button>
+            <Button
+              type="submit"
+              className={`w-full ${!isContentValid() ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={!isContentValid()}
+            >
+              Save Entry
+            </Button>
           </form>
         </CardContent>
       </Card>

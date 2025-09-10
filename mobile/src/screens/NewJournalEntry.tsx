@@ -14,12 +14,13 @@ import { useThemeColors } from '../theme/colors'
 import { Feather } from '@expo/vector-icons'
 
 export default function NewJournalEntry() {
-  const { 
-    addJournalEntry, 
-    selectedTemplate, 
-    setSelectedTemplate 
+  const {
+    addJournalEntry,
+    selectedTemplate,
+    setSelectedTemplate
   } = useJournalStore()
   const [content, setContent] = useState('')
+  const [promptResponses, setPromptResponses] = useState<{[key: number]: string}>({})
   const navigation = useNavigation<any>()
   const colors = useThemeColors()
 
@@ -30,19 +31,77 @@ export default function NewJournalEntry() {
     }
   }, [setSelectedTemplate])
 
+  useEffect(() => {
+    // Initialize prompt responses when template changes
+    if (selectedTemplate?.prompts) {
+      const initialResponses: {[key: number]: string} = {};
+      selectedTemplate.prompts.forEach((_, index) => {
+        initialResponses[index] = '';
+      });
+      setPromptResponses(initialResponses);
+    } else {
+      setPromptResponses({});
+    }
+  }, [selectedTemplate])
+
+  const handlePromptResponseChange = (index: number, value: string) => {
+    setPromptResponses(prev => ({
+      ...prev,
+      [index]: value
+    }));
+  };
+
+  const combineContentWithPrompts = () => {
+    let combinedContent = '';
+
+    if (selectedTemplate?.prompts && selectedTemplate.prompts.length > 0) {
+      selectedTemplate.prompts.forEach((prompt, index) => {
+        const response = promptResponses[index] || '';
+        if (response.trim()) {
+          combinedContent += `${prompt}\n\n${response}\n\n`;
+        }
+      });
+    }
+
+    // Add any additional content from the main textarea
+    if (content.trim()) {
+      combinedContent += content.trim();
+    }
+
+    return combinedContent || content;
+  };
+
+  const isContentValid = () => {
+    // If there's a template, ALL prompts must be filled OR main content must have text
+    if (selectedTemplate?.prompts && selectedTemplate.prompts.length > 0) {
+      const hasAllPromptResponses = selectedTemplate.prompts.every((_, index) =>
+        promptResponses[index] && promptResponses[index].trim().length > 0
+      );
+      const hasMainContent = content.trim().length > 0;
+      return hasAllPromptResponses || hasMainContent;
+    }
+
+    // If no template, main content is required
+    return content.trim().length > 0;
+  };
+
   const onSubmit = async () => {
-    if (!content.trim()) {
-      Alert.alert('Error', 'Please write something before saving.')
+    const finalContent = combineContentWithPrompts();
+
+    // If no template, content is required
+    if (!selectedTemplate && !finalContent.trim()) {
+      Alert.alert('Error', 'Please write your journal entry content.')
       return
     }
 
-    const entry = await addJournalEntry({ 
-      content: content.trim(), 
-      template_id: selectedTemplate?._id || null 
+    const entry = await addJournalEntry({
+      content: finalContent.trim(),
+      template_id: selectedTemplate?._id || null
     })
-    
+
     if (entry) {
       setSelectedTemplate(null)
+      setPromptResponses({})
       navigation.goBack()
     } else {
       Alert.alert('Error', 'Failed to save journal entry. Please try again.')
@@ -51,6 +110,7 @@ export default function NewJournalEntry() {
 
   const handleRemoveTemplate = () => {
     setSelectedTemplate(null)
+    setPromptResponses({})
   }
 
   return (
@@ -89,9 +149,27 @@ export default function NewJournalEntry() {
                   Prompts:
                 </Text>
                 {selectedTemplate.prompts.map((prompt, index) => (
-                  <Text key={index} style={[styles.templatePrompt, { color: colors.muted }]}>
-                    • {prompt}
-                  </Text>
+                  <View key={index} style={styles.promptContainer}>
+                    <Text style={[styles.templatePrompt, { color: colors.text }]}>
+                      {prompt}
+                    </Text>
+                    <TextInput
+                      style={[
+                        styles.promptInput,
+                        {
+                          backgroundColor: colors.cardBg,
+                          borderColor: colors.border,
+                          color: colors.text
+                        }
+                      ]}
+                      placeholder="Write your response here..."
+                      placeholderTextColor={colors.muted}
+                      value={promptResponses[index] || ''}
+                      onChangeText={(value) => handlePromptResponseChange(index, value)}
+                      multiline
+                      textAlignVertical="top"
+                    />
+                  </View>
                 ))}
               </View>
             )}
@@ -119,16 +197,24 @@ export default function NewJournalEntry() {
         )}
 
         <View style={styles.inputContainer}>
+          <Text style={[styles.inputLabel, { color: colors.text }]}>
+            {selectedTemplate ? 'Additional Content (Optional)' : 'Content'}
+          </Text>
+          {selectedTemplate && (
+            <Text style={[styles.inputDescription, { color: colors.muted }]}>
+              Add any additional thoughts or notes that don't fit the prompts above.
+            </Text>
+          )}
           <TextInput
             style={[
-              styles.input, 
-              { 
-                backgroundColor: colors.cardBg, 
-                borderColor: colors.border, 
-                color: colors.text 
+              styles.input,
+              {
+                backgroundColor: colors.cardBg,
+                borderColor: colors.border,
+                color: colors.text
               }
             ]}
-            placeholder="Write your thoughts..."
+            placeholder={selectedTemplate ? "Write any additional thoughts here..." : "Write your journal entry..."}
             placeholderTextColor={colors.muted}
             value={content}
             onChangeText={setContent}
@@ -137,14 +223,14 @@ export default function NewJournalEntry() {
           />
         </View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[
-            styles.saveButton, 
+            styles.saveButton,
             { backgroundColor: colors.accent },
-            !content.trim() && { opacity: 0.5 }
-          ]} 
+            !isContentValid() && { opacity: 0.5 }
+          ]}
           onPress={onSubmit}
-          disabled={!content.trim()}
+          disabled={!isContentValid()}
         >
           <Text style={[styles.saveButtonText, { color: colors.background }]}>
             Save Journal Entry
@@ -211,6 +297,28 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     paddingLeft: 8,
+  },
+  promptContainer: {
+    marginBottom: 16,
+  },
+  promptInput: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+    minHeight: 80,
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  inputDescription: {
+    fontSize: 14,
+    lineHeight: 18,
+    marginBottom: 8,
   },
   templatePromptContainer: {
     paddingHorizontal: 16,
