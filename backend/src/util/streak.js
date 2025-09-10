@@ -28,16 +28,23 @@ const calculateStreak = async (userId) => {
     return;
   }
 
-  let diffDays = lastJournalDate 
-      ? Math.round((today - lastJournalDate) / (1000 * 60 * 60 * 24)) 
+  let diffDays = lastJournalDate
+      ? Math.round((today - lastJournalDate) / (1000 * 60 * 60 * 24))
       : 1;
 
+  // Note: Streak breaking logic is now handled in getStreakData endpoint
+  // This function only handles incrementing streaks on journal creation
   if (diffDays === 1) {
     user.streakData.currentStreak += 1;
     logger.info("Streak incremented.");
-  } else {
+  } else if (diffDays > 1) {
+    // Start new streak from 1
     user.streakData.currentStreak = 1;
-    logger.info("Streak reset.");
+    logger.info("New streak started.");
+  } else {
+    // First journal entry ever
+    user.streakData.currentStreak = 1;
+    logger.info("First journal entry - streak started.");
   }
 
   if (user.streakData.currentStreak > user.streakData.longestStreak) {
