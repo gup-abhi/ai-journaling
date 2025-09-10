@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert, ActivityIndicator } from 'react-native'
+import React, { useEffect, useMemo, useState, useCallback } from 'react'
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, ScrollView, RefreshControl } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useJournalStore } from '../stores/journal.store'
 import { useNavigation } from '@react-navigation/native'
@@ -17,33 +17,34 @@ export default function Dashboard() {
   const { user, signOut, getUser, isAuthenticated } = useAuthStore()
   const nav = useNavigation<any>()
   const colors = useThemeColors()
-  const [isDelaying, setIsDelaying] = useState(true);
 
-  // useEffect(() => {
-  //   console.log(`isAuthenticated - ${isAuthenticated}`)
-  //   if (isAuthenticated) {
-  //     setTimeout(() => {
-  //       setIsDelaying(false);
-  //     }, 2000)
-  //   }
-  // }, [isAuthenticated])
+  const [refreshing, setRefreshing] = useState(false)
+
+  const loadAllData = useCallback(async () => {
+    console.log('🔄 Reloading all dashboard data...')
+    await Promise.all([
+      fetchTotalEntries(),
+      fetchMonthlyEntries(),
+      fetchJournalEntries(),
+      fetchMoodTrends(),
+      getActiveGoals(),
+      getStreakData()
+    ])
+  }, [fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, fetchMoodTrends, getActiveGoals, getStreakData])
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true)
+    try {
+      await loadAllData()
+    } finally {
+      setRefreshing(false)
+    }
+  }, [loadAllData])
 
   useEffect(() => {
-    // if (!isDelaying) {
-      console.log('Dashboard: Starting to fetch all data...')
-      fetchTotalEntries()
-      fetchMonthlyEntries()
-      console.log('Dashboard: Fetching journal entries...')
-      fetchJournalEntries()
-      fetchMoodTrends()
-      getActiveGoals()
-      getStreakData()
-      // Ensure user data is loaded
-      // if (!user) {
-      //   getUser()
-      // }
-    // }
-  }, [])
+      console.log('🚀 Dashboard mounted, loading data...')
+      loadAllData()
+  }, [loadAllData])
 
   const recent = useMemo(() => (journalEntries || []).slice(0, 6), [journalEntries])
   const moodValue = useMemo(() => `${moodTrends > 0 ? '+' : ''}${moodTrends.toFixed(2)}%`, [moodTrends])
@@ -79,10 +80,22 @@ export default function Dashboard() {
   // }
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: colors.background }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[colors.accent]}
+          tintColor={colors.accent}
+          title="Pull to refresh"
+          titleColor={colors.muted}
+        />
+      }
+    >
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}> 
+          <Text style={[styles.title, { color: colors.text }]}>
             {`Welcome back${user ? `, ${user.display_name || user.full_name || user.email}` : ''}`}
           </Text>
           <TouchableOpacity
@@ -121,30 +134,26 @@ export default function Dashboard() {
         {/* Recent Journals */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Journals</Text>
+          {recent && recent.length > 0 ? (
+            recent.map((item) => (
+              <View key={item._id} style={[styles.card, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+                <TouchableOpacity
+                  onPress={() => nav.navigate('JournalView', { id: item._id })}
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  style={[styles.viewBtnAbsolute, { borderColor: colors.accent, backgroundColor: colors.accentBg, paddingVertical: 4, paddingHorizontal: 8, zIndex: 10, elevation: 2 }]}
+                >
+                  <Feather name="eye" size={14} color={colors.accentText} />
+                </TouchableOpacity>
+                <Text style={[styles.cardDate, { color: colors.muted }]}>{new Date(item.entry_date).toDateString()}</Text>
+                <Text numberOfLines={4} style={[styles.cardText, { color: colors.text }]}>{item.content}</Text>
+              </View>
+            ))
+          ) : (
+            <Text style={{ paddingHorizontal: 16, color: colors.muted }}>No recent entries yet.</Text>
+          )}
         </View>
       </View>
-
-      <FlatList
-        style={{ flex: 1 }}
-        data={recent}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <View style={[styles.card, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
-            <TouchableOpacity 
-              onPress={() => nav.navigate('JournalView', { id: item._id })}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              style={[styles.viewBtnAbsolute, { borderColor: colors.accent, backgroundColor: colors.accentBg, paddingVertical: 4, paddingHorizontal: 8, zIndex: 10, elevation: 2 }]}
-            > 
-              <Feather name="eye" size={14} color={colors.accentText} />
-            </TouchableOpacity>
-            <Text style={[styles.cardDate, { color: colors.muted }]}>{new Date(item.entry_date).toDateString()}</Text>
-            <Text numberOfLines={4} style={[styles.cardText, { color: colors.text }]}>{item.content}</Text>
-          </View>
-        )}
-        ListEmptyComponent={<Text style={{ paddingHorizontal: 16, color: colors.muted }}>No recent entries yet.</Text>}
-        contentContainerStyle={{ paddingBottom: 24 }}
-      />
-    </View>
+    </ScrollView>
   )
 }
 

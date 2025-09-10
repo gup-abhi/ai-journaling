@@ -10,8 +10,24 @@ export const validateToken = async (req, res, next) => {
     let access_token = req.cookies.access_token || req.headers["authorization"]?.split(" ")[1];
     let refresh_token = req.cookies.refresh_token || req.headers["refresh"]?.split(" ")[1];
 
+    logger.info(`Token validation - Access token: ${!!access_token}, Refresh token: ${!!refresh_token}`);
+    logger.info(`Headers - Authorization: ${!!req.headers["authorization"]}, Refresh: ${!!req.headers["refresh"]}`);
+    logger.info(`User-Agent: ${req.headers['user-agent']}`);
+
     if (!access_token && !refresh_token) {
-      clearCookies(res);
+      // Check if this is a mobile request - don't clear cookies for mobile
+      const userAgent = req.headers['user-agent'] || '';
+      const hasBearerAuth = req.headers['authorization']?.startsWith('Bearer');
+      const isMobileRequest = hasBearerAuth ||
+                             userAgent.includes('Mobile') ||
+                             userAgent.includes('Android') ||
+                             userAgent.includes('iPhone') ||
+                             userAgent.includes('Expo') ||
+                             !userAgent.includes('Mozilla');
+
+      if (!isMobileRequest) {
+        clearCookies(res);
+      }
       throw new AppError("No token provided, try re-logging in", 401);
     }
 
@@ -56,25 +72,81 @@ const clearCookies = (res) => {
 
 const getNewToken = async (req, res, refresh_token) => {
   if (!refresh_token) {
-    clearCookies(res);
+    // Check if this is a mobile request - don't clear cookies for mobile
+    const userAgent = req.headers['user-agent'] || '';
+    const hasBearerAuth = req.headers['authorization']?.startsWith('Bearer');
+    const isMobileRequest = hasBearerAuth ||
+                           userAgent.includes('Mobile') ||
+                           userAgent.includes('Android') ||
+                           userAgent.includes('iPhone') ||
+                           userAgent.includes('Expo') ||
+                           !userAgent.includes('Mozilla');
+
+    if (!isMobileRequest) {
+      clearCookies(res);
+    }
     throw new AppError("No refresh token provided", 401);
   }
 
   try {
+    logger.info(`Attempting token refresh for ${refresh_token.substring(0, 10)}...`);
     const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession({ refresh_token });
-    
+
     if (refreshError) {
-      clearCookies(res);
+      logger.error(`Supabase refresh error: ${refreshError.message}`);
+      // Check if this is a mobile request - don't clear cookies for mobile
+      const userAgent = req.headers['user-agent'] || '';
+      const hasBearerAuth = req.headers['authorization']?.startsWith('Bearer');
+      const isMobileRequest = hasBearerAuth ||
+                             userAgent.includes('Mobile') ||
+                             userAgent.includes('Android') ||
+                             userAgent.includes('iPhone') ||
+                             userAgent.includes('Expo') ||
+                             !userAgent.includes('Mozilla');
+
+      if (!isMobileRequest) {
+        clearCookies(res);
+      }
       throw new AppError("Invalid or expired token", 401);
     }
 
-    res.cookie("access_token", refreshData.session.access_token, cookieOptions(60 * 60 * 1000));
-    res.cookie("refresh_token", refreshData.session.refresh_token, cookieOptions(7 * 24 * 60 * 60 * 1000));
-    
-    return { user: refreshData.user };
+    // Check if this is a mobile request (no cookies expected)
+    const userAgent = req.headers['user-agent'] || '';
+    const hasBearerAuth = req.headers['authorization']?.startsWith('Bearer');
+    const isMobileRequest = hasBearerAuth ||
+                           userAgent.includes('Mobile') ||
+                           userAgent.includes('Android') ||
+                           userAgent.includes('iPhone') ||
+                           userAgent.includes('Expo') ||
+                           !userAgent.includes('Mozilla');
+
+    if (isMobileRequest) {
+      // For mobile requests, return new tokens in response headers so client can store them
+      logger.info("Mobile request detected - returning new tokens in response headers");
+      res.setHeader('X-New-Access-Token', refreshData.session.access_token);
+      res.setHeader('X-New-Refresh-Token', refreshData.session.refresh_token);
+      return { user: refreshData.user };
+    } else {
+      // For web requests, set cookies as usual
+      res.cookie("access_token", refreshData.session.access_token, cookieOptions(60 * 60 * 1000));
+      res.cookie("refresh_token", refreshData.session.refresh_token, cookieOptions(7 * 24 * 60 * 60 * 1000));
+      return { user: refreshData.user };
+    }
   } catch (err) {
     logger.error(`Error refreshing token: ${err}`);
-    clearCookies(res);
+    // Check if this is a mobile request - don't clear cookies for mobile
+    const userAgent = req.headers['user-agent'] || '';
+    const hasBearerAuth = req.headers['authorization']?.startsWith('Bearer');
+    const isMobileRequest = hasBearerAuth ||
+                           userAgent.includes('Mobile') ||
+                           userAgent.includes('Android') ||
+                           userAgent.includes('iPhone') ||
+                           userAgent.includes('Expo') ||
+                           !userAgent.includes('Mozilla');
+
+    if (!isMobileRequest) {
+      clearCookies(res);
+    }
     throw new AppError("Error refreshing token", 500);
   }
 };

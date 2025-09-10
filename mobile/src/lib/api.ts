@@ -8,7 +8,8 @@ const BASE_URL = ENV.API_BASE
 
 export const api = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true,
+  // Note: withCredentials is disabled for mobile since we use Bearer token authentication
+  // withCredentials: true, // This causes issues with mobile token refresh
 })
 
 api.interceptors.request.use(async (config) => {
@@ -34,38 +35,61 @@ api.interceptors.request.use(async (config) => {
 })
 
 
+// Disable axios interceptor token refresh for mobile - let backend handle it
+// This prevents conflicts between mobile and backend token refresh logic
 api.interceptors.response.use(
-  (response) => response,
+  async (response) => {
+    // Check if backend sent new tokens in headers (after refresh)
+    const newAccessToken = response.headers['x-new-access-token'];
+    const newRefreshToken = response.headers['x-new-refresh-token'];
+
+    if (newAccessToken || newRefreshToken) {
+      console.log("Backend provided new tokens, storing them...");
+      const { setAuthTokens } = await import('../lib/auth-tokens');
+      await setAuthTokens(newAccessToken, newRefreshToken);
+      console.log("New tokens stored successfully");
+    }
+
+    return response;
+  },
   async (error: AxiosError) => {
     if (error.response?.status === 401) {
-      // Check if we already have a refresh attempt in progress to prevent loops
-      const refreshInProgress = (error.config as any)?._retry
-      if (refreshInProgress) {
-        console.log("Token refresh already in progress, rejecting request")
-        return Promise.reject(error)
-      }
-
-      // Mark this request as having attempted refresh
-      ;(error.config as any)._retry = true
-
-      console.log("Attempting token refresh due to 401 error")
-      const res = await useAuthStore.getState().refreshToken()
-
-      if (res.ok) {
-        console.log("Token refresh successful, retrying original request")
-        // Retry the original request with new tokens
-        return api(error.config!)
-      } else {
-        console.log("Token refresh failed, clearing authentication")
-        await removeAuthTokens()
-        useAuthStore.getState().setIsAuthenticated(false)
-      }
+      console.log("Received 401 - backend should handle token refresh automatically")
+      // Don't attempt refresh here - let the backend handle it
+      // The backend will return new tokens and the client will use them
     }
     return Promise.reject(error)
   }
 )
 
 // Token utilities have been moved to auth-tokens.ts to avoid circular dependencies
+
+// Debug utility to test API connectivity
+export async function testApiConnectivity(baseURL?: string) {
+  const testUrls = [
+    baseURL || BASE_URL,
+    'http://localhost:5001/api/v1',
+    'http://10.0.2.2:5001/api/v1',
+    'http://127.0.0.1:5001/api/v1'
+  ]
+
+  console.log('🔍 Testing API connectivity to multiple endpoints...')
+
+  for (const url of testUrls) {
+    try {
+      console.log(`📡 Testing: ${url}`)
+      const testApi = axios.create({ baseURL: url, timeout: 5000 })
+      const response = await testApi.get('/')
+      console.log(`✅ ${url} - Status: ${response.status}`)
+      return { success: true, url, status: response.status }
+    } catch (error: any) {
+      console.log(`❌ ${url} - Error: ${error.code || error.message}`)
+    }
+  }
+
+  console.log('💥 All connectivity tests failed')
+  return { success: false, error: 'All endpoints unreachable' }
+}
 
 export type ApiOk<T> = { ok: true; status: number; data: T }
 export type ApiErr = { ok: false; status: number; error: string }
