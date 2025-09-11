@@ -1,4 +1,6 @@
 import { jwtVerify, createRemoteJWKSet } from 'jose';
+import jwksClient from 'jwks-rsa';
+import jwt from 'jsonwebtoken';
 import 'dotenv/config';
 
 // URL of your JWKS endpoint
@@ -13,23 +15,76 @@ if (!ISSUER_URL) {
   throw new Error('SUPABASE_ISSUER_URL environment variable is required');
 }
 
+// Create JWKS client with jwks-rsa (more compatible with Supabase)
+const jwksRsaClient = jwksClient({
+  jwksUri: JWKS_URL,
+  cache: true,
+  cacheMaxEntries: 5,
+  cacheMaxAge: 600000, // 10 minutes
+});
+
+// Fallback using jose library
 const JWKS = createRemoteJWKSet(new URL(JWKS_URL));
 
 export async function verifyProjectJWT(token) {
   try {
-    // Remove console.log for production
-    const data = await jwtVerify(token, JWKS, {
-      issuer: ISSUER_URL,
-      // Remove hardcoded algorithms to allow dynamic algorithm detection
-      // The jose library will automatically detect and verify the algorithm from the JWT header
-    });
-    return data;
+    // First try with jwks-rsa (more compatible with Supabase)
+    try {
+      console.log('Attempting JWT verification with jwks-rsa...');
+      const decoded = await verifyWithJwksRsa(token);
+      console.log('JWT verification successful with jwks-rsa');
+      return decoded;
+    } catch (jwksRsaError) {
+      console.warn('jwks-rsa verification failed, trying jose library:', jwksRsaError.message);
+
+      // Fallback to jose library
+      const data = await jwtVerify(token, JWKS, {
+        issuer: ISSUER_URL,
+        // Allow all algorithms that jose supports
+      });
+      console.log('JWT verification successful with jose library');
+      return data;
+    }
   } catch (err) {
-    console.error('JWT verification failed:', err);
+    console.error('JWT verification failed with both libraries:', err.message);
+    console.error('Error details:', {
+      name: err.name,
+      code: err.code,
+      message: err.message
+    });
     throw err;
   }
 }
 
-// Example usage
-// const token = `eyJhbGciOiJFUzI1NiIsImtpZCI6IjYzNDgyYWViLWFmMmQtNDg2ZC1hNTgxLWY0MDllMmFmY2ZhNCIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3NjbGZ0amRkaG1jbnJ0bmJka2tnLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiIxNzFlZTFhYi1kMGIyLTQ4YmUtODk3MS01Mzc2ZGU4M2QzMTUiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzU3NjE4OTM0LCJpYXQiOjE3NTc2MTUzMzQsImVtYWlsIjoiYWd1cHRhLmVuZ2luZWVyLmVtYWlsQGdtYWlsLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiLCJnb29nbGUiXX0sInVzZXJfbWV0YWRhdGEiOnsiYXZhdGFyX3VybCI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0ozaXNpdFVXSkgxa3NLX0xZeHh2eEFtbmZhS1B3U19HdldOblZFcHRDMWFxYmgwc3M9czk2LWMiLCJkaXNwbGF5X25hbWUiOiJBYmhpc2hlayBHdXB0YSIsImVtYWlsIjoiYWd1cHRhLmVuZ2luZWVyLmVtYWlsQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmdWxsX25hbWUiOiJBYmhpc2hlayBHdXB0dGEiLCJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYW1lIjoiQWJoaXNoZWsgR3VwdHRhIiwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSjNpc2l0VVdKSDFrc0tfTFl4eHZ4QW1uZmFLUHdTX0d2V05uVkVwdEMxYXFiaDBzcz1zOTYtYyIsInByb3ZpZGVyX2lkIjoiMTA3MjYxNjk1NzM5Mzc1NzM2OTY3Iiwic3ViIjoiMTA3MjYxNjk1NzM5Mzc1NzM2OTY3In0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3NTc2MTUzMzR9XSwic2Vzc2lvbl9pZCI6IjM1M2RhZGM5LTNjMjEtNGFiOS05NzcyLWVlMzA3YjJlOTgyMSIsImlzX2Fub255bW91cyI6ZmFsc2V9.WKGtHd8gCIyCfYboHYPy4dw2tvfhQ8oPDPHUOwjyu92Y8hcfxjnEGC5P6JLUX0gzNpuSlr3aZ2_h-KoDvDe2Aw`;
-// verifyProjectJWT(token).then(console.log).catch(console.error);
+async function verifyWithJwksRsa(token) {
+  return new Promise((resolve, reject) => {
+    // Decode token header to get kid
+    const decoded = JSON.parse(Buffer.from(token.split('.')[0], 'base64').toString());
+    console.log('JWT header:', { alg: decoded.alg, kid: decoded.kid });
+
+    // Get the signing key
+    jwksRsaClient.getSigningKey(decoded.kid, (err, key) => {
+      if (err) {
+        console.error('Failed to get signing key:', err);
+        return reject(err);
+      }
+
+      const signingKey = key.getPublicKey();
+      console.log('Retrieved signing key, algorithm:', key.alg || 'unknown');
+
+      // Verify the token
+      jwt.verify(token, signingKey, {
+        issuer: ISSUER_URL,
+        algorithms: ['RS256', 'ES256', 'PS256'] // Common Supabase algorithms
+      }, (verifyErr, decoded) => {
+        if (verifyErr) {
+          console.error('Token verification failed:', verifyErr);
+          return reject(verifyErr);
+        }
+
+        resolve({ payload: decoded });
+      });
+    });
+  });
+}
+
