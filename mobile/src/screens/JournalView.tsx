@@ -130,11 +130,11 @@ export default function JournalView() {
           <View style={{ marginTop: 12 }}>
             <Text style={[styles.subheading, { color: colors.accent }]}>Entities</Text>
             <View style={{ marginLeft: 12 }}>
-              {renderEntityGroup('People', trend.entities.people, colors.accent)}
-              {renderEntityGroup('Organizations', trend.entities.organizations, colors.accent)}
-              {renderEntityGroup('Locations', trend.entities.locations, colors.accent)}
-              {renderEntityGroup('Events', trend.entities.events, colors.accent)}
-              {renderEntityGroup('Products', trend.entities.products, colors.accent)}
+              {renderEntityGroup('People', trend.entities.people, colors.accent, colors)}
+              {renderEntityGroup('Organizations', trend.entities.organizations, colors.accent, colors)}
+              {renderEntityGroup('Locations', trend.entities.locations, colors.accent, colors)}
+              {renderEntityGroup('Events', trend.entities.events, colors.accent, colors)}
+              {renderEntityGroup('Products', trend.entities.products, colors.accent, colors)}
             </View>
           </View>
         )}
@@ -232,15 +232,15 @@ function getIntensityColor(label: string): string {
   return '#6b7280'
 }
 
-function renderEntityGroup(title: string, items: any[], textColor?: string) {
+function renderEntityGroup(title: string, items: any[], textColor?: string, colors?: any) {
   if (!Array.isArray(items) || items.length === 0) return null
   return (
     <View style={{ marginTop: 8 }}>
       <Text style={[styles.subheadingSmall, textColor ? { color: textColor } : null]}>{title}:</Text>
       <View style={styles.badgeWrap}>
         {items.map((entity: any, idx: number) => (
-          <View key={`${title}-${idx}`} style={styles.badge}>
-            <Text style={[styles.badgeText, textColor ? { color: textColor } : null]}>
+          <View key={`${title}-${idx}`} style={[styles.badge, { borderColor: colors?.border, backgroundColor: colors?.mutedBg }]}>
+            <Text style={[styles.badgeText, { color: colors?.text }]}>
               {entity.name} <Text style={{ color: getSentimentColor(entity.sentiment) }}>({entity.sentiment})</Text>
             </Text>
           </View>
