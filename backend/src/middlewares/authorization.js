@@ -20,46 +20,40 @@ export const validateToken = async (req, res, next) => {
     let userId;
     let tokenRefreshed = false;
 
-    // UNIFIED TOKEN VALIDATION - same logic for web and mobile
+    // Try access token first if available
     if (access_token) {
       try {
-        // Try JWT verification first (faster, no network call)
         const { payload } = await verifyProjectJWT(access_token);
         userId = payload.sub;
-        
-        // Optional: Add additional checks here if needed
-        // For example, check if user is still active, not banned, etc.
-        
+        logger.info(`Access token valid for user: ${userId}`);
       } catch (jwtError) {
-        logger.warn("Access token invalid or expired, attempting refresh:", jwtError.message);
-        
-        // Token invalid, try refresh
-        const refreshResult = await refreshTokens(req, res, refresh_token);
-        if (!refreshResult) {
-          throw new AppError("Token refresh failed", 401);
-        }
-        
+        logger.warn(`Access token invalid: ${jwtError.message}`);
+        access_token = null; // Mark as invalid
+      }
+    }
+
+    // If access token failed or doesn't exist, try refresh
+    if (!userId && refresh_token) {
+      logger.info("Attempting token refresh...");
+      const refreshResult = await refreshTokens(req, res, refresh_token);
+      if (refreshResult) {
         userId = refreshResult.userId;
         tokenRefreshed = true;
+        logger.info(`Token refresh successful for user: ${userId}`);
+      } else {
+        logger.error("Token refresh failed");
       }
-    } else if (refresh_token) {
-      // Only refresh token available
-      const refreshResult = await refreshTokens(req, res, refresh_token);
-      if (!refreshResult) {
-        throw new AppError("Token refresh failed", 401);
-      }
-      
-      userId = refreshResult.userId;
-      tokenRefreshed = true;
     }
 
     if (!userId) {
-      throw new AppError("Authentication failed", 401);
+      handleAuthenticationFailure(req, res);
+      throw new AppError("Authentication failed - invalid or expired tokens", 401);
     }
 
     // Get user from MongoDB
     const mongoUser = await User.findOne({ auth_uid: userId });
     if (!mongoUser) {
+      handleAuthenticationFailure(req, res);
       throw new AppError("User not found in application database.", 404);
     }
 
@@ -70,8 +64,9 @@ export const validateToken = async (req, res, next) => {
   } catch (err) {
     logger.error(`Token validation error: ${err.message}`);
     
-    // Handle token clearing for both web and mobile
-    handleAuthenticationFailure(req, res);
+    if (!(err instanceof AppError)) {
+      handleAuthenticationFailure(req, res);
+    }
     
     next(err instanceof AppError ? err : new AppError("Authentication failed", 401));
   }
@@ -84,19 +79,32 @@ const refreshTokens = async (req, res, refresh_token) => {
   }
 
   try {
-    logger.info("Attempting token refresh...");
+    logger.info("Calling Supabase refresh session...");
+    
+    // Make sure the refresh token is clean (no Bearer prefix)
+    const cleanRefreshToken = refresh_token.replace('Bearer ', '');
     
     const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession({ 
-      refresh_token 
+      refresh_token: cleanRefreshToken 
     });
 
-    if (refreshError || !refreshData.session) {
-      logger.error(`Token refresh failed: ${refreshError?.message || 'No session returned'}`);
+    if (refreshError) {
+      logger.error(`Supabase refresh error: ${refreshError.message}`);
+      return null;
+    }
+
+    if (!refreshData?.session) {
+      logger.error("No session returned from Supabase refresh");
       return null;
     }
 
     const { session, user } = refreshData;
     
+    if (!session.access_token || !session.refresh_token) {
+      logger.error("Invalid session tokens returned from Supabase");
+      return null;
+    }
+
     // Handle token storage based on client type
     handleTokenStorage(req, res, session);
 
@@ -104,7 +112,7 @@ const refreshTokens = async (req, res, refresh_token) => {
     return { userId: user.id, session };
     
   } catch (err) {
-    logger.error(`Error refreshing token: ${err.message}`);
+    logger.error(`Unexpected error during token refresh: ${err.message}`);
     return null;
   }
 };
@@ -167,6 +175,7 @@ const isMobileRequest = (req) => {
     'okhttp',
     'CFNetwork', // iOS
     'Mobile', // Generic mobile
+    'AI-Journaling' // Your custom user agent
   ];
   
   const isMobileUserAgent = mobileIndicators.some(indicator => 
