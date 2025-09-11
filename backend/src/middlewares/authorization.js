@@ -7,8 +7,8 @@ import { verifyProjectJWT } from '../util/verifyJWT.js';
 
 export const validateToken = async (req, res, next) => {
   try {
-    let access_token = req.cookies.access_token || req.headers["authorization"]?.split(" ")[1];
-    let refresh_token = req.cookies.refresh_token || req.headers["refresh"]?.split(" ")[1];
+    let access_token = !isMobileRequest(req) ? req.cookies.access_token : req.headers["authorization"]?.split(" ")[1];
+    let refresh_token = !isMobileRequest(req) ? req.cookies.refresh_token : req.headers["refresh"]?.split(" ")[1];
 
     logger.info(`Token validation - Access token: ${!!access_token}, Refresh token: ${!!refresh_token}`);
 
@@ -20,8 +20,8 @@ export const validateToken = async (req, res, next) => {
     let userId;
     let tokenRefreshed = false;
 
-    logger.info(`Incoming cookies: ${JSON.stringify(req.cookies)}`);
-    logger.info(`Incoming headers: ${JSON.stringify(req.headers)}`);
+    // logger.info(`Incoming cookies: ${JSON.stringify(req.cookies)}`);
+    // logger.info(`Incoming headers: ${JSON.stringify(req.headers)}`);
 
     // Try access token first if available
     if (access_token) {
