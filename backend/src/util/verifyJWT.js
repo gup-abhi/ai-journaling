@@ -9,7 +9,10 @@ const PROJECT_JWKS = createRemoteJWKSet(
  * Verifies the provided JWT against the project's JSON Web Key Set.
  */
 export async function verifyProjectJWT(token) {
-  const data = await jwtVerify(token, PROJECT_JWKS)
+  const data = await jwtVerify(token, PROJECT_JWKS, {
+    issuer: process.env.SUPABASE_ISSUER_URL,
+    audience: "authenticated"
+  })
   return data;
 }
 
