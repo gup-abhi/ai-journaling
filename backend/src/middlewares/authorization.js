@@ -75,7 +75,7 @@ const getNewToken = async (req, res, refresh_token) => {
       if (!isMobileRequest(req)) {
         clearCookies(res);
       }
-      throw new AppError("Invalid or expired token", 401);
+      throw new AppError("No refresh token provided", 401);
     }
     
     if (isMobileRequest(req)) {
@@ -96,7 +96,7 @@ const getNewToken = async (req, res, refresh_token) => {
     if (!isMobileRequest(req)) {
       clearCookies(res);
     }
-    throw new AppError("Error refreshing token", 500);
+    throw new AppError("Error refreshing token", 401);
   }
 };
 
