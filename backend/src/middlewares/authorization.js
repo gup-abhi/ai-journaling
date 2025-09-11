@@ -85,10 +85,10 @@ const getNewToken = async (req, res, refresh_token) => {
       res.setHeader('X-New-Refresh-Token', refreshData.session.refresh_token);
       return { user: refreshData.user };
     } else {
-    // For web requests, set cookies as usual
-    res.cookie("access_token", refreshData.session.access_token, cookieOptions(60 * 60 * 1000));
-    res.cookie("refresh_token", refreshData.session.refresh_token, cookieOptions(7 * 24 * 60 * 60 * 1000));
-    return { user: refreshData.user };
+      // For web requests, set cookies as usual
+      res.cookie("access_token", refreshData.session.access_token, cookieOptions(60 * 60 * 1000));
+      res.cookie("refresh_token", refreshData.session.refresh_token, cookieOptions(7 * 24 * 60 * 60 * 1000));
+      return { user: refreshData.user };
     }
   } catch (err) {
     logger.error(`Error refreshing token: ${err}`);

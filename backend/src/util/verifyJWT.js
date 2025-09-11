@@ -9,9 +9,7 @@ const PROJECT_JWKS = createRemoteJWKSet(
  * Verifies the provided JWT against the project's JSON Web Key Set.
  */
 export async function verifyProjectJWT(token) {
-  const data = await jwtVerify(token, PROJECT_JWKS, {
-    algorithms: ['RS256', 'ES256'], // include your token algorithm
-  })
+  const data = await jwtVerify(token, PROJECT_JWKS)
   return data;
 }
 
