@@ -1,18 +1,70 @@
-import React, { useEffect } from 'react'
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native'
+import React, { useEffect, useCallback, useRef } from 'react'
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useThemeColors } from '../theme/colors'
 import { useJournalStore } from '../stores/journal.store'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useFocusEffect } from '@react-navigation/native'
 
 export default function Journals() {
-  const { journalEntries, fetchJournalEntries } = useJournalStore()
+  const {
+    journalEntries,
+    pagination,
+    isLoading,
+    isLoadingMore,
+    isRetrying,
+    error,
+    retryFetch,
+    clearError,
+    fetchPaginatedJournalEntries,
+    loadMoreJournalEntries
+  } = useJournalStore()
   const nav = useNavigation<any>()
   const colors = useThemeColors()
+  const flatListRef = useRef<FlatList>(null)
+
+  const hasFetchedRef = useRef(false)
+
   useEffect(() => {
-    console.log('Journals screen: Fetching journal entries...')
-    fetchJournalEntries()
-  }, [])
+    // Only fetch if we haven't fetched before or if the screen is coming back into focus
+    if (!hasFetchedRef.current) {
+      console.log('Journals screen: Initial fetch of paginated journal entries...')
+      hasFetchedRef.current = true
+      fetchPaginatedJournalEntries(1, 10)
+    }
+  }, []) // Empty dependency array to prevent infinite re-renders
+
+  // Handle screen focus (when user navigates back to this screen)
+  useFocusEffect(
+    useCallback(() => {
+      console.log('Journals screen: Screen focused')
+
+      // Scroll to top when screen comes into focus
+      const timer = setTimeout(() => {
+        if (flatListRef.current) {
+          flatListRef.current.scrollToOffset({ offset: 0, animated: false })
+        }
+      }, 100)
+
+      return () => clearTimeout(timer)
+    }, [])
+  )
+
+  const handleLoadMore = useCallback(() => {
+    if (pagination?.hasNextPage && !isLoadingMore) {
+      console.log('Journals screen: Loading more entries...')
+      loadMoreJournalEntries()
+    }
+  }, [pagination, isLoadingMore, loadMoreJournalEntries])
+
+  const renderFooter = () => {
+    if (!isLoadingMore) return null
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={colors.accent} />
+        <Text style={[styles.footerText, { color: colors.muted }]}>Loading more...</Text>
+      </View>
+    )
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -32,25 +84,78 @@ export default function Journals() {
         <Text style={[styles.subHeading, { color: colors.muted }]}>Reflect on your thoughts and track your progress</Text>
       </View>
 
-      <FlatList
-        style={styles.flatList}
-        data={journalEntries}
-        keyExtractor={(item) => item._id}
-        showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <View style={[styles.card, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
-            <TouchableOpacity 
-              onPress={() => nav.navigate('JournalView', { id: item._id })}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              style={[styles.viewBtnAbsolute, { borderColor: colors.accent, backgroundColor: colors.accentBg, paddingVertical: 4, paddingHorizontal: 8, zIndex: 10, elevation: 2 }]}
-            > 
-              <Feather name="eye" size={14} color={colors.accentText} />
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.accent} />
+          <Text style={[styles.loadingText, { color: colors.muted }]}>Loading journals...</Text>
+        </View>
+      ) : error ? (
+        <View style={styles.errorContainer}>
+          <Text style={[styles.errorText, { color: colors.error || '#ff6b6b' }]}>
+            {error}
+          </Text>
+          <View style={styles.errorButtons}>
+            <TouchableOpacity
+              style={[
+                styles.retryButton,
+                {
+                  backgroundColor: isRetrying ? colors.muted : colors.accent,
+                  opacity: isRetrying ? 0.6 : 1
+                }
+              ]}
+              onPress={retryFetch}
+              disabled={isRetrying}
+            >
+              {isRetrying ? (
+                <ActivityIndicator size="small" color={colors.accentText || '#fff'} />
+              ) : (
+                <Text style={[styles.retryButtonText, { color: colors.accentText || '#fff' }]}>
+                  Retry
+                </Text>
+              )}
             </TouchableOpacity>
-            <Text style={[styles.date, { color: colors.muted }]}>{new Date(item.entry_date).toDateString()}</Text>
-            <Text numberOfLines={4} style={{ color: colors.text }}>{item.content}</Text>
+            <TouchableOpacity
+              style={[styles.clearButton, { borderColor: colors.muted }]}
+              onPress={clearError}
+              disabled={isRetrying}
+            >
+              <Text style={[styles.clearButtonText, { color: colors.muted }]}>
+                Dismiss
+              </Text>
+            </TouchableOpacity>
           </View>
-        )}
-      />
+        </View>
+      ) : journalEntries.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={[styles.emptyText, { color: colors.muted }]}>
+            No journal entries yet. Start by creating your first entry!
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          ref={flatListRef}
+          style={styles.flatList}
+          data={journalEntries}
+          keyExtractor={(item) => item._id}
+          showsVerticalScrollIndicator={false}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={renderFooter}
+          renderItem={({ item }) => (
+            <View style={[styles.card, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+              <TouchableOpacity
+                onPress={() => nav.navigate('JournalView', { id: item._id })}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                style={[styles.viewBtnAbsolute, { borderColor: colors.accent, backgroundColor: colors.accentBg, paddingVertical: 4, paddingHorizontal: 8, zIndex: 10, elevation: 2 }]}
+              >
+                <Feather name="eye" size={14} color={colors.accentText} />
+              </TouchableOpacity>
+              <Text style={[styles.date, { color: colors.muted }]}>{new Date(item.entry_date).toDateString()}</Text>
+              <Text numberOfLines={4} style={{ color: colors.text }}>{item.content}</Text>
+            </View>
+          )}
+        />
+      )}
     </View>
   )
 }
@@ -111,14 +216,80 @@ const styles = StyleSheet.create({
     fontWeight: '600', 
     marginBottom: 4 
   },
-  viewBtnAbsolute: { 
-    position: 'absolute', 
-    top: 8, 
-    right: 8, 
-    paddingVertical: 6, 
-    paddingHorizontal: 10, 
-    borderRadius: 8, 
-    borderWidth: 1 
+  viewBtnAbsolute: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  emptyText: {
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  footerLoader: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  footerText: {
+    marginTop: 8,
+    fontSize: 14,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 24,
+  },
+  errorButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  retryButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  retryButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  clearButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    borderWidth: 1,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  clearButtonText: {
+    fontSize: 14,
   },
 })
 

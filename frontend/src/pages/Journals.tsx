@@ -1,44 +1,24 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { api, safeRequest } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Calendar, FileText, Eye } from 'lucide-react'
+import { Calendar, FileText, Eye, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Loader } from '@/components/Loader'
-
-type JournalEntry = {
-  _id: string
-  content: string
-  entry_date: string
-  word_count: number
-}
+import { useJournalStore } from '@/stores/journal.store'
 
 export function Journals() {
   const navigate = useNavigate()
-  const [entries, setEntries] = useState<JournalEntry[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const { journalEntries, pagination, isLoading, fetchPaginatedJournalEntries } = useJournalStore()
 
   useEffect(() => {
-    let mounted = true
-    const fetchEntries = async () => {
-      setIsLoading(true)
-      const res = await safeRequest(api.get<{ entries: JournalEntry[] }>('/journal'))
-      if (!mounted) return
-      if (!res.ok) {
-        setError(res.error)
-        setIsLoading(false)
-        return
-      }
-      setEntries(res.data.entries || [])
-      setIsLoading(false)
-    }
-    fetchEntries()
-    return () => {
-      mounted = false
-    }
-  }, [])
+    fetchPaginatedJournalEntries(currentPage, 9) // 9 entries per page for 3x3 grid
+  }, [currentPage, fetchPaginatedJournalEntries])
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
@@ -56,16 +36,13 @@ export function Journals() {
         {isLoading && (
           <Loader />
         )}
-        {error && (
-          <div className="text-sm text-destructive">{error}</div>
-        )}
 
-        {!isLoading && !error && entries.length === 0 && (
+        {!isLoading && journalEntries.length === 0 && (
           <div className="text-sm text-muted-foreground">No journal entries yet. Start by creating your first entry!</div>
         )}
 
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {entries.map((entry) => {
+          {journalEntries.map((entry) => {
             const dateStr = new Date(entry.entry_date).toLocaleString()
             const preview = entry.content.length > 160 ? entry.content.slice(0, 160) + '…' : entry.content
             return (
@@ -100,6 +77,40 @@ export function Journals() {
             )
           })}
         </div>
+
+        {/* Pagination Controls */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="mt-8 flex items-center justify-center gap-4">
+            <Button
+              variant="outline"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={!pagination.hasPrevPage || isLoading}
+              className="flex items-center gap-2"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </Button>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                Page {pagination.currentPage} of {pagination.totalPages}
+              </span>
+              <span className="text-sm text-muted-foreground">
+                ({pagination.totalEntries} total entries)
+              </span>
+            </div>
+
+            <Button
+              variant="outline"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={!pagination.hasNextPage || isLoading}
+              className="flex items-center gap-2"
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )

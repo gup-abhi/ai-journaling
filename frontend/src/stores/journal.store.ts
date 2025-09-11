@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { api, safeRequest } from '@/lib/api'
-import type { JournalEntry } from '@/types/JournalEntry.type'
+import type { JournalEntry, PaginationMeta, PaginatedJournalResponse } from '@/types/JournalEntry.type'
 import toast from 'react-hot-toast'
 import type { JournalTemplate } from '@/types/JournalTemplate.type'
 
@@ -9,25 +9,55 @@ interface JournalStore {
   totalEntries: number;
   monthlyEntries: number;
   journalTemplates: JournalTemplate[];
-  fetchJournalEntries: () => Promise<void>;
+  pagination: PaginationMeta | null;
+  isLoading: boolean;
+  fetchJournalEntries: (page?: number, limit?: number) => Promise<void>;
+  fetchPaginatedJournalEntries: (page?: number, limit?: number) => Promise<void>;
   fetchTotalEntries: () => Promise<void>;
   fetchMonthlyEntries: () => Promise<void>;
   fetchJournalTemplates: () => Promise<void>;
   addJournalEntry: (newEntry: { content: string, template_id: string | null }) => Promise<JournalEntry | null>;
 }
 
-export const useJournalStore = create<JournalStore>((set) => ({
+export const useJournalStore = create<JournalStore>((set, get) => ({
   journalEntries: [],
   totalEntries: 0,
   monthlyEntries: 0,
   journalTemplates: [],
+  pagination: null,
+  isLoading: false,
 
-  fetchJournalEntries: async () => {
-    const response = await safeRequest(api.get<{ entries: JournalEntry[] }>('/journal'))
+  fetchJournalEntries: async (page = 1, limit = 10) => {
+    set({ isLoading: true })
+    const response = await safeRequest(api.get<{ entries: JournalEntry[] }>(`/journal?page=${page}&limit=${limit}`))
     if (response.ok) {
-      set({ journalEntries: response.data.entries })
+      set({
+        journalEntries: response.data.entries,
+        isLoading: false
+      })
     } else {
-        set({ journalEntries: [] })
+      set({
+        journalEntries: [],
+        isLoading: false
+      })
+    }
+  },
+
+  fetchPaginatedJournalEntries: async (page = 1, limit = 10) => {
+    set({ isLoading: true })
+    const response = await safeRequest(api.get<PaginatedJournalResponse>(`/journal/paginated?page=${page}&limit=${limit}`))
+    if (response.ok) {
+      set({
+        journalEntries: response.data.entries,
+        pagination: response.data.pagination,
+        isLoading: false
+      })
+    } else {
+      set({
+        journalEntries: [],
+        pagination: null,
+        isLoading: false
+      })
     }
   },
 

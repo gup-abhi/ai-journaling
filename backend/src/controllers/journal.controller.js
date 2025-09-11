@@ -47,10 +47,37 @@ export const createJournalEntry = async (req, res) => {
 
 export const getJournalEntries = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination metadata
+    const totalEntries = await JournalEntry.countDocuments({
+      user_id: req.user._id,
+    });
+
     const entries = await JournalEntry.find({
       user_id: req.user._id,
-    }).sort({ entry_date: -1 });
-    return res.status(200).json({ entries });
+    })
+    .sort({ entry_date: -1 })
+    .skip(skip)
+    .limit(limit);
+
+    const totalPages = Math.ceil(totalEntries / limit);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+
+    return res.status(200).json({
+      entries,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalEntries,
+        hasNextPage,
+        hasPrevPage,
+        limit
+      }
+    });
   } catch (error) {
     logger.error(error);
     throw new AppError("Internal Server Error", 500);
@@ -81,6 +108,45 @@ export const getTotalJournalEntries = async (req, res) => {
     });
     // logger.info(`Total journal entries: ${totalEntries}`);
     return res.status(200).json({ totalEntries });
+  } catch (error) {
+    logger.error(error);
+    throw new AppError("Internal Server Error", 500);
+  }
+};
+
+export const getPaginatedJournalEntries = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination metadata
+    const totalEntries = await JournalEntry.countDocuments({
+      user_id: req.user._id,
+    });
+
+    const entries = await JournalEntry.find({
+      user_id: req.user._id,
+    })
+    .sort({ entry_date: -1 })
+    .skip(skip)
+    .limit(limit);
+
+    const totalPages = Math.ceil(totalEntries / limit);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+
+    return res.status(200).json({
+      entries,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalEntries,
+        hasNextPage,
+        hasPrevPage,
+        limit
+      }
+    });
   } catch (error) {
     logger.error(error);
     throw new AppError("Internal Server Error", 500);
