@@ -26,8 +26,10 @@ app.use(cookieParser());
 app.use(cors({
     origin: "*",
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Refresh"], // Ensure Authorization allowed
-    credentials: true
+    allowedHeaders: ["Content-Type", "Authorization", "Refresh"], 
+    credentials: true,
+    // ADD THIS LINE - expose headers for mobile token refresh
+    exposedHeaders: ["X-New-Access-Token", "X-New-Refresh-Token", "X-Token-Expires-At", "X-Clear-Tokens"]
 }));
 
 // Serve static files from the React app
