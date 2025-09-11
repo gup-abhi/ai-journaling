@@ -29,7 +29,7 @@ app.use(cors({
     allowedHeaders: ["Content-Type", "Authorization", "Refresh"], 
     credentials: true,
     // ADD THIS LINE - expose headers for mobile token refresh
-    exposedHeaders: ["X-New-Access-Token", "X-New-Refresh-Token", "X-Token-Expires-At", "X-Clear-Tokens"]
+    exposedHeaders: "*"
 }));
 
 // Serve static files from the React app
