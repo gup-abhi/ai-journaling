@@ -2,6 +2,9 @@ import axios, { type AxiosError, type AxiosResponse } from 'axios'
 import { ENV } from '../config/env'
 import { getAuthTokens, removeAuthTokens } from './auth-tokens'
 import { useAuthStore } from '../stores/auth.store'
+import { useNavigation } from '@react-navigation/native'
+import { NativeStackNavigationProp } from '@react-navigation/native-stack'
+import { RootStackParamList } from '../navigation'
 
 // Match web base path; Expo needs absolute for device/simulator. Adjust via env if needed.
 const BASE_URL = ENV.API_BASE
@@ -31,6 +34,9 @@ api.interceptors.request.use(async (config) => {
     config.headers['Refresh'] = `Bearer ${refresh_token}`
   }
 
+  // Add custom User-Agent
+  config.headers['User-Agent'] = `AI-Journaling/1.0.0 (Mobile; Expo)`
+
   return config
 })
 
@@ -54,42 +60,12 @@ api.interceptors.response.use(
   },
   async (error: AxiosError) => {
     if (error.response?.status === 401) {
-      console.log("Received 401 - backend should handle token refresh automatically")
-      // Don't attempt refresh here - let the backend handle it
-      // The backend will return new tokens and the client will use them
+      console.log(`Received 401 - ${JSON.stringify(error.response.data)}`)
     }
     return Promise.reject(error)
   }
 )
 
-// Token utilities have been moved to auth-tokens.ts to avoid circular dependencies
-
-// Debug utility to test API connectivity
-export async function testApiConnectivity(baseURL?: string) {
-  const testUrls = [
-    baseURL || BASE_URL,
-    'http://localhost:5001/api/v1',
-    'http://10.0.2.2:5001/api/v1',
-    'http://127.0.0.1:5001/api/v1'
-  ]
-
-  console.log('🔍 Testing API connectivity to multiple endpoints...')
-
-  for (const url of testUrls) {
-    try {
-      console.log(`📡 Testing: ${url}`)
-      const testApi = axios.create({ baseURL: url, timeout: 5000 })
-      const response = await testApi.get('/')
-      console.log(`✅ ${url} - Status: ${response.status}`)
-      return { success: true, url, status: response.status }
-    } catch (error: any) {
-      console.log(`❌ ${url} - Error: ${error.code || error.message}`)
-    }
-  }
-
-  console.log('💥 All connectivity tests failed')
-  return { success: false, error: 'All endpoints unreachable' }
-}
 
 export type ApiOk<T> = { ok: true; status: number; data: T }
 export type ApiErr = { ok: false; status: number; error: string }

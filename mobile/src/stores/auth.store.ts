@@ -21,7 +21,6 @@ type AuthState = {
   signUp: (payload: { email: string; password: string; display_name: string }) => Promise<{ ok: boolean; message?: string }>
   signIn: (payload: { email: string; password: string }) => Promise<{ ok: boolean }>
   signInWithGoogle: () => Promise<{ ok: boolean }>
-  refreshToken: () => Promise<{ ok: boolean }>
   handleGoogleOAuthTokens: (accessToken: string, refreshToken?: string) => Promise<{ ok: boolean }>
   signOut: () => Promise<void>
   restore: () => void
@@ -171,26 +170,6 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (error) {
       console.error('Get user error:', error)
       set({ user: null })
-    }
-  },
-
-  refreshToken: async () => {
-    try {
-      console.log('Starting token refresh...')
-      const res = await safeRequest(api.get('/auth/token-refresh-mobile', { withCredentials: true }))
-
-      if (res.ok) {
-        const { access_token, refresh_token } = res.data
-        console.log('Token refresh successful, storing new tokens')
-        await setAuthTokens(access_token, refresh_token)
-        return { ok: true }
-      } else {
-        console.error('Token refresh failed:', (res as ApiErr).error, 'Status:', (res as ApiErr).status)
-        return { ok: false }
-      }
-    } catch (error) {
-      console.error('Refresh token error:', error)
-      return { ok: false }
     }
   }
 }))
