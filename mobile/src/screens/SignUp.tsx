@@ -4,6 +4,7 @@ import { useAuthStore } from '../stores/auth.store'
 import { useNavigation } from '@react-navigation/native'
 import { useThemeColors } from '../theme/colors'
 import { Feather } from '@expo/vector-icons'
+import Logo from '../components/Logo'
 
 export default function SignUp() {
   const { signUp, isLoading, error } = useAuthStore()
@@ -59,8 +60,8 @@ export default function SignUp() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <View style={[styles.logoContainer, { backgroundColor: colors.accent }]}>
-            <Feather name="user-plus" size={32} color={colors.background} />
+          <View style={styles.logoContainer}>
+            <Logo />
           </View>
           <Text style={[styles.title, { color: colors.text }]}>Create Account</Text>
           <Text style={[styles.subtitle, { color: colors.muted }]}>
@@ -220,7 +221,6 @@ const styles = StyleSheet.create({
   logoContainer: {
     width: 80,
     height: 80,
-    borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,

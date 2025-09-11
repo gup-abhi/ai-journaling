@@ -4,6 +4,7 @@ import { useAuthStore } from '../stores/auth.store'
 import { useNavigation } from '@react-navigation/native'
 import { useThemeColors } from '../theme/colors'
 import { Feather } from '@expo/vector-icons'
+import Logo from '../components/Logo'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '../navigation'
 
@@ -43,8 +44,8 @@ export default function SignIn() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <View style={[styles.logoContainer, { backgroundColor: colors.accent }]}>
-            <Feather name="book-open" size={32} color={colors.background} />
+          <View style={styles.logoContainer}>
+            <Logo />
           </View>
           <Text style={[styles.title, { color: colors.text }]}>Welcome Back</Text>
           <Text style={[styles.subtitle, { color: colors.muted }]}>
@@ -167,13 +168,12 @@ const styles = StyleSheet.create({
   logoContainer: {
     width: 80,
     height: 80,
-    borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
   },
   title: {
-    fontSize: 32,
+    fontSize: 26,
     fontWeight: '800',
     marginBottom: 8,
     textAlign: 'center',

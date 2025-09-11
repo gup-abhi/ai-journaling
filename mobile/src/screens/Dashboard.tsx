@@ -8,6 +8,28 @@ import { useGoalStore } from '../stores/goal.store'
 import { useStreakStore } from '../stores/streak.store'
 import { useAuthStore } from '../stores/auth.store'
 import { useThemeColors } from '../theme/colors'
+import Logo from '../components/Logo'
+
+// Helper function to get first name from user data
+const getFirstName = (user: any): string => {
+  // Try display_name or full_name first
+  const name = user.display_name || user.full_name || user.email || '';
+
+  if (!name) return '';
+
+  // If it's an email, take everything before @
+  if (name.includes('@')) {
+    return name.split('@')[0];
+  }
+
+  // If it's a full name with spaces, take the first part
+  if (name.includes(' ')) {
+    return name.split(' ')[0];
+  }
+
+  // If it's a single word, use it as is
+  return name;
+};
 
 export default function Dashboard() {
   const { fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, totalEntries, monthlyEntries, journalEntries } = useJournalStore()
@@ -88,9 +110,19 @@ export default function Dashboard() {
     >
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}>
-            {`Welcome back${user ? `, ${user.display_name || user.full_name || user.email}` : ''}`}
-          </Text>
+          <View style={styles.headerLeft}>
+            <Logo width={32} height={32} />
+            <View style={styles.welcomeText}>
+              <Text style={[styles.title, { color: colors.text }]}>
+                Welcome back
+              </Text>
+              {user && (
+                <Text style={[styles.title, { color: colors.accent }]}>
+                  {`, ${getFirstName(user)}`}
+                </Text>
+              )}
+            </View>
+          </View>
           <TouchableOpacity
             style={[styles.logoutButton, { backgroundColor: colors.cardBg, borderColor: colors.border }]}
             onPress={handleLogout}
@@ -177,7 +209,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 12,
   },
-  title: { fontSize: 24, fontWeight: '800', flex: 1 },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  welcomeText: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 12,
+    flexWrap: 'wrap',
+  },
+  title: { fontSize: 20, fontWeight: '800' },
   logoutButton: {
     padding: 8,
     borderRadius: 8,
