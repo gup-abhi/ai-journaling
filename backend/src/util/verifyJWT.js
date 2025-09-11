@@ -11,10 +11,7 @@ const PROJECT_JWKS = createRemoteJWKSet(
  */
 export async function verifyProjectJWT(token) {
   try {
-    const data = await jwtVerify(token, PROJECT_JWKS, {
-      issuer: process.env.SUPABASE_ISSUER_URL,
-      audience: "authenticated"
-    });
+    const data = await jwtVerify(token, PROJECT_JWKS);
 
     // console.log(data)
 
