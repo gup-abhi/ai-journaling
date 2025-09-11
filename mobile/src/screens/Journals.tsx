@@ -26,7 +26,12 @@ export default function Journals() {
         <Text style={[styles.title, { color: colors.text }]}>Journals</Text>
         <View style={styles.placeholder} />
       </View>
-      
+
+      <View style={styles.headingContainer}>
+        <Text style={[styles.mainHeading, { color: colors.text }]}>Your Journal Entries</Text>
+        <Text style={[styles.subHeading, { color: colors.muted }]}>Reflect on your thoughts and track your progress</Text>
+      </View>
+
       <FlatList
         style={styles.flatList}
         data={journalEntries}
@@ -73,6 +78,22 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     width: 40,
+  },
+  headingContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  mainHeading: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  subHeading: {
+    fontSize: 14,
+    textAlign: 'center',
+    opacity: 0.8,
   },
   flatList: {
     flex: 1,

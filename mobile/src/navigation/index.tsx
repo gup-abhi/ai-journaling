@@ -18,6 +18,7 @@ import UpdateGoal from '../screens/UpdateGoal';
 import Trends from '../screens/Trends';
 import JournalTemplates from '../screens/JournalTemplates';
 import GoogleOAuth from '../screens/GoogleOAuth';
+import { navigationRef } from '../lib/navigation-service';
 
 export type RootStackParamList = {
   SignIn: undefined;
@@ -82,7 +83,7 @@ export default function AppNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator id={undefined} screenOptions={{ headerShown: false }}>
         {isAuthenticated ? (
           <>

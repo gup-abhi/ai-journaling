@@ -2,9 +2,7 @@ import axios, { type AxiosError, type AxiosResponse } from 'axios'
 import { ENV } from '../config/env'
 import { getAuthTokens, removeAuthTokens } from './auth-tokens'
 import { useAuthStore } from '../stores/auth.store'
-import { useNavigation } from '@react-navigation/native'
-import { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import { RootStackParamList } from '../navigation'
+import { resetToSignIn } from './navigation-service'
 
 // Match web base path; Expo needs absolute for device/simulator. Adjust via env if needed.
 const BASE_URL = ENV.API_BASE
@@ -61,6 +59,17 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     if (error.response?.status === 401) {
       console.log(`Received 401 - ${JSON.stringify(error.response.data)}`)
+
+      // Clear authentication tokens
+      await removeAuthTokens()
+
+      // Reset auth store state
+      const authStore = useAuthStore.getState()
+      authStore.setIsAuthenticated(false)
+      authStore.setIsLoading(false)
+
+      // Navigate to sign-in screen
+      resetToSignIn()
     }
     return Promise.reject(error)
   }
