@@ -1,21 +1,18 @@
 import { jwtVerify, createRemoteJWKSet } from 'jose';
 import 'dotenv/config';
 
-// Use your Supabase JWKS URL
-const PROJECT_JWKS = createRemoteJWKSet(
-  new URL(process.env.SUPABASE_PROJECT_JWKS)
-);
+// URL of your JWKS endpoint
+const JWKS = createRemoteJWKSet(new URL(process.env.SUPABASE_PROJECT_JWKS));
 
-/**
- * Verifies the provided JWT against the project's JSON Web Key Set.
- */
 export async function verifyProjectJWT(token) {
   try {
-    const data = await jwtVerify(token, PROJECT_JWKS);
-
+    const data = await jwtVerify(token, JWKS, {
+      issuer: process.env.SUPABASE_ISSUER_URL, // replace with your issuer
+      algorithms: ['ES256'], // must match the JWT alg
+    });
     return data;
   } catch (err) {
-    console.error("JWT verification failed:", err);
+    console.error('JWT verification failed:', err);
     throw err;
   }
 }
