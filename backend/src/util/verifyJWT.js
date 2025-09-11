@@ -13,8 +13,7 @@ export async function verifyProjectJWT(token) {
   try {
     const data = await jwtVerify(token, PROJECT_JWKS, {
       issuer: process.env.SUPABASE_ISSUER_URL,
-      audience: "authenticated",
-      algorithms: ["ES256"], // explicitly allow ES256
+      audience: "authenticated"
     });
 
     // console.log(data)
