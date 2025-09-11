@@ -7,8 +7,8 @@ const JWKS = createRemoteJWKSet(new URL(process.env.SUPABASE_PROJECT_JWKS));
 export async function verifyProjectJWT(token) {
   try {
     const data = await jwtVerify(token, JWKS, {
-      issuer: process.env.SUPABASE_ISSUER_URL, // replace with your issuer
-      algorithms: ['ES256'], // must match the JWT alg
+      // issuer: process.env.SUPABASE_ISSUER_URL, // replace with your issuer
+      // algorithms: ['ES256'], // must match the JWT alg
     });
     return data;
   } catch (err) {
