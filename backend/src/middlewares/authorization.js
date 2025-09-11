@@ -20,6 +20,9 @@ export const validateToken = async (req, res, next) => {
     let userId;
     let tokenRefreshed = false;
 
+    logger.info(`Incoming cookies: ${JSON.stringify(req.cookies)}`);
+    logger.info(`Incoming headers: ${JSON.stringify(req.headers)}`);
+
     // Try access token first if available
     if (access_token) {
       try {
