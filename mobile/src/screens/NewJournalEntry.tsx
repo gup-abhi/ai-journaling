@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react'
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
-  ScrollView, 
-  Alert 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView
 } from 'react-native'
+import Toast from 'react-native-simple-toast'
 import { useJournalStore } from '../stores/journal.store'
 import { useNavigation } from '@react-navigation/native'
 import { useThemeColors } from '../theme/colors'
@@ -90,7 +90,7 @@ export default function NewJournalEntry() {
 
     // If no template, content is required
     if (!selectedTemplate && !finalContent.trim()) {
-      Alert.alert('Error', 'Please write your journal entry content.')
+      Toast.show('Please write your journal entry content.', Toast.LONG)
       return
     }
 
@@ -100,11 +100,13 @@ export default function NewJournalEntry() {
     })
 
     if (entry) {
+      Toast.show('Journal entry saved successfully!', Toast.LONG)
       setSelectedTemplate(null)
       setPromptResponses({})
+      setContent('')
       navigation.goBack()
     } else {
-      Alert.alert('Error', 'Failed to save journal entry. Please try again.')
+      Toast.show('Failed to save journal entry. Please try again.', Toast.LONG)
     }
   }
 

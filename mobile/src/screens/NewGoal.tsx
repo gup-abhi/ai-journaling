@@ -6,9 +6,9 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator
 } from 'react-native'
+import Toast from 'react-native-simple-toast'
 import { Feather } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { useThemeColors } from '../theme/colors'
@@ -32,12 +32,12 @@ export default function NewGoal() {
 
   const handleSubmit = async () => {
     if (!goalName.trim()) {
-      Alert.alert('Error', 'Goal name is required')
+      Toast.show('Goal name is required', Toast.LONG)
       return
     }
 
     if (!progress) {
-      Alert.alert('Error', 'Please select a progress status')
+      Toast.show('Please select a progress status', Toast.LONG)
       return
     }
 
@@ -47,9 +47,10 @@ export default function NewGoal() {
         progress,
         description: description.trim() || undefined
       })
+      Toast.show('Goal created successfully!', Toast.LONG)
       nav.goBack()
     } catch (error) {
-      Alert.alert('Error', 'Failed to create goal. Please try again.')
+      Toast.show('Failed to create goal. Please try again.', Toast.LONG)
     }
   }
 

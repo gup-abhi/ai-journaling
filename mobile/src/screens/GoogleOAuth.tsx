@@ -4,11 +4,11 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
-  Alert,
   TouchableOpacity,
   SafeAreaView,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
+import Toast from 'react-native-simple-toast';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../stores/auth.store';
@@ -66,35 +66,33 @@ export default function GoogleOAuth({ forceAccountSelection = true }: GoogleOAut
     } catch (err: any) {
       console.error('Auth success error:', err);
       setError(err.message || 'Authentication failed');
-      Alert.alert('Error', err.message || 'Authentication failed', [
-        { text: 'OK', onPress: () => {
-          // Navigate back to SignIn screen
-          navigation.navigate('SignIn' as never);
-        }}
-      ]);
+      Toast.show(err.message || 'Authentication failed', Toast.LONG);
+      // Navigate back to SignIn screen after showing toast
+      setTimeout(() => {
+        navigation.navigate('SignIn' as never);
+      }, 2000);
     }
   };
 
   const handleOAuthCallback = async (url: string) => {
     try {
       // console.log('Handling OAuth callback for URL:', url);
-      
+
       // Check for error in URL parameters
       if (url.includes('error=')) {
         const urlParams = new URLSearchParams(url.split('?')[1] || '');
         const error = urlParams.get('error');
         throw new Error(error ? decodeURIComponent(error) : 'OAuth error occurred');
       }
-      
+
     } catch (err: any) {
       console.error('OAuth callback error:', err);
       setError(err.message || 'OAuth callback failed');
-      Alert.alert('Error', err.message || 'OAuth callback failed', [
-        { text: 'OK', onPress: () => {
-          // Navigate back to SignIn screen
-          navigation.navigate('SignIn' as never);
-        }}
-      ]);
+      Toast.show(err.message || 'OAuth callback failed', Toast.LONG);
+      // Navigate back to SignIn screen after showing toast
+      setTimeout(() => {
+        navigation.navigate('SignIn' as never);
+      }, 2000);
     }
   };
 

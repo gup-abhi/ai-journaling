@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator
 } from 'react-native'
+import Toast from 'react-native-simple-toast'
 import { Feather } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { useThemeColors } from '../theme/colors'
@@ -66,8 +67,9 @@ export default function Goals() {
           onPress: async () => {
             try {
               await deleteGoal(goalId)
+              Toast.show('Goal deleted successfully!', Toast.LONG)
             } catch (error) {
-              Alert.alert('Error', 'Failed to delete goal. Please try again.')
+              Toast.show('Failed to delete goal. Please try again.', Toast.LONG)
             }
           }
         }

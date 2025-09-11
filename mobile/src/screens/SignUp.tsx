@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
+import Toast from 'react-native-simple-toast'
 import { useAuthStore } from '../stores/auth.store'
 import { useNavigation } from '@react-navigation/native'
 import { useThemeColors } from '../theme/colors'
@@ -19,29 +20,27 @@ export default function SignUp() {
 
   const onSubmit = async () => {
     if (!displayName.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
-      Alert.alert('Error', 'Please fill in all fields')
+      Toast.show('Please fill in all fields', Toast.LONG)
       return
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters long')
+      Toast.show('Password must be at least 6 characters long', Toast.LONG)
       return
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match')
+      Toast.show('Passwords do not match', Toast.LONG)
       return
     }
 
     const res = await signUp({ email, password, display_name: displayName })
     if (res.ok) {
-      Alert.alert(
-        'Account Created!', 
-        res.message || 'Please check your email to verify your account.',
-        [{ text: 'OK', onPress: () => nav.navigate('SignIn') }]
-      )
+      Toast.show('Account created successfully! Please check your email to verify your account.', Toast.LONG)
+      // Navigate to sign in after a short delay to allow user to see the success message
+      setTimeout(() => nav.navigate('SignIn'), 2000)
     } else if (error) {
-      Alert.alert('Sign Up Failed', error)
+      Toast.show(error, Toast.LONG)
     }
   }
 

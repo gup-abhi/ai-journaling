@@ -5,9 +5,9 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert,
   ActivityIndicator
 } from 'react-native'
+import Toast from 'react-native-simple-toast'
 import { Feather } from '@expo/vector-icons'
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { useThemeColors } from '../theme/colors'
@@ -44,24 +44,24 @@ export default function UpdateGoal() {
         setGoal(goalToUpdate)
         setProgress(goalToUpdate.progress)
       } else {
-        Alert.alert('Error', 'Goal not found', [
-          { text: 'OK', onPress: () => nav.goBack() }
-        ])
+        Toast.show('Goal not found', Toast.LONG)
+        nav.goBack()
       }
     }
   }, [goalId, goals, nav])
 
   const handleSubmit = async () => {
     if (!goalId || !progress) {
-      Alert.alert('Error', 'Please select a progress status')
+      Toast.show('Please select a progress status', Toast.LONG)
       return
     }
 
     try {
       await updateGoal(goalId, progress)
+      Toast.show('Goal updated successfully!', Toast.LONG)
       nav.goBack()
     } catch (error) {
-      Alert.alert('Error', 'Failed to update goal. Please try again.')
+      Toast.show('Failed to update goal. Please try again.', Toast.LONG)
     }
   }
 

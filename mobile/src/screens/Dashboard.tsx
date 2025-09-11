@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, ScrollView, RefreshControl } from 'react-native'
+import Toast from 'react-native-simple-toast'
 import { Feather } from '@expo/vector-icons'
 import { useJournalStore } from '../stores/journal.store'
 import { useNavigation } from '@react-navigation/native'

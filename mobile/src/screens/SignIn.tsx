@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native'
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
+import Toast from 'react-native-simple-toast'
 import { useAuthStore } from '../stores/auth.store'
 import { useNavigation } from '@react-navigation/native'
 import { useThemeColors } from '../theme/colors'
@@ -18,13 +19,13 @@ export default function SignIn() {
 
   const onSubmit = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Error', 'Please fill in all fields')
+      Toast.show('Please fill in all fields', Toast.LONG)
       return
     }
 
     const res = await signIn({ email, password })
     if (!res.ok && error) {
-      Alert.alert('Sign In Failed', error)
+      Toast.show(error, Toast.LONG)
     }
     // On success, the navigator will automatically swap stacks when isAuthenticated flips
   }
