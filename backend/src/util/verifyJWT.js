@@ -1,6 +1,7 @@
 import { jwtVerify, createRemoteJWKSet } from 'jose';
 import 'dotenv/config';
 
+// Use your Supabase JWKS URL
 const PROJECT_JWKS = createRemoteJWKSet(
   new URL(process.env.SUPABASE_PROJECT_JWKS)
 );
@@ -9,13 +10,22 @@ const PROJECT_JWKS = createRemoteJWKSet(
  * Verifies the provided JWT against the project's JSON Web Key Set.
  */
 export async function verifyProjectJWT(token) {
-  const data = await jwtVerify(token, PROJECT_JWKS, {
-    issuer: process.env.SUPABASE_ISSUER_URL,
-    audience: "authenticated"
-  })
-  return data;
+  try {
+    const data = await jwtVerify(token, PROJECT_JWKS, {
+      issuer: process.env.SUPABASE_ISSUER_URL,
+      audience: "authenticated",
+      algorithms: ["ES256"], // explicitly allow ES256
+    });
+
+    // console.log(data)
+
+    return data;
+  } catch (err) {
+    console.error("JWT verification failed:", err);
+    throw err;
+  }
 }
 
-// const token = `eyJhbGciOiJFUzI1NiIsImtpZCI6IjYzNDgyYWViLWFmMmQtNDg2ZC1hNTgxLWY0MDllMmFmY2ZhNCIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3NjbGZ0amRkaG1jbnJ0bmJka2tnLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiIxNzFlZTFhYi1kMGIyLTQ4YmUtODk3MS01Mzc2ZGU4M2QzMTUiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzU3NTMwNTEyLCJpYXQiOjE3NTc1MjY5MTIsImVtYWlsIjoiYWd1cHRhLmVuZ2luZWVyLmVtYWlsQGdtYWlsLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiLCJnb29nbGUiXX0sInVzZXJfbWV0YWRhdGEiOnsiYXZhdGFyX3VybCI6Imh0dHBzOi8vbGgzLmdvb2dsZXVzZXJjb250ZW50LmNvbS9hL0FDZzhvY0ozaXNpdFVXSkgxa3NLX0xZeHh2eEFtbmZhS1B3U19HdldOblZFcHRDMWFxYmgwc3M9czk2LWMiLCJkaXNwbGF5X25hbWUiOiJBYmhpc2hlayBHdXB0YSIsImVtYWlsIjoiYWd1cHRhLmVuZ2luZWVyLmVtYWlsQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmdWxsX25hbWUiOiJBYmhpc2hlayBHdXB0dGEiLCJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJuYW1lIjoiQWJoaXNoZWsgR3VwdHRhIiwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jSjNpc2l0VVdKSDFrc0tfTFl4eHZ4QW1uZmFLUHdTX0d2V05uVkVwdEMxYXFiaDBzcz1zOTYtYyIsInByb3ZpZGVyX2lkIjoiMTA3MjYxNjk1NzM5Mzc1NzM2OTY3Iiwic3ViIjoiMTA3MjYxNjk1NzM5Mzc1NzM2OTY3In0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3NTc1MjY5MTJ9XSwic2Vzc2lvbl9pZCI6IjdmMDZhZjUzLTRjMzUtNDY4ZS05Y2UyLWFkMjc3NmM2MWJkZCIsImlzX2Fub255bW91cyI6ZmFsc2V9.IVd3qVNYn6lrEvtbyex5PAYW8-b812SOIgcllc1QRMHZ7e-4494WFY1_GPcrr8h3uzgBibXWin65Y-c4lUomyA`;
-
-// console.log(jwtVerify(token));
+// Example usage
+// const token = "YOUR_JWT_HERE";
+// verifyProjectJWT(token).then(console.log).catch(console.error);
