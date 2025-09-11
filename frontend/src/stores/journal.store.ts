@@ -19,7 +19,7 @@ interface JournalStore {
   addJournalEntry: (newEntry: { content: string, template_id: string | null }) => Promise<JournalEntry | null>;
 }
 
-export const useJournalStore = create<JournalStore>((set, get) => ({
+export const useJournalStore = create<JournalStore>((set) => ({
   journalEntries: [],
   totalEntries: 0,
   monthlyEntries: 0,
