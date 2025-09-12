@@ -16,6 +16,7 @@ import Goals from '../screens/Goals';
 import NewGoal from '../screens/NewGoal';
 import UpdateGoal from '../screens/UpdateGoal';
 import Trends from '../screens/Trends';
+import Timeline from '../screens/Timeline';
 import JournalTemplates from '../screens/JournalTemplates';
 import GoogleOAuth from '../screens/GoogleOAuth';
 import { navigationRef } from '../lib/navigation-service';
@@ -30,6 +31,7 @@ export type RootStackParamList = {
   JournalTemplates: undefined;
   NewGoal: undefined;
   UpdateGoal: { goalId: string };
+  Timeline: undefined;
   GoogleOAuth: undefined;
 };
 
@@ -93,6 +95,7 @@ export default function AppNavigator() {
             <Stack.Screen name="JournalTemplates" component={JournalTemplates} />
             <Stack.Screen name="NewGoal" component={NewGoal} />
             <Stack.Screen name="UpdateGoal" component={UpdateGoal} />
+            <Stack.Screen name="Timeline" component={Timeline} />
           </>
         ) : (
           <>

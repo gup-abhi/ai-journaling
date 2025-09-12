@@ -204,3 +204,113 @@ export const getTotalMonthJournalEntries = async (req, res) => {
     throw new AppError("Internal Server Error", 500);
   }
 };
+
+export const getTimelineData = async (req, res) => {
+  try {
+    const { period = 'week', theme } = req.query;
+    
+    // Calculate date range based on period
+    const now = new Date();
+    let startDate, endDate;
+    
+    switch (period) {
+      case 'week':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        endDate = now;
+        break;
+      case 'month':
+        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+        endDate = now;
+        break;
+      case 'year':
+        startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+        endDate = now;
+        break;
+      default:
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        endDate = now;
+    }
+
+    // Build filter for journal entries
+    const journalFilter = {
+      user_id: req.user._id,
+      entry_date: {
+        $gte: startDate,
+        $lte: endDate
+      }
+    };
+
+    // Get journal entries
+    const entries = await JournalEntry.find(journalFilter)
+      .sort({ entry_date: -1 })
+      .lean();
+
+    // Get insights for each entry
+    const Insight = (await import('../models/Insights.model.js')).default;
+    const entryIds = entries.map(entry => entry._id);
+    const insights = await Insight.find({
+      journal_entry_id: { $in: entryIds },
+      user_id: req.user._id
+    }).lean();
+
+    // Create a map of insights by journal entry ID
+    const insightsMap = {};
+    insights.forEach(insight => {
+      insightsMap[insight.journal_entry_id.toString()] = insight;
+    });
+
+    // Attach insights to entries
+    const entriesWithInsights = entries.map(entry => ({
+      ...entry,
+      insights: insightsMap[entry._id.toString()] || null
+    }));
+
+    // Filter by theme if specified
+    let filteredEntries = entriesWithInsights;
+    if (theme) {
+      filteredEntries = entriesWithInsights.filter(entry => 
+        entry.insights && 
+        entry.insights.themes_topics && 
+        entry.insights.themes_topics.some(t => 
+          t.theme.toLowerCase().includes(theme.toLowerCase())
+        )
+      );
+    }
+
+    // Format timeline data
+    const timelineData = filteredEntries.map(entry => {
+      const insight = entry.insights || {};
+      const sentiment = insight.sentiment || {};
+      
+      return {
+        id: entry._id,
+        date: entry.entry_date,
+        content: entry.content,
+        wordCount: entry.word_count,
+        sentiment: {
+          overall: sentiment.overall || 'neutral',
+          score: sentiment.score || 0,
+          emotions: sentiment.emotions || []
+        },
+        themes: insight.themes_topics || [],
+        summary: insight.summary || '',
+        keyEvents: insight.entities?.events || [],
+        significantEvents: insight.key_learnings_reflections || []
+      };
+    });
+
+    return res.status(200).json({
+      timeline: timelineData,
+      period,
+      theme: theme || null,
+      totalEntries: timelineData.length,
+      dateRange: {
+        start: startDate,
+        end: endDate
+      }
+    });
+  } catch (error) {
+    logger.error(error);
+    throw new AppError("Internal Server Error", 500);
+  }
+};

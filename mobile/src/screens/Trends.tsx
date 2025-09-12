@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, FlatList } from 'react-native'
+import { useNavigation } from '@react-navigation/native'
+import { Feather } from '@expo/vector-icons'
 import { useThemeColors } from '../theme/colors'
 import { Calendar } from 'react-native-calendars'
 import { useStreakStore } from '../stores/streak.store'
@@ -10,6 +12,7 @@ import Toast from 'react-native-simple-toast'
 
 export default function Trends() {
   const colors = useThemeColors()
+  const navigation = useNavigation()
   const { journalingDays, getStreakData } = useStreakStore()
   const {
     sentimentSummaryData,
@@ -91,12 +94,269 @@ export default function Trends() {
     return Array.from(journalingDays.values()).filter(Boolean).length
   }
 
+  // Create data for FlatList
+  const getTrendsData = () => {
+    const data = []
+    
+    // Period Selector
+    data.push({ id: 'period-selector', type: 'period-selector' })
+    
+    // Narrative Summary
+    if (isSentimentSummaryLoading) {
+      data.push({ id: 'narrative-loading', type: 'narrative-loading' })
+    } else if (sentimentSummaryData && sentimentSummaryData.narrativeSummary) {
+      data.push({ id: 'narrative-summary', type: 'narrative-summary', data: sentimentSummaryData.narrativeSummary })
+    } else if (sentimentSummaryData && !sentimentSummaryData.narrativeSummary) {
+      data.push({ id: 'narrative-error', type: 'narrative-error' })
+    }
+    
+    // Sentiment Summary
+    if (isSentimentSummaryLoading) {
+      data.push({ id: 'sentiment-loading', type: 'sentiment-loading' })
+    } else if (sentimentSummaryData) {
+      data.push({ id: 'sentiment-summary', type: 'sentiment-summary', data: sentimentSummaryData })
+    } else {
+      data.push({ id: 'sentiment-error', type: 'sentiment-error' })
+    }
+    
+    // Top Themes
+    if (isTopThemesDataLoading) {
+      data.push({ id: 'themes-loading', type: 'themes-loading' })
+    } else if (topThemesData && topThemesData.top_themes.length > 0) {
+      data.push({ id: 'top-themes', type: 'top-themes', data: topThemesData })
+    } else {
+      data.push({ id: 'themes-error', type: 'themes-error' })
+    }
+    
+    // Timeline Button
+    data.push({ id: 'timeline-button', type: 'timeline-button' })
+    
+    // Calendar
+    data.push({ id: 'calendar', type: 'calendar' })
+    
+    return data
+  }
+
   const renderCard = (title: string, children: React.ReactNode) => (
     <View style={[styles.card, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
       <Text style={[styles.cardTitle, { color: colors.accent }]}>{title}</Text>
       {children}
     </View>
   )
+
+  const renderTrendsItem = ({ item }: { item: any }) => {
+    switch (item.type) {
+      case 'period-selector':
+        return (
+          <View style={styles.periodSelectorContainer}>
+            {renderPeriodSelector()}
+          </View>
+        )
+      
+      case 'narrative-loading':
+        return (
+          <View style={styles.itemContainer}>
+            <View style={[styles.loadingContainer, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+              <ActivityIndicator size="small" color={colors.accent} />
+              <Text style={[styles.loadingText, { color: colors.text }]}>Loading your story...</Text>
+            </View>
+          </View>
+        )
+      
+      case 'narrative-summary':
+        return (
+          <View style={styles.itemContainer}>
+            <NarrativeSummary 
+              summary={item.data}
+              onPress={() => {
+                Toast.show('Narrative insights help you understand your emotional patterns!', Toast.SHORT)
+              }}
+            />
+          </View>
+        )
+      
+      case 'narrative-error':
+        return (
+          <View style={styles.itemContainer}>
+            <View style={[styles.errorContainer, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+              <Text style={[styles.errorText, { color: colors.muted }]}>
+                Unable to generate narrative summary
+              </Text>
+              <Text style={[styles.errorSubtext, { color: colors.muted }]}>
+                Try refreshing or check back later
+              </Text>
+            </View>
+          </View>
+        )
+      
+      case 'sentiment-loading':
+        return (
+          <View style={styles.itemContainer}>
+            <View style={[styles.loadingContainer, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+              <ActivityIndicator size="small" color={colors.accent} />
+              <Text style={[styles.loadingText, { color: colors.text }]}>Loading sentiment data...</Text>
+            </View>
+          </View>
+        )
+      
+      case 'sentiment-summary':
+        return (
+          <View style={styles.itemContainer}>
+            <SentimentSummaryCard 
+              data={item.data} 
+              onPress={() => {
+                Toast.show('Sentiment details coming soon!', Toast.SHORT)
+              }}
+            />
+          </View>
+        )
+      
+      case 'sentiment-error':
+        return (
+          <View style={styles.itemContainer}>
+            <View style={[styles.errorContainer, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+              <Text style={[styles.errorText, { color: colors.muted }]}>
+                No sentiment data available
+              </Text>
+              <Text style={[styles.errorSubtext, { color: colors.muted }]}>
+                Start journaling to see your sentiment trends
+              </Text>
+            </View>
+          </View>
+        )
+      
+      case 'themes-loading':
+        return (
+          <View style={styles.itemContainer}>
+            <View style={[styles.loadingContainer, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+              <ActivityIndicator size="small" color={colors.accent} />
+              <Text style={[styles.loadingText, { color: colors.text }]}>Loading themes data...</Text>
+            </View>
+          </View>
+        )
+      
+      case 'top-themes':
+        return (
+          <View style={styles.itemContainer}>
+            <View style={[styles.card, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+              <Text style={[styles.cardTitle, { color: colors.accent }]}>Top Themes</Text>
+              <View style={styles.themesContainer}>
+                {item.data.top_themes.map((theme: any, index: number) => (
+                  <TouchableOpacity
+                    key={`${theme.theme}-${index}`}
+                    style={[
+                      styles.themeTag, 
+                      { 
+                        backgroundColor: getSentimentBackgroundColor(theme.dominant_sentiment), 
+                        borderColor: getSentimentColor(theme.dominant_sentiment) 
+                      }
+                    ]}
+                    onPress={() => {
+                      const sentimentBreakdown = Object.entries(theme.sentiment_breakdown)
+                        .filter(([_, count]) => (count as number) > 0)
+                        .map(([sentiment, count]) => `${sentiment}: ${count}`)
+                        .join(', ')
+                      Toast.show(
+                        `${theme.theme}\nMentions: ${theme.frequency}\nSentiment: ${theme.dominant_sentiment}\nBreakdown: ${sentimentBreakdown}`, 
+                        Toast.LONG
+                      )
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.themeText, { color: getSentimentColor(theme.dominant_sentiment) }]}>
+                      {theme.theme}
+                    </Text>
+                    <Text style={[styles.themeFrequency, { color: colors.muted }]}>
+                      {theme.frequency}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </View>
+        )
+      
+      case 'themes-error':
+        return (
+          <View style={styles.itemContainer}>
+            <View style={[styles.errorContainer, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+              <Text style={[styles.errorText, { color: colors.muted }]}>
+                No themes data available
+              </Text>
+              <Text style={[styles.errorSubtext, { color: colors.muted }]}>
+                Start journaling to see your recurring themes
+              </Text>
+            </View>
+          </View>
+        )
+      
+      case 'timeline-button':
+        return (
+          <View style={styles.itemContainer}>
+            <TouchableOpacity
+              style={[styles.timelineButton, { backgroundColor: colors.cardBg, borderColor: colors.border }]}
+              onPress={() => navigation.navigate('Timeline' as never)}
+            >
+              <View style={styles.timelineButtonContent}>
+                <View style={styles.timelineButtonLeft}>
+                  <View style={[styles.timelineIcon, { backgroundColor: colors.accent + '20' }]}>
+                    <Feather name="clock" size={24} color={colors.accent} />
+                  </View>
+                  <View style={styles.timelineButtonText}>
+                    <Text style={[styles.timelineButtonTitle, { color: colors.text }]}>
+                      Interactive Timeline
+                    </Text>
+                    <Text style={[styles.timelineButtonSubtitle, { color: colors.muted }]}>
+                      Explore your journal entries chronologically
+                    </Text>
+                  </View>
+                </View>
+                <Feather name="chevron-right" size={20} color={colors.muted} />
+              </View>
+            </TouchableOpacity>
+          </View>
+        )
+      
+      case 'calendar':
+        return (
+          <View style={styles.itemContainer}>
+            {renderCard(`Journaling Activity (${getJournaledDaysCount()} days)`, (
+              <View>
+                <Calendar
+                  markedDates={getMarkedDates()}
+                  theme={{
+                    calendarBackground: colors.cardBg,
+                    dayTextColor: colors.text,
+                    monthTextColor: colors.text,
+                    textDisabledColor: colors.muted,
+                    selectedDayBackgroundColor: colors.accent,
+                    selectedDayTextColor: colors.background,
+                    arrowColor: colors.accent,
+                    todayTextColor: colors.accent,
+                    dotColor: colors.accent
+                  }}
+                  enableSwipeMonths={true}
+                  onMonthChange={(month) => {
+                    console.log('Month changed:', month)
+                  }}
+                />
+                <View style={styles.calendarInfo}>
+                  <Text style={[styles.calendarInfoText, { color: colors.muted }]}>
+                    • Dots indicate journaled days
+                  </Text>
+                  <Text style={[styles.calendarInfoText, { color: colors.muted }]}>
+                    • Swipe to view different months
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )
+      
+      default:
+        return null
+    }
+  }
 
   const renderPeriodSelector = () => (
     <View style={styles.periodSelector}>
@@ -128,164 +388,43 @@ export default function Trends() {
   )
 
   return (
-    <ScrollView 
-      style={{ flex: 1, backgroundColor: colors.background }} 
-      contentContainerStyle={styles.container}
-      showsVerticalScrollIndicator={false}
-    >
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>Trends & Insights</Text>
       </View>
-
-      {/* Period Selector */}
-      {renderPeriodSelector()}
-
-      {/* Narrative Summary */}
-      {isSentimentSummaryLoading ? (
-        <View style={[styles.loadingContainer, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
-          <ActivityIndicator size="small" color={colors.accent} />
-          <Text style={[styles.loadingText, { color: colors.text }]}>Loading your story...</Text>
-        </View>
-      ) : sentimentSummaryData && sentimentSummaryData.narrativeSummary ? (
-        <NarrativeSummary 
-          summary={sentimentSummaryData.narrativeSummary}
-          onPress={() => {
-            Toast.show('Narrative insights help you understand your emotional patterns!', Toast.SHORT)
-          }}
-        />
-      ) : sentimentSummaryData && !sentimentSummaryData.narrativeSummary ? (
-        <View style={[styles.errorContainer, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
-          <Text style={[styles.errorText, { color: colors.muted }]}>
-            Unable to generate narrative summary
-          </Text>
-          <Text style={[styles.errorSubtext, { color: colors.muted }]}>
-            Try refreshing or check back later
-          </Text>
-        </View>
-      ) : null}
-
-      {/* Sentiment Summary Card */}
-      {isSentimentSummaryLoading ? (
-        <View style={[styles.loadingContainer, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
-          <ActivityIndicator size="small" color={colors.accent} />
-          <Text style={[styles.loadingText, { color: colors.text }]}>Loading sentiment data...</Text>
-        </View>
-      ) : sentimentSummaryData ? (
-        <SentimentSummaryCard 
-          data={sentimentSummaryData} 
-          onPress={() => {
-            // Could navigate to detailed sentiment view
-            Toast.show('Sentiment details coming soon!', Toast.SHORT)
-          }}
-        />
-      ) : (
-        <View style={[styles.errorContainer, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
-          <Text style={[styles.errorText, { color: colors.muted }]}>
-            No sentiment data available
-          </Text>
-          <Text style={[styles.errorSubtext, { color: colors.muted }]}>
-            Start journaling to see your sentiment trends
-          </Text>
-        </View>
-      )}
-
-      {/* Top Themes Card */}
-      {isTopThemesDataLoading ? (
-        <View style={[styles.loadingContainer, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
-          <ActivityIndicator size="small" color={colors.accent} />
-          <Text style={[styles.loadingText, { color: colors.text }]}>Loading themes data...</Text>
-        </View>
-      ) : topThemesData && topThemesData.top_themes.length > 0 ? (
-        <View style={[styles.card, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
-          <Text style={[styles.cardTitle, { color: colors.accent }]}>Top Themes</Text>
-          <View style={styles.themesContainer}>
-            {topThemesData.top_themes.map((theme, index) => (
-              <TouchableOpacity
-                key={`${theme.theme}-${index}`}
-                style={[
-                  styles.themeTag, 
-                  { 
-                    backgroundColor: getSentimentBackgroundColor(theme.dominant_sentiment), 
-                    borderColor: getSentimentColor(theme.dominant_sentiment) 
-                  }
-                ]}
-                onPress={() => {
-                  const sentimentBreakdown = Object.entries(theme.sentiment_breakdown)
-                    .filter(([_, count]) => count > 0)
-                    .map(([sentiment, count]) => `${sentiment}: ${count}`)
-                    .join(', ')
-                  Toast.show(
-                    `${theme.theme}\nMentions: ${theme.frequency}\nSentiment: ${theme.dominant_sentiment}\nBreakdown: ${sentimentBreakdown}`, 
-                    Toast.LONG
-                  )
-                }}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.themeText, { color: getSentimentColor(theme.dominant_sentiment) }]}>
-                  {theme.theme}
-                </Text>
-                <Text style={[styles.themeFrequency, { color: colors.muted }]}>
-                  {theme.frequency}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-      ) : (
-        <View style={[styles.errorContainer, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
-          <Text style={[styles.errorText, { color: colors.muted }]}>
-            No themes data available
-          </Text>
-          <Text style={[styles.errorSubtext, { color: colors.muted }]}>
-            Start journaling to see your recurring themes
-          </Text>
-        </View>
-      )}
-
-      {/* Journaling Activity Calendar */}
-      {renderCard(`Journaling Activity (${getJournaledDaysCount()} days)`, (
-        <View>
-          <Calendar
-            markedDates={getMarkedDates()}
-            theme={{
-              calendarBackground: colors.cardBg,
-              dayTextColor: colors.text,
-              monthTextColor: colors.text,
-              textDisabledColor: colors.muted,
-              selectedDayBackgroundColor: colors.accent,
-              selectedDayTextColor: colors.background,
-              arrowColor: colors.accent,
-              todayTextColor: colors.accent,
-              dotColor: colors.accent
-            }}
-            enableSwipeMonths={true}
-            onMonthChange={(month) => {
-              console.log('Month changed:', month)
-            }}
-          />
-          <View style={styles.calendarInfo}>
-            <Text style={[styles.calendarInfoText, { color: colors.muted }]}>
-              • Dots indicate journaled days
-            </Text>
-            <Text style={[styles.calendarInfoText, { color: colors.muted }]}>
-              • Swipe to view different months
-            </Text>
-          </View>
-        </View>
-      ))}
-
-    </ScrollView>
+      
+      <FlatList
+        data={getTrendsData()}
+        keyExtractor={(item) => item.id}
+        renderItem={renderTrendsItem}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.contentContainer}
+      />
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: { 
-    padding: 16, 
-    paddingTop: 48, 
-    gap: 16 
+    flex: 1,
+    paddingTop: 48 
+  },
+  contentContainer: {
+    padding: 16,
+    paddingTop: 8,
+    gap: 16
+  },
+  itemContainer: {
+    marginBottom: 16,
+  },
+  periodSelectorContainer: {
+    marginBottom: 8,
   },
   header: {
-    marginBottom: 16
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
   },
   title: { 
     fontSize: 28, 
@@ -314,7 +453,7 @@ const styles = StyleSheet.create({
   },
   periodSelector: {
     flexDirection: 'row',
-    marginBottom: 16,
+    marginBottom: 8,
     gap: 8,
   },
   periodButton: {
@@ -328,6 +467,41 @@ const styles = StyleSheet.create({
   periodButtonText: {
     fontSize: 14,
     fontWeight: '600',
+  },
+  timelineButton: {
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 16,
+  },
+  timelineButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  timelineButtonLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  timelineIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  timelineButtonText: {
+    flex: 1,
+  },
+  timelineButtonTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  timelineButtonSubtitle: {
+    fontSize: 14,
+    lineHeight: 20,
   },
   loadingContainer: {
     borderWidth: 1,
