@@ -120,14 +120,41 @@ export const getPaginatedJournalEntries = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    // Get total count for pagination metadata
-    const totalEntries = await JournalEntry.countDocuments({
-      user_id: req.user._id,
-    });
+    // Build filter object
+    const filter = { user_id: req.user._id };
 
-    const entries = await JournalEntry.find({
-      user_id: req.user._id,
-    })
+    // Date filtering
+    const { month, year } = req.query;
+    console.log('Backend: Received filter parameters - month:', month, 'year:', year);
+
+    if (month && year && month.toString().trim() !== '' && year.toString().trim() !== '') {
+      // Filter by month and year
+      const startMonth = new Date(year, month - 1, 1); // month is 1-indexed
+      const endMonth = new Date(year, month, 1); // First day of next month
+
+      filter.entry_date = {
+        $gte: startMonth,
+        $lt: endMonth
+      };
+      console.log('Backend: Applied month+year filter:', { startMonth, endMonth });
+    } else if (year && year.toString().trim() !== '') {
+      // Filter by year only
+      const startYear = new Date(year, 0, 1); // January 1st
+      const endYear = new Date(parseInt(year) + 1, 0, 1); // January 1st of next year
+
+      filter.entry_date = {
+        $gte: startYear,
+        $lt: endYear
+      };
+      console.log('Backend: Applied year filter:', { startYear, endYear });
+    } else {
+      console.log('Backend: No date filters applied, fetching all journals');
+    }
+
+    // Get total count for pagination metadata
+    const totalEntries = await JournalEntry.countDocuments(filter);
+
+    const entries = await JournalEntry.find(filter)
     .sort({ entry_date: -1 })
     .skip(skip)
     .limit(limit);

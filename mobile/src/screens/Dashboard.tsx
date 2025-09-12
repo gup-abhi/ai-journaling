@@ -33,7 +33,7 @@ const getFirstName = (user: any): string => {
 };
 
 export default function Dashboard() {
-  const { fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, totalEntries, monthlyEntries, journalEntries } = useJournalStore()
+  const { fetchTotalEntries, fetchMonthlyEntries, refreshDashboardEntries, totalEntries, monthlyEntries, dashboardEntries } = useJournalStore()
   const { fetchMoodTrends, moodTrends } = useAiInsightStore()
   const { getActiveGoals, activeGoals } = useGoalStore()
   const { getStreakData, streakData } = useStreakStore()
@@ -48,13 +48,13 @@ export default function Dashboard() {
     await Promise.all([
       fetchTotalEntries(),
       fetchMonthlyEntries(),
-      fetchJournalEntries(),
+      refreshDashboardEntries(),
       fetchMoodTrends(),
       getActiveGoals(),
       getStreakData(),
       getUser()
     ])
-  }, [fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, fetchMoodTrends, getActiveGoals, getStreakData])
+  }, [fetchTotalEntries, fetchMonthlyEntries, refreshDashboardEntries, fetchMoodTrends, getActiveGoals, getStreakData])
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true)
@@ -70,7 +70,7 @@ export default function Dashboard() {
       loadAllData()
   }, [loadAllData])
 
-  const recent = useMemo(() => (journalEntries || []).slice(0, 6), [journalEntries])
+  const recent = useMemo(() => (dashboardEntries || []).slice(0, 6), [dashboardEntries])
   const moodValue = useMemo(() => `${moodTrends > 0 ? '+' : ''}${moodTrends.toFixed(2)}%`, [moodTrends])
   const moodAccent = useMemo(() => (moodTrends > 0 ? colors.accent : (moodTrends < 0 ? '#e74c3c' : '#eab308')), [moodTrends, colors.accent])
 

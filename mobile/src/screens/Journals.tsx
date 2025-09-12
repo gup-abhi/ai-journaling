@@ -1,6 +1,7 @@
-import React, { useEffect, useCallback, useRef } from 'react'
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native'
+import React, { useEffect, useCallback, useRef, useState } from 'react'
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Modal, Alert, ScrollView } from 'react-native'
 import { Feather } from '@expo/vector-icons'
+import { Calendar, LocaleConfig } from 'react-native-calendars'
 import { useThemeColors } from '../theme/colors'
 import { useJournalStore } from '../stores/journal.store'
 import { useNavigation, useFocusEffect } from '@react-navigation/native'
@@ -16,11 +17,21 @@ export default function Journals() {
     retryFetch,
     clearError,
     fetchPaginatedJournalEntries,
-    loadMoreJournalEntries
+    loadMoreJournalEntries,
+    dateFilters,
+    setDateFilters,
+    clearDateFilters
   } = useJournalStore()
   const nav = useNavigation<any>()
   const colors = useThemeColors()
   const flatListRef = useRef<FlatList>(null)
+  const [showDatePicker, setShowDatePicker] = useState(false)
+  const [filterType, setFilterType] = useState<'month' | 'year'>('month')
+  const [selectedMonth, setSelectedMonth] = useState('')
+  const [selectedYear, setSelectedYear] = useState('')
+  const [showMonthPicker, setShowMonthPicker] = useState(false)
+  const [showYearPicker, setShowYearPicker] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
 
   const hasFetchedRef = useRef(false)
 
@@ -38,15 +49,34 @@ export default function Journals() {
     useCallback(() => {
       console.log('Journals screen: Screen focused')
 
-      // Scroll to top when screen comes into focus
-      const timer = setTimeout(() => {
-        if (flatListRef.current) {
-          flatListRef.current.scrollToOffset({ offset: 0, animated: false })
-        }
-      }, 100)
+      // Reset filters and fetch fresh data when returning to this screen
+      const resetAndFetch = async () => {
+        console.log('Journals screen: Resetting filters and fetching fresh data')
 
-      return () => clearTimeout(timer)
-    }, [])
+        // Clear any existing filters
+        clearDateFilters()
+
+        // Reset local state
+        setSelectedMonth('')
+        setSelectedYear('')
+        setFilterType('month')
+        setCurrentPage(1)
+
+        // Fetch fresh data without filters
+        await fetchPaginatedJournalEntries(1, 10)
+
+        // Scroll to top when screen comes into focus
+        const timer = setTimeout(() => {
+          if (flatListRef.current) {
+            flatListRef.current.scrollToOffset({ offset: 0, animated: false })
+          }
+        }, 100)
+
+        return () => clearTimeout(timer)
+      }
+
+      resetAndFetch()
+    }, [clearDateFilters, fetchPaginatedJournalEntries])
   )
 
   const handleLoadMore = useCallback(() => {
@@ -55,6 +85,74 @@ export default function Journals() {
       loadMoreJournalEntries()
     }
   }, [pagination, isLoadingMore, loadMoreJournalEntries])
+
+  const handlePageChange = useCallback((page: number) => {
+    console.log('Journals screen: Changing to page', page)
+    setCurrentPage(page)
+    fetchPaginatedJournalEntries(page, 10)
+  }, [fetchPaginatedJournalEntries])
+
+  const handleDateFilter = (filters: { month?: number; year?: number }) => {
+    console.log('handleDateFilter called with filters:', filters)
+    console.log('Type of filters.month:', typeof filters.month, 'Type of filters.year:', typeof filters.year)
+    setDateFilters(filters)
+    setShowDatePicker(false)
+    setCurrentPage(1) // Reset to page 1 when applying filters
+    // Fetch with new filters
+    console.log('Calling fetchPaginatedJournalEntries with filters:', filters)
+    setTimeout(() => fetchPaginatedJournalEntries(1, 10), 100)
+  }
+
+  const clearFilters = () => {
+    clearDateFilters()
+    setSelectedMonth('')
+    setSelectedYear('')
+    setCurrentPage(1)
+    // Fetch all journals after clearing filters
+    setTimeout(() => fetchPaginatedJournalEntries(1, 10), 100)
+  }
+
+  const applyFilter = () => {
+    let filters: { month?: number; year?: number } = {}
+
+    if (filterType === 'month' && selectedMonth && selectedYear) {
+      const monthNum = parseInt(selectedMonth)
+      const yearNum = parseInt(selectedYear)
+      if (!isNaN(monthNum) && !isNaN(yearNum) && monthNum > 0 && yearNum > 0) {
+        filters.month = monthNum
+        filters.year = yearNum
+        console.log('Applying month+year filter:', filters)
+      }
+    } else if (filterType === 'year' && selectedYear) {
+      const yearNum = parseInt(selectedYear)
+      if (!isNaN(yearNum) && yearNum > 0) {
+        filters.year = yearNum
+        console.log('Applying year filter:', filters)
+      }
+    }
+
+    if (Object.keys(filters).length > 0) {
+      console.log('Applying filters:', filters)
+      handleDateFilter(filters)
+    } else {
+      console.log('No valid filters selected')
+      Alert.alert('Invalid Filter', 'Please select appropriate filter values.')
+    }
+  }
+
+  const getCurrentFilterText = () => {
+    if (dateFilters?.month && dateFilters?.year) {
+      const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ]
+      return `Month: ${monthNames[dateFilters.month - 1]} ${dateFilters.year}`
+    }
+    if (dateFilters?.year) {
+      return `Year: ${dateFilters.year}`
+    }
+    return 'All Journals'
+  }
 
   const renderFooter = () => {
     if (!isLoadingMore) return null
@@ -76,12 +174,32 @@ export default function Journals() {
           <Feather name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>Journals</Text>
-        <View style={styles.placeholder} />
+        <TouchableOpacity
+          style={styles.filterButton}
+          onPress={() => setShowDatePicker(true)}
+        >
+          <Feather name="filter" size={20} color={colors.text} />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.headingContainer}>
         <Text style={[styles.mainHeading, { color: colors.text }]}>Your Journal Entries</Text>
         <Text style={[styles.subHeading, { color: colors.muted }]}>Reflect on your thoughts and track your progress</Text>
+
+        {/* Active Filter Display */}
+        {(dateFilters?.month || dateFilters?.year) && (
+          <View style={styles.activeFilterContainer}>
+            <Text style={[styles.activeFilterText, { color: colors.text }]}>
+              Filtered by: {getCurrentFilterText()}
+            </Text>
+            <TouchableOpacity
+              style={styles.clearFilterButton}
+              onPress={clearFilters}
+            >
+              <Feather name="x" size={16} color={colors.text} />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       {isLoading ? (
@@ -91,7 +209,7 @@ export default function Journals() {
         </View>
       ) : error ? (
         <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { color: colors.error || '#ff6b6b' }]}>
+          <Text style={[styles.errorText, { color: '#ff6b6b' }]}>
             {error}
           </Text>
           <View style={styles.errorButtons}>
@@ -128,8 +246,21 @@ export default function Journals() {
       ) : journalEntries.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={[styles.emptyText, { color: colors.muted }]}>
-            No journal entries yet. Start by creating your first entry!
+            {dateFilters?.month || dateFilters?.year
+              ? "No journal entries found for the selected filters. Try adjusting your filter criteria."
+              : "No journal entries yet. Start by creating your first entry!"
+            }
           </Text>
+          {(dateFilters?.month || dateFilters?.year) && (
+            <TouchableOpacity
+              style={[styles.clearFiltersButton, { borderColor: colors.accent, marginTop: 20 }]}
+              onPress={clearFilters}
+            >
+              <Text style={[styles.clearFiltersButtonText, { color: colors.accent }]}>
+                Clear Filters
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       ) : (
         <FlatList
@@ -156,6 +287,225 @@ export default function Journals() {
           )}
         />
       )}
+
+      {/* Date Filter Modal */}
+      <Modal
+        visible={showDatePicker}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowDatePicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.cardBg }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Filter Journals</Text>
+              <TouchableOpacity
+                onPress={() => setShowDatePicker(false)}
+                style={styles.closeButton}
+              >
+                <Feather name="x" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Filter Type Selection */}
+            <View style={styles.filterTypeContainer}>
+              <Text style={[styles.filterTypeLabel, { color: colors.text }]}>Filter Type:</Text>
+              <View style={styles.filterTypeButtons}>
+                {[
+                  { key: 'month', label: 'Month' },
+                  { key: 'year', label: 'Year' }
+                ].map((type) => (
+                  <TouchableOpacity
+                    key={type.key}
+                    style={[
+                      styles.filterTypeButton,
+                      {
+                        backgroundColor: filterType === type.key ? colors.accent : colors.muted,
+                        borderColor: colors.border
+                      }
+                    ]}
+                    onPress={() => {
+                      setFilterType(type.key as 'month' | 'year');
+                      // Reset selections when switching filter types
+                      if (type.key === 'year') {
+                        // Don't reset selectedYear when switching to year filter
+                        setSelectedMonth(''); // Reset month when switching to year-only
+                      }
+                      if (type.key === 'month') {
+                        // Don't reset selectedMonth when switching to month filter
+                        // Keep selectedYear for month+year filtering
+                      }
+                    }}
+                  >
+                    <Text style={[
+                      styles.filterTypeButtonText,
+                      { color: filterType === type.key ? colors.accentText : colors.text }
+                    ]}>
+                      {type.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Month and Year Selection */}
+            {filterType === 'month' && (
+              <View style={styles.monthYearContainer}>
+                <View style={styles.pickerRow}>
+                  <Text style={[styles.pickerLabel, { color: colors.text }]}>Month:</Text>
+                  <TouchableOpacity
+                    style={[styles.pickerButton, { borderColor: colors.border }]}
+                    onPress={() => setShowMonthPicker(true)}
+                  >
+                    <Text style={[styles.pickerButtonText, { color: colors.text }]}>
+                      {selectedMonth ? [
+                        'January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'
+                      ][parseInt(selectedMonth) - 1] : 'Select Month'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.pickerRow}>
+                  <Text style={[styles.pickerLabel, { color: colors.text }]}>Year:</Text>
+                  <TouchableOpacity
+                    style={[styles.pickerButton, { borderColor: colors.border }]}
+                    onPress={() => setShowYearPicker(true)}
+                  >
+                  <Text style={[styles.pickerButtonText, { color: colors.text }]}>
+                    {selectedYear || 'Select Year'}
+                  </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+
+            {/* Year Only Selection */}
+            {filterType === 'year' && (
+              <View style={styles.yearContainer}>
+                <View style={styles.pickerRow}>
+                  <Text style={[styles.pickerLabel, { color: colors.text }]}>Year:</Text>
+                  <TouchableOpacity
+                    style={[styles.pickerButton, { borderColor: colors.border }]}
+                    onPress={() => setShowYearPicker(true)}
+                  >
+                    <Text style={[styles.pickerButtonText, { color: colors.text }]}>
+                      {selectedYear || 'Select Year'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+
+            {/* Action Buttons */}
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton, { borderColor: colors.border }]}
+                onPress={() => setShowDatePicker(false)}
+              >
+                <Text style={[styles.modalButtonText, { color: colors.text }]}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalButton, styles.applyButton, { backgroundColor: colors.accent }]}
+                onPress={applyFilter}
+              >
+                <Text style={[styles.modalButtonText, { color: colors.accentText }]}>Apply Filter</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Month Picker Modal */}
+      <Modal
+        visible={showMonthPicker}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowMonthPicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.pickerModalContent, { backgroundColor: colors.cardBg }]}>
+            <View style={styles.pickerModalHeader}>
+              <Text style={[styles.pickerModalTitle, { color: colors.text }]}>Select Month</Text>
+              <TouchableOpacity
+                onPress={() => setShowMonthPicker(false)}
+                style={styles.closeButton}
+              >
+                <Feather name="x" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.pickerScrollView}>
+              {[
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
+              ].map((monthName, index) => (
+                <TouchableOpacity
+                  key={monthName}
+                  style={[styles.pickerItem, { borderBottomColor: colors.border }]}
+                  onPress={() => {
+                    setSelectedMonth((index + 1).toString())
+                    setShowMonthPicker(false)
+                  }}
+                >
+                  <Text style={[styles.pickerItemText, { color: colors.text }]}>
+                    {monthName}
+                  </Text>
+                  {selectedMonth === (index + 1).toString() && (
+                    <Feather name="check" size={20} color={colors.accent} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Year Picker Modal */}
+      <Modal
+        visible={showYearPicker}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowYearPicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.pickerModalContent, { backgroundColor: colors.cardBg }]}>
+            <View style={styles.pickerModalHeader}>
+              <Text style={[styles.pickerModalTitle, { color: colors.text }]}>Select Year</Text>
+              <TouchableOpacity
+                onPress={() => setShowYearPicker(false)}
+                style={styles.closeButton}
+              >
+                <Feather name="x" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.pickerScrollView}>
+              {Array.from({ length: 10 }, (_, i) => {
+                const year = new Date().getFullYear() - i
+                return (
+                  <TouchableOpacity
+                    key={year}
+                    style={[styles.pickerItem, { borderBottomColor: colors.border }]}
+                    onPress={() => {
+                      setSelectedYear(year.toString())
+                      setShowYearPicker(false)
+                    }}
+                  >
+                    <Text style={[styles.pickerItemText, { color: colors.text }]}>
+                      {year}
+                    </Text>
+                    {selectedYear === year.toString() && (
+                      <Feather name="check" size={20} color={colors.accent} />
+                    )}
+                  </TouchableOpacity>
+                )
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   )
 }
@@ -245,6 +595,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
   },
+  clearFiltersButton: {
+    marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderWidth: 1,
+    borderRadius: 8,
+    backgroundColor: 'transparent',
+  },
+  clearFiltersButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   footerLoader: {
     paddingVertical: 20,
     alignItems: 'center',
@@ -290,6 +653,159 @@ const styles = StyleSheet.create({
   },
   clearButtonText: {
     fontSize: 14,
+  },
+  filterButton: {
+    padding: 8,
+  },
+  activeFilterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 8,
+  },
+  activeFilterText: {
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1,
+  },
+  clearFilterButton: {
+    padding: 4,
+    marginLeft: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  filterTypeContainer: {
+    marginBottom: 20,
+  },
+  filterTypeLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  filterTypeButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  filterTypeButton: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  filterTypeButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  calendarContainer: {
+    marginBottom: 20,
+  },
+  monthYearContainer: {
+    marginBottom: 20,
+  },
+  pickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  pickerLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    width: 60,
+  },
+  pickerButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderRadius: 8,
+    backgroundColor: 'transparent',
+  },
+  pickerButtonText: {
+    fontSize: 16,
+  },
+  yearContainer: {
+    marginBottom: 20,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 20,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+  },
+  applyButton: {
+    borderWidth: 0,
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  pickerModalContent: {
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: '60%',
+  },
+  pickerModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  pickerModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  pickerScrollView: {
+    maxHeight: 300,
+  },
+  pickerItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+  },
+  pickerItemText: {
+    fontSize: 18,
   },
 })
 

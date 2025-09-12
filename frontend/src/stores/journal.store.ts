@@ -4,6 +4,11 @@ import type { JournalEntry, PaginationMeta, PaginatedJournalResponse } from '@/t
 import toast from 'react-hot-toast'
 import type { JournalTemplate } from '@/types/JournalTemplate.type'
 
+interface DateFilters {
+  month?: number;
+  year?: number;
+}
+
 interface JournalStore {
   journalEntries: JournalEntry[];
   totalEntries: number;
@@ -11,21 +16,25 @@ interface JournalStore {
   journalTemplates: JournalTemplate[];
   pagination: PaginationMeta | null;
   isLoading: boolean;
+  dateFilters: DateFilters;
   fetchJournalEntries: (page?: number, limit?: number) => Promise<void>;
   fetchPaginatedJournalEntries: (page?: number, limit?: number) => Promise<void>;
   fetchTotalEntries: () => Promise<void>;
   fetchMonthlyEntries: () => Promise<void>;
   fetchJournalTemplates: () => Promise<void>;
   addJournalEntry: (newEntry: { content: string, template_id: string | null }) => Promise<JournalEntry | null>;
+  setDateFilters: (filters: DateFilters) => void;
+  clearDateFilters: () => void;
 }
 
-export const useJournalStore = create<JournalStore>((set) => ({
+export const useJournalStore = create<JournalStore>((set, get) => ({
   journalEntries: [],
   totalEntries: 0,
   monthlyEntries: 0,
   journalTemplates: [],
   pagination: null,
   isLoading: false,
+  dateFilters: {},
 
   fetchJournalEntries: async (page = 1, limit = 10) => {
     set({ isLoading: true })
@@ -45,14 +54,35 @@ export const useJournalStore = create<JournalStore>((set) => ({
 
   fetchPaginatedJournalEntries: async (page = 1, limit = 10) => {
     set({ isLoading: true })
-    const response = await safeRequest(api.get<PaginatedJournalResponse>(`/journal/paginated?page=${page}&limit=${limit}`))
+    const { dateFilters } = get()
+
+    // Build query parameters
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString()
+    })
+
+    // Only add date filters if they have valid values
+    if (dateFilters.month && dateFilters.year && dateFilters.month > 0 && dateFilters.year > 0) {
+      params.append('month', dateFilters.month.toString())
+      params.append('year', dateFilters.year.toString())
+    } else if (dateFilters.year && dateFilters.year > 0) {
+      params.append('year', dateFilters.year.toString())
+    }
+
+    const url = `/journal/paginated?${params.toString()}`
+    console.log('Fetching journals from:', url, 'with dateFilters:', dateFilters)
+
+    const response = await safeRequest(api.get<PaginatedJournalResponse>(url))
     if (response.ok) {
+      console.log('Successfully fetched', response.data.entries.length, 'journal entries')
       set({
         journalEntries: response.data.entries,
         pagination: response.data.pagination,
         isLoading: false
       })
     } else {
+      console.error('Failed to fetch journals:', response.error)
       set({
         journalEntries: [],
         pagination: null,
@@ -101,5 +131,15 @@ export const useJournalStore = create<JournalStore>((set) => ({
       toast.error('Failed to add journal entry')
       return null
     }
+  },
+
+  setDateFilters: (filters: DateFilters) => {
+    set({ dateFilters: filters })
+    // Don't automatically refetch here - let the component handle it
+  },
+
+  clearDateFilters: () => {
+    set({ dateFilters: {} })
+    // Don't automatically refetch here - let the component handle it
   },
 }))
