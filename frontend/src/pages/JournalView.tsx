@@ -178,33 +178,45 @@ export function JournalView() {
           </div>
 
           <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className='text-center'>AI Insights</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {noInsights && (
-                  <div className="text-center text-muted-foreground">
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-center">AI Insights</h2>
+              
+              {noInsights && (
+                <Card>
+                  <CardContent className="text-center text-muted-foreground py-6">
                     <p>No AI insights available for this entry yet. Check back in a few minutes.</p>
-                  </div>
-                )}
-                {trend && trend.summary && (
-                  <div className="text-md whitespace-pre-wrap mt-4">
-                    <h4 className='text-accent'>Summarized:</h4>
-                    <p className='text-muted-foreground'>{trend.summary}</p>
-                  </div>
-                )}
+                  </CardContent>
+                </Card>
+              )}
 
-                {trend && trend.sentiment && trend.sentiment.acknowledgement && (
-                  <div className="text-md whitespace-pre-wrap mt-4">
-                    <h4 className='text-accent'>Compassionate Note:</h4>
-                    <p className='text-muted-foreground'>{trend.sentiment.acknowledgement}</p>
-                  </div>
-                )}
+              {trend && trend.summary && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className='text-accent'>Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className='text-muted-foreground whitespace-pre-wrap'>{trend.summary}</p>
+                  </CardContent>
+                </Card>
+              )}
 
-                {trend && trend.sentiment && trend.sentiment.emotions && trend.sentiment.emotions.length > 0 && (
-                  <div className="text-md whitespace-pre-wrap mt-4">
-                    <h4 className='text-accent'>Emotions:</h4>
+              {trend && trend.sentiment && trend.sentiment.acknowledgement && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className='text-accent'>Compassionate Note</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className='text-muted-foreground whitespace-pre-wrap'>{trend.sentiment.acknowledgement}</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {trend && trend.sentiment && trend.sentiment.emotions && trend.sentiment.emotions.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className='text-accent'>Emotions</CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
                       {trend.sentiment.emotions.map((emotion, index) => (
                         <li key={index}>
@@ -216,12 +228,16 @@ export function JournalView() {
                         </li>
                       ))}
                     </ul>
-                  </div>
-                )}
+                  </CardContent>
+                </Card>
+              )}
 
-                {trend && trend.themes_topics && trend.themes_topics.length > 0 && (
-                  <div className="mt-4">
-                    <h4 className="text-accent">Key Themes:</h4>
+              {trend && trend.themes_topics && trend.themes_topics.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-accent">Key Themes</CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <div className="flex flex-wrap gap-2">
                       {trend.themes_topics.map((theme, index) => (
                         <Badge
@@ -233,14 +249,16 @@ export function JournalView() {
                         </Badge>
                       ))}
                     </div>
-                  </div>
-                )}
+                  </CardContent>
+                </Card>
+              )}
 
-                {trend && trend.patterns && (
-                  <div className="text-md whitespace-pre-wrap mt-4">
-                    <h4 className="text-accent">
-                      Pattern:
-                    </h4>
+              {trend && trend.patterns && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-accent">Patterns</CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <div className="ml-4">
                       {trend.patterns.behavioral && trend.patterns.behavioral.length > 0 && (
                         <>
@@ -275,16 +293,21 @@ export function JournalView() {
                         </>
                       )}
                     </div>
-                  </div>
-                )}
+                  </CardContent>
+                </Card>
+              )}
 
-                {trend && trend.entities && (trend.entities.people.length > 0 || trend.entities.organizations.length > 0 || trend.entities.locations.length > 0 || trend.entities.events.length > 0 || trend.entities.products.length > 0) && (
-                  <div className="text-md whitespace-pre-wrap mt-4">
-                    <h4 className='text-accent'>Entities:</h4>
+              {trend && trend.entities && (trend.entities.people.length > 0 || trend.entities.organizations.length > 0 || trend.entities.locations.length > 0 || trend.entities.events.length > 0 || trend.entities.products.length > 0) && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className='text-accent'>Entities</CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <div className="ml-4">
                       {trend.entities.people.length > 0 && (
                         <>
                           <h5 className='text-accent ml-4'>People:</h5>
+                          <div className="flex flex-wrap gap-2 ml-4 mb-2">
                             {trend.entities.people.map((entity, index) => (
                               <Badge key={index} variant="outline"
                                   className="h-10 bg-accent-background text-muted-foreground text-sm">
@@ -294,12 +317,14 @@ export function JournalView() {
                                     </span>
                               </Badge>
                             ))}
+                          </div>
                         </>
                       )}
 
                       {trend.entities.organizations.length > 0 && (
                         <>
                           <h5 className='text-accent'>Organizations:</h5>
+                          <div className="flex flex-wrap gap-2 ml-4 mb-2">
                             {trend.entities.organizations.map((entity, index) => (
                               <Badge key={index} variant="outline"
                                 className="h-10 bg-accent-background text-muted-foreground text-sm">
@@ -309,12 +334,14 @@ export function JournalView() {
                                   </span>
                               </Badge>
                             ))}
+                          </div>
                         </>
                       )}
 
                       {trend.entities.locations.length > 0 && (
                         <>
                           <h5 className='text-accent'>Locations:</h5>
+                          <div className="flex flex-wrap gap-2 ml-4 mb-2">
                             {trend.entities.locations.map((entity, index) => (
                               <Badge key={index} variant="outline"
                                 className="h-10 bg-accent-background text-muted-foreground text-sm">
@@ -324,12 +351,14 @@ export function JournalView() {
                                   </span>
                               </Badge>
                             ))}
+                          </div>
                         </>
                       )}
 
                       {trend.entities.events.length > 0 && (
                         <>
                           <h5 className='text-accent'>Events:</h5>
+                          <div className="flex flex-wrap gap-2 ml-4 mb-2">
                             {trend.entities.events.map((entity, index) => (
                               <Badge key={index} variant="outline"
                                 className="h-10 bg-accent-background text-muted-foreground text-sm">
@@ -339,12 +368,14 @@ export function JournalView() {
                                   </span>
                               </Badge>
                             ))}
+                          </div>
                         </>
                       )}
 
                       {trend.entities.products.length > 0 && (
                         <>
                           <h5 className='text-accent'>Products:</h5>
+                          <div className="flex flex-wrap gap-2 ml-4 mb-2">
                             {trend.entities.products.map((entity, index) => (
                               <Badge key={index} variant="outline"
                                 className="h-10 bg-accent-background text-muted-foreground text-sm">
@@ -354,15 +385,20 @@ export function JournalView() {
                                   </span>
                               </Badge>
                             ))}
+                          </div>
                         </>
                       )}
                     </div>
-                  </div>
-                )}
+                  </CardContent>
+                </Card>
+              )}
 
-                {trend && trend.goals_aspirations && trend.goals_aspirations.length > 0 && (
-                  <div className="text-md whitespace-pre-wrap mt-4">
-                    <h4 className='text-accent'>Goals & Aspirations:</h4>
+              {trend && trend.goals_aspirations && trend.goals_aspirations.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className='text-accent'>Goals & Aspirations</CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
                       {trend.goals_aspirations.map((goal, index) => (
                         <li key={index}>
@@ -374,12 +410,16 @@ export function JournalView() {
                         </li>
                       ))}
                     </ul>
-                  </div>
-                )}
+                  </CardContent>
+                </Card>
+              )}
 
-                {trend && trend.stressors_triggers && trend.stressors_triggers.length > 0 && (
-                  <div className="text-md whitespace-pre-wrap mt-4">
-                    <h4 className='text-accent'>Stressors & Triggers:</h4>
+              {trend && trend.stressors_triggers && trend.stressors_triggers.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className='text-accent'>Stressors & Triggers</CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
                       {trend.stressors_triggers.map((trigger, index) => (
                         <li key={index}>
@@ -391,43 +431,55 @@ export function JournalView() {
                         </li>
                       ))}
                     </ul>
-                  </div>
-                )}
+                  </CardContent>
+                </Card>
+              )}
 
-                {trend && trend.relationships_social_dynamics && trend.relationships_social_dynamics.length > 0 && (
-                  <div className="text-md whitespace-pre-wrap mt-4">
-                    <h4 className='text-accent'>Relationships & Social Dynamics:</h4>
+              {trend && trend.relationships_social_dynamics && trend.relationships_social_dynamics.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className='text-accent'>Relationships & Social Dynamics</CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
                       {trend.relationships_social_dynamics.map((relationship, index) => (
                         <li key={index}>{relationship.person_or_group}: {relationship.interaction_summary} <span className={getSentimentColorClass(relationship.emotional_tone)}>({relationship.emotional_tone})</span></li>
                       ))}
                     </ul>
-                  </div>
-                )}
+                  </CardContent>
+                </Card>
+              )}
 
-                {trend && trend.health_wellbeing && trend.health_wellbeing.length > 0 && (
-                  <div className="text-md whitespace-pre-wrap mt-4">
-                    <h4 className='text-accent'>Health & Wellbeing:</h4>
+              {trend && trend.health_wellbeing && trend.health_wellbeing.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className='text-accent'>Health & Wellbeing</CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
                       {trend.health_wellbeing.map((health, index) => (
                         <li key={index}><span className="text-foreground">{health_wellbeing_mapping[health.aspect]}</span>: {health.status_or_change} (Mood Impact: <span className={getSentimentColorClass(health.impact_on_mood)}>{health.impact_on_mood}</span>)</li>
                       ))}
                     </ul>
-                  </div>
-                )}
+                  </CardContent>
+                </Card>
+              )}
 
-                {trend && trend.creativity_expression && (
-                  <div className="text-md whitespace-pre-wrap mt-4">
-                    <h4 className='text-accent'>Creativity & Expression:</h4>
+              {trend && trend.creativity_expression && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className='text-accent'>Creativity & Expression</CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-4">
                       <li>Readability: {trend.creativity_expression.readability}</li>
                       <li>Vocabulary Richness: {trend.creativity_expression.vocabulary_richness}</li>
                       <li>Writing Style: {trend.creativity_expression.writing_style}</li>
                     </ul>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -103,153 +103,168 @@ export default function JournalView() {
         </View>
       )}
 
-      <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg }]}> 
-        <Text style={[styles.sectionTitle, { color: colors.accent }]}>AI Insights</Text>
-        {noInsights && <Text style={[styles.muted, { color: colors.muted }]}>No AI insights available for this entry yet.</Text>}
-        {trend && trend.summary && (
-          <View style={{ marginTop: 8 }}>
-            <Text style={[styles.subheading, { color: colors.accent }]}>Summarized:</Text>
-            <Text style={[styles.muted, { color: colors.muted }]}>{trend.summary}</Text>
-          </View>
-        )}
-        {trend && trend.sentiment && trend.sentiment.acknowledgement && (
-          <View style={{ marginTop: 8 }}>
-            <Text style={[styles.subheading, { color: colors.accent }]}>Compassionate Note:</Text>
-            <Text style={[styles.muted, { color: colors.muted }]}>{trend.sentiment.acknowledgement}</Text>
-          </View>
-        )}
-        {trend && trend.sentiment && Array.isArray(trend.sentiment.emotions) && trend.sentiment.emotions.length > 0 && (
-          <View style={{ marginTop: 12 }}>
-            <Text style={[styles.subheading, { color: colors.accent }]}>Emotions:</Text>
-            <View style={{ marginTop: 6, marginLeft: 12 }}>
-              {trend.sentiment.emotions.map((emotion: any, idx: number) => (
-                <View key={idx} style={{ marginBottom: 6 }}>
-                  <Text style={[styles.rowText, { color: colors.text }]}>{emotion.emotion}</Text>
-                  <View style={{ marginLeft: 12 }}>
-                    <Text style={styles.muted}>Intensity: <Text style={{ color: getIntensityColor(emotion.intensity) }}>{emotion.intensity}</Text></Text>
-                    {'trigger' in emotion && !!emotion.trigger && (<Text style={styles.muted}>Trigger: {emotion.trigger}</Text>)}
-                  </View>
+      {/* AI Insights Header */}
+      <Text style={[styles.sectionTitle, { color: colors.accent, textAlign: 'center', marginBottom: 16 }]}>AI Insights</Text>
+
+      {noInsights && (
+        <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+          <Text style={[styles.muted, { color: colors.muted, textAlign: 'center' }]}>No AI insights available for this entry yet.</Text>
+        </View>
+      )}
+
+      {trend && trend.summary && (
+        <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+          <Text style={[styles.subheading, { color: colors.accent }]}>Summary</Text>
+          <Text style={[styles.muted, { color: colors.muted, marginTop: 8 }]}>{trend.summary}</Text>
+        </View>
+      )}
+
+      {trend && trend.sentiment && trend.sentiment.acknowledgement && (
+        <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+          <Text style={[styles.subheading, { color: colors.accent }]}>Compassionate Note</Text>
+          <Text style={[styles.muted, { color: colors.muted, marginTop: 8 }]}>{trend.sentiment.acknowledgement}</Text>
+        </View>
+      )}
+
+      {trend && trend.sentiment && Array.isArray(trend.sentiment.emotions) && trend.sentiment.emotions.length > 0 && (
+        <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+          <Text style={[styles.subheading, { color: colors.accent }]}>Emotions</Text>
+          <View style={{ marginTop: 8, marginLeft: 12 }}>
+            {trend.sentiment.emotions.map((emotion: any, idx: number) => (
+              <View key={idx} style={{ marginBottom: 6 }}>
+                <Text style={[styles.rowText, { color: colors.text }]}>{emotion.emotion}</Text>
+                <View style={{ marginLeft: 12 }}>
+                  <Text style={styles.muted}>Intensity: <Text style={{ color: getIntensityColor(emotion.intensity) }}>{emotion.intensity}</Text></Text>
+                  {'trigger' in emotion && !!emotion.trigger && (<Text style={styles.muted}>Trigger: {emotion.trigger}</Text>)}
                 </View>
-              ))}
-            </View>
+              </View>
+            ))}
           </View>
-        )}
-        {trend && Array.isArray(trend.themes_topics) && trend.themes_topics.length > 0 && (
-          <View style={{ marginTop: 12 }}>
-            <Text style={[styles.subheading, { color: colors.accent }]}>Key Themes:</Text>
-            <View style={styles.badgeWrap}>
-              {trend.themes_topics.map((theme: any, idx: number) => (
-                <View key={idx} style={[styles.badge, { borderColor: colors.border, backgroundColor: colors.mutedBg }]}>
-                  <Text style={[styles.badgeText, { color: colors.text }]}>
-                    {theme.theme} <Text style={{ color: getSentimentColor(theme.sentiment_towards_theme) }}>({theme.sentiment_towards_theme})</Text>
-                  </Text>
-                </View>
-              ))}
-            </View>
+        </View>
+      )}
+
+      {trend && Array.isArray(trend.themes_topics) && trend.themes_topics.length > 0 && (
+        <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+          <Text style={[styles.subheading, { color: colors.accent }]}>Key Themes</Text>
+          <View style={[styles.badgeWrap, { marginTop: 8 }]}>
+            {trend.themes_topics.map((theme: any, idx: number) => (
+              <View key={idx} style={[styles.badge, { borderColor: colors.border, backgroundColor: colors.mutedBg }]}>
+                <Text style={[styles.badgeText, { color: colors.text }]}>
+                  {theme.theme} <Text style={{ color: getSentimentColor(theme.sentiment_towards_theme) }}>({theme.sentiment_towards_theme})</Text>
+                </Text>
+              </View>
+            ))}
           </View>
-        )}
-        {trend && trend.patterns && (
-          <View style={{ marginTop: 12 }}>
-            <Text style={[styles.subheading, { color: colors.accent }]}>Patterns</Text>
-            <View style={{ marginLeft: 6 }}>
-              {Array.isArray(trend.patterns.behavioral) && trend.patterns.behavioral.length > 0 && (
-                <View style={{ marginTop: 8 }}>
-                  <Text style={[styles.subheadingSmall, { color: colors.accent }]}>Behavioral</Text>
-                  {trend.patterns.behavioral.map((p: any, i: number) => (
-                    <Text key={`bp-${i}`} style={[styles.muted, { color: colors.muted }]}>• {p.pattern} ({p.frequency_indicator})</Text>
-                  ))}
-                </View>
-              )}
-              {Array.isArray(trend.patterns.cognitive) && trend.patterns.cognitive.length > 0 && (
-                <View style={{ marginTop: 8 }}>
-                  <Text style={[styles.subheadingSmall, { color: colors.accent }]}>Cognitive</Text>
-                  {trend.patterns.cognitive.map((p: any, i: number) => (
-                    <Text key={`cp-${i}`} style={[styles.muted, { color: colors.muted }]}>• {p.pattern}{p.example_phrase ? ` - "${p.example_phrase}"` : ''}</Text>
-                  ))}
-                </View>
-              )}
-              {Array.isArray(trend.patterns.temporal) && trend.patterns.temporal.length > 0 && (
-                <View style={{ marginTop: 8 }}>
-                  <Text style={[styles.subheadingSmall, { color: colors.accent }]}>Temporal</Text>
-                  {trend.patterns.temporal.map((p: any, i: number) => (
-                    <Text key={`tp-${i}`} style={[styles.muted, { color: colors.muted }]}>• {p.pattern} ({p.associated_time_period})</Text>
-                  ))}
-                </View>
-              )}
-            </View>
+        </View>
+      )}
+
+      {trend && trend.patterns && (
+        <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+          <Text style={[styles.subheading, { color: colors.accent }]}>Patterns</Text>
+          <View style={{ marginTop: 8, marginLeft: 6 }}>
+            {Array.isArray(trend.patterns.behavioral) && trend.patterns.behavioral.length > 0 && (
+              <View style={{ marginTop: 8 }}>
+                <Text style={[styles.subheadingSmall, { color: colors.accent }]}>Behavioral</Text>
+                {trend.patterns.behavioral.map((p: any, i: number) => (
+                  <Text key={`bp-${i}`} style={[styles.muted, { color: colors.muted }]}>• {p.pattern} ({p.frequency_indicator})</Text>
+                ))}
+              </View>
+            )}
+            {Array.isArray(trend.patterns.cognitive) && trend.patterns.cognitive.length > 0 && (
+              <View style={{ marginTop: 8 }}>
+                <Text style={[styles.subheadingSmall, { color: colors.accent }]}>Cognitive</Text>
+                {trend.patterns.cognitive.map((p: any, i: number) => (
+                  <Text key={`cp-${i}`} style={[styles.muted, { color: colors.muted }]}>• {p.pattern}{p.example_phrase ? ` - "${p.example_phrase}"` : ''}</Text>
+                ))}
+              </View>
+            )}
+            {Array.isArray(trend.patterns.temporal) && trend.patterns.temporal.length > 0 && (
+              <View style={{ marginTop: 8 }}>
+                <Text style={[styles.subheadingSmall, { color: colors.accent }]}>Temporal</Text>
+                {trend.patterns.temporal.map((p: any, i: number) => (
+                  <Text key={`tp-${i}`} style={[styles.muted, { color: colors.muted }]}>• {p.pattern} ({p.associated_time_period})</Text>
+                ))}
+              </View>
+            )}
           </View>
-        )}
-        {trend && trend.entities && (
-          <View style={{ marginTop: 12 }}>
-            <Text style={[styles.subheading, { color: colors.accent }]}>Entities</Text>
-            <View style={{ marginLeft: 12 }}>
-              {renderEntityGroup('People', trend.entities.people, colors.accent, colors)}
-              {renderEntityGroup('Organizations', trend.entities.organizations, colors.accent, colors)}
-              {renderEntityGroup('Locations', trend.entities.locations, colors.accent, colors)}
-              {renderEntityGroup('Events', trend.entities.events, colors.accent, colors)}
-              {renderEntityGroup('Products', trend.entities.products, colors.accent, colors)}
-            </View>
+        </View>
+      )}
+
+      {trend && trend.entities && (
+        <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+          <Text style={[styles.subheading, { color: colors.accent }]}>Entities</Text>
+          <View style={{ marginTop: 8, marginLeft: 12 }}>
+            {renderEntityGroup('People', trend.entities.people, colors.accent, colors)}
+            {renderEntityGroup('Organizations', trend.entities.organizations, colors.accent, colors)}
+            {renderEntityGroup('Locations', trend.entities.locations, colors.accent, colors)}
+            {renderEntityGroup('Events', trend.entities.events, colors.accent, colors)}
+            {renderEntityGroup('Products', trend.entities.products, colors.accent, colors)}
           </View>
-        )}
-        {trend && Array.isArray(trend.goals_aspirations) && trend.goals_aspirations.length > 0 && (
-          <View style={{ marginTop: 12 }}>
-            <Text style={[styles.subheading, { color: colors.accent }]}>Goals & Aspirations</Text>
-            <View style={{ marginLeft: 6 }}>
-              {trend.goals_aspirations.map((g: any, i: number) => (
-                <View key={`ga-${i}`} style={{ marginBottom: 6 }}>
-                  <Text style={[styles.rowText, { color: colors.text }]}>{g.goal}</Text>
-                  <Text style={[styles.muted, { color: colors.muted }]}>Status: {g.status}</Text>
-                  {'progress_indicator' in g && <Text style={[styles.muted, { color: colors.muted }]}>Progress: {g.progress_indicator}</Text>}
-                </View>
-              ))}
-            </View>
+        </View>
+      )}
+
+      {trend && Array.isArray(trend.goals_aspirations) && trend.goals_aspirations.length > 0 && (
+        <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+          <Text style={[styles.subheading, { color: colors.accent }]}>Goals & Aspirations</Text>
+          <View style={{ marginTop: 8, marginLeft: 6 }}>
+            {trend.goals_aspirations.map((g: any, i: number) => (
+              <View key={`ga-${i}`} style={{ marginBottom: 6 }}>
+                <Text style={[styles.rowText, { color: colors.text }]}>{g.goal}</Text>
+                <Text style={[styles.muted, { color: colors.muted }]}>Status: {g.status}</Text>
+                {'progress_indicator' in g && <Text style={[styles.muted, { color: colors.muted }]}>Progress: {g.progress_indicator}</Text>}
+              </View>
+            ))}
           </View>
-        )}
-        {trend && Array.isArray(trend.stressors_triggers) && trend.stressors_triggers.length > 0 && (
-          <View style={{ marginTop: 12 }}>
-            <Text style={[styles.subheading, { color: colors.accent }]}>Stressors & Triggers</Text>
-            <View style={{ marginLeft: 6 }}>
-              {trend.stressors_triggers.map((t: any, i: number) => (
-                <View key={`st-${i}`} style={{ marginBottom: 6 }}>
-                  <Text style={[styles.rowText, { color: colors.text }]}>{t.trigger}</Text>
-                  <Text style={[styles.muted, { color: colors.muted }]}>Impact: {t.impact_level}</Text>
-                  {'coping_mechanism_mentioned' in t && <Text style={[styles.muted, { color: colors.muted }]}>Coping: {t.coping_mechanism_mentioned}</Text>}
-                </View>
-              ))}
-            </View>
+        </View>
+      )}
+
+      {trend && Array.isArray(trend.stressors_triggers) && trend.stressors_triggers.length > 0 && (
+        <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+          <Text style={[styles.subheading, { color: colors.accent }]}>Stressors & Triggers</Text>
+          <View style={{ marginTop: 8, marginLeft: 6 }}>
+            {trend.stressors_triggers.map((t: any, i: number) => (
+              <View key={`st-${i}`} style={{ marginBottom: 6 }}>
+                <Text style={[styles.rowText, { color: colors.text }]}>{t.trigger}</Text>
+                <Text style={[styles.muted, { color: colors.muted }]}>Impact: {t.impact_level}</Text>
+                {'coping_mechanism_mentioned' in t && <Text style={[styles.muted, { color: colors.muted }]}>Coping: {t.coping_mechanism_mentioned}</Text>}
+              </View>
+            ))}
           </View>
-        )}
-        {trend && Array.isArray(trend.relationships_social_dynamics) && trend.relationships_social_dynamics.length > 0 && (
-          <View style={{ marginTop: 12 }}>
-            <Text style={[styles.subheading, { color: colors.accent }]}>Relationships & Social Dynamics</Text>
-            <View style={{ marginLeft: 6 }}>
-              {trend.relationships_social_dynamics.map((r: any, i: number) => (
-                <Text key={`rs-${i}`} style={[styles.muted, { color: colors.muted }]}>• {r.person_or_group}: {r.interaction_summary} <Text style={{ color: getSentimentColor(r.emotional_tone) }}>({r.emotional_tone})</Text></Text>
-              ))}
-            </View>
+        </View>
+      )}
+
+      {trend && Array.isArray(trend.relationships_social_dynamics) && trend.relationships_social_dynamics.length > 0 && (
+        <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+          <Text style={[styles.subheading, { color: colors.accent }]}>Relationships & Social Dynamics</Text>
+          <View style={{ marginTop: 8, marginLeft: 6 }}>
+            {trend.relationships_social_dynamics.map((r: any, i: number) => (
+              <Text key={`rs-${i}`} style={[styles.muted, { color: colors.muted }]}>• {r.person_or_group}: {r.interaction_summary} <Text style={{ color: getSentimentColor(r.emotional_tone) }}>({r.emotional_tone})</Text></Text>
+            ))}
           </View>
-        )}
-        {trend && Array.isArray(trend.health_wellbeing) && trend.health_wellbeing.length > 0 && (
-          <View style={{ marginTop: 12 }}>
-            <Text style={[styles.subheading, { color: colors.accent }]}>Health & Wellbeing</Text>
-            <View style={{ marginLeft: 6 }}>
-              {trend.health_wellbeing.map((h: any, i: number) => (
-                <Text key={`hw-${i}`} style={[styles.muted, { color: colors.muted }]}>• {healthWellbeingLabel(h.aspect)}: {h.status_or_change} (Mood Impact: <Text style={{ color: getSentimentColor(h.impact_on_mood) }}>{h.impact_on_mood}</Text>)</Text>
-              ))}
-            </View>
+        </View>
+      )}
+
+      {trend && Array.isArray(trend.health_wellbeing) && trend.health_wellbeing.length > 0 && (
+        <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+          <Text style={[styles.subheading, { color: colors.accent }]}>Health & Wellbeing</Text>
+          <View style={{ marginTop: 8, marginLeft: 6 }}>
+            {trend.health_wellbeing.map((h: any, i: number) => (
+              <Text key={`hw-${i}`} style={[styles.muted, { color: colors.muted }]}>• {healthWellbeingLabel(h.aspect)}: {h.status_or_change} (Mood Impact: <Text style={{ color: getSentimentColor(h.impact_on_mood) }}>{h.impact_on_mood}</Text>)</Text>
+            ))}
           </View>
-        )}
-        {trend && trend.creativity_expression && (
-          <View style={{ marginTop: 12 }}>
-            <Text style={[styles.subheading, { color: colors.accent }]}>Creativity & Expression</Text>
-            <View style={{ marginLeft: 6 }}>
-              {'readability' in trend.creativity_expression && <Text style={[styles.muted, { color: colors.muted }]}>• Readability: {trend.creativity_expression.readability}</Text>}
-              {'vocabulary_richness' in trend.creativity_expression && <Text style={[styles.muted, { color: colors.muted }]}>• Vocabulary Richness: {trend.creativity_expression.vocabulary_richness}</Text>}
-              {'writing_style' in trend.creativity_expression && <Text style={[styles.muted, { color: colors.muted }]}>• Writing Style: {trend.creativity_expression.writing_style}</Text>}
-            </View>
+        </View>
+      )}
+
+      {trend && trend.creativity_expression && (
+        <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+          <Text style={[styles.subheading, { color: colors.accent }]}>Creativity & Expression</Text>
+          <View style={{ marginTop: 8, marginLeft: 6 }}>
+            {'readability' in trend.creativity_expression && <Text style={[styles.muted, { color: colors.muted }]}>• Readability: {trend.creativity_expression.readability}</Text>}
+            {'vocabulary_richness' in trend.creativity_expression && <Text style={[styles.muted, { color: colors.muted }]}>• Vocabulary Richness: {trend.creativity_expression.vocabulary_richness}</Text>}
+            {'writing_style' in trend.creativity_expression && <Text style={[styles.muted, { color: colors.muted }]}>• Writing Style: {trend.creativity_expression.writing_style}</Text>}
           </View>
-        )}
-      </View>
+        </View>
+      )}
     </ScrollView>
   )
 }
