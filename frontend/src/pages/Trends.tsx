@@ -46,8 +46,10 @@ export function Trends() {
     return null;
   };
 
-  const handleDateChange = (value: Date) => {
-    setSelectedDate(value);
+  const handleDateChange = (value: Date | Date[] | null) => {
+    if (value instanceof Date) {
+      setSelectedDate(value);
+    }
   };
 
   const getJournaledDaysCount = () => {
@@ -55,10 +57,6 @@ export function Trends() {
     return Array.from(journalingDays.values()).filter(Boolean).length;
   };
 
-  const tileContent = ({ date, view }: { date: Date; view: string }) => {
-    // Remove tileContent to avoid duplicate dots - using only CSS class styling
-    return null;
-  };
 
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8">
