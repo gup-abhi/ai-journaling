@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { api, safeRequest } from '../lib/api'
+import { api, safeRequest, isApiErr } from '../lib/api'
 
 export type Goal = {
   _id: string
@@ -54,7 +54,7 @@ export const useGoalStore = create<GoalState>((set, get) => ({
       })
     } else {
       set({ isLoading: false })
-      throw new Error(response.error || 'Failed to add goal')
+      throw new Error(isApiErr(response) ? response.error : 'Failed to add goal')
     }
   },
 
@@ -65,7 +65,7 @@ export const useGoalStore = create<GoalState>((set, get) => ({
       set({ isLoading: false })
     } else {
       set({ isLoading: false })
-      throw new Error(response.error || 'Failed to update goal')
+      throw new Error(isApiErr(response) ? response.error : 'Failed to update goal')
     }
   },
 
@@ -80,7 +80,7 @@ export const useGoalStore = create<GoalState>((set, get) => ({
       })
     } else {
       set({ isLoading: false })
-      throw new Error(response.error || 'Failed to delete goal')
+      throw new Error(isApiErr(response) ? response.error : 'Failed to delete goal')
     }
   },
 

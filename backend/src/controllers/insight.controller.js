@@ -3,6 +3,56 @@ import mongoose from 'mongoose';
 import AppError from "../util/AppError.js";
 import logger from '../lib/logger.js';
 
+// Helper function to generate narrative summary
+const generateNarrativeSummary = ({ sentimentLabel, sentimentScore, percentageChange, period, sentimentDistribution, totalEntries }) => {
+    if (totalEntries === 0) {
+        return "Start journaling to see your personal insights and mood patterns.";
+    }
+
+    // Base sentiment description
+    let sentimentText = "";
+    switch (sentimentLabel) {
+        case 'positive':
+            sentimentText = "Your mood has been mostly positive";
+            break;
+        case 'negative':
+            sentimentText = "Your mood has been mostly negative";
+            break;
+        case 'mixed':
+            sentimentText = "Your mood has been mixed";
+            break;
+        default:
+            sentimentText = "Your mood has been mostly neutral";
+    }
+
+    // Add period context
+    const periodText = period === 'week' ? 'this week' : period === 'month' ? 'this month' : 'this year';
+
+    // Add trend context
+    let trendText = "";
+    if (Math.abs(percentageChange) >= 5) {
+        const direction = percentageChange > 0 ? 'improved' : 'declined';
+        trendText = ` and has ${direction} compared to last ${period}`;
+    }
+
+    // Add distribution context for more nuanced description
+    let distributionText = "";
+    const dominantPercentage = Math.max(sentimentDistribution.positive, sentimentDistribution.negative, sentimentDistribution.neutral, sentimentDistribution.mixed);
+    const dominantSentiment = Object.keys(sentimentDistribution).find(key => sentimentDistribution[key] === dominantPercentage);
+    
+    if (dominantPercentage >= 60) {
+        const sentimentWords = {
+            positive: 'positive and uplifting',
+            negative: 'challenging and difficult',
+            neutral: 'balanced and steady',
+            mixed: 'varied and complex'
+        };
+        distributionText = `, with ${sentimentWords[dominantSentiment]} entries`;
+    }
+
+    return `${sentimentText}${trendText}${distributionText} ${periodText}.`;
+};
+
 export const getSentimentTrendsByPeriod = async (req, res) => {
     const { _id: user_id } = req.user;
     const period = req.params.period;
@@ -1091,6 +1141,16 @@ export const getSentimentSummary = async (req, res) => {
             trendDescription = `${direction} ${change}% from last ${period}`;
         }
 
+        // Generate narrative summary
+        const narrativeSummary = generateNarrativeSummary({
+            sentimentLabel,
+            sentimentScore,
+            percentageChange,
+            period,
+            sentimentDistribution,
+            totalEntries
+        });
+
         res.status(200).json({
             period,
             sentiment: {
@@ -1107,7 +1167,8 @@ export const getSentimentSummary = async (req, res) => {
             trendData: trendData.map(item => ({
                 date: item.date,
                 value: Math.round(item.sentiment * 100) / 100
-            }))
+            })),
+            narrativeSummary
         });
 
     } catch (error) {

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator
 import { useThemeColors } from '../theme/colors'
 import { useRoute, useNavigation } from '@react-navigation/native'
 import { api, safeRequest } from '../lib/api'
-import { JournalTemplate } from '../types/JournalTemplate'
+import { JournalTemplate } from '../types/JournalTemplate.type'
 
 type JournalEntry = {
   _id: string

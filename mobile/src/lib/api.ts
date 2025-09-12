@@ -3,6 +3,10 @@ import { ENV } from '../config/env'
 import { getAuthTokens, removeAuthTokens, setAuthTokens } from './auth-tokens'
 import { useAuthStore } from '../stores/auth.store'
 import { resetToSignIn } from './navigation-service'
+import { ApiOk, ApiErr, ApiResult, isApiErr } from '../types/Api.type'
+
+// Re-export for convenience
+export { isApiErr, ApiOk, ApiErr, ApiResult }
 
 const BASE_URL = ENV.API_BASE
 
@@ -143,13 +147,6 @@ api.interceptors.response.use(
 )
 
 // Rest of your existing code...
-export type ApiOk<T> = { ok: true; status: number; data: T }
-export type ApiErr = { ok: false; status: number; error: string }
-export type ApiResult<T> = ApiOk<T> | ApiErr
-
-export function isApiErr<T>(res: ApiResult<T>): res is ApiErr {
-  return !res.ok
-}
 
 export async function safeRequest<T = any>(promise: Promise<AxiosResponse<T>>): Promise<ApiResult<T>> {
   try {
@@ -162,56 +159,4 @@ export async function safeRequest<T = any>(promise: Promise<AxiosResponse<T>>): 
     const message = (data && (data.message || data.error)) || e.message || 'Request failed'
     return { ok: false, status, error: String(message) }
   }
-}
-
-// Sentiment Summary API
-export type SentimentSummaryData = {
-  period: string
-  sentiment: {
-    label: 'positive' | 'negative' | 'neutral' | 'mixed'
-    score: number
-    percentage: number
-    trend: {
-      percentageChange: number
-      description: string
-    }
-  }
-  distribution: {
-    positive: number
-    negative: number
-    neutral: number
-    mixed: number
-  }
-  totalEntries: number
-  trendData: Array<{
-    date: string
-    value: number
-  }>
-}
-
-export async function getSentimentSummary(period: 'week' | 'month' | 'year' = 'week'): Promise<ApiResult<SentimentSummaryData>> {
-  return safeRequest(api.get(`/ai-insights/sentiment-summary/period/${period}`))
-}
-
-// Top Themes API
-export type TopTheme = {
-  theme: string
-  frequency: number
-  dominant_sentiment: 'positive' | 'negative' | 'neutral' | 'mixed'
-  sentiment_breakdown: {
-    positive: number
-    negative: number
-    neutral: number
-    mixed: number
-  }
-}
-
-export type TopThemesData = {
-  user_id: string
-  period: string
-  top_themes: TopTheme[]
-}
-
-export async function getTopThemes(period: 'week' | 'month' | 'year' = 'week', limit: number = 10): Promise<ApiResult<TopThemesData>> {
-  return safeRequest(api.get(`/ai-insights/trends/keyThemes/period/${period}?limit=${limit}`))
 }

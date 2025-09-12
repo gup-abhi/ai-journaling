@@ -12,7 +12,7 @@ import { useThemeColors } from '../theme/colors'
 import { useJournalStore } from '../stores/journal.store'
 import { Feather } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
-import { JournalTemplate } from '../types/JournalTemplate'
+import { JournalTemplate } from '../types/JournalTemplate.type'
 
 export default function JournalTemplates() {
   const colors = useThemeColors()

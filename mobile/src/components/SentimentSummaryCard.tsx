@@ -2,7 +2,7 @@ import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { useThemeColors } from '../theme/colors'
 import InsightCard, { InsightCardProps } from './InsightCard'
-import { SentimentSummaryData } from '../lib/api'
+import { SentimentSummaryData } from '../types/Sentiment.type'
 
 interface SentimentSummaryCardProps {
   data: SentimentSummaryData

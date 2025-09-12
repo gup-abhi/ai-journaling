@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { api, ApiErr, safeRequest } from '../lib/api'
-import { JournalTemplate } from '../types/JournalTemplate'
+import { JournalTemplate } from '../types/JournalTemplate.type'
 
 export type JournalEntry = {
   _id: string

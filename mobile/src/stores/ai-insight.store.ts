@@ -1,5 +1,7 @@
 import { create } from 'zustand'
-import { api, safeRequest } from '../lib/api'
+import { api, safeRequest, isApiErr } from '../lib/api'
+import { SentimentSummaryData } from '../types/Sentiment.type'
+import { TopThemesData } from '../types/Themes.type'
 
 type Period = 'week' | 'month' | 'year'
 
@@ -35,6 +37,9 @@ type AiInsightState = {
   entitySentimentTreemap: any[]
   cognitivePatternFrequency: any[]
   topStressors: any[]
+  // New sentiment summary and themes data
+  sentimentSummaryData: SentimentSummaryData | null
+  topThemesData: TopThemesData | null
   isSentimentLoading: boolean
   isThemesLoading: boolean
   isEmotionDistributionLoading: boolean
@@ -44,6 +49,9 @@ type AiInsightState = {
   isEntitySentimentLoading: boolean
   isCognitivePatternLoading: boolean
   isTopStressorsLoading: boolean
+  // New loading states
+  isSentimentSummaryLoading: boolean
+  isTopThemesDataLoading: boolean
   fetchMoodTrends: (period?: string) => Promise<void>
   fetchSentimentTrends: (period: Period) => Promise<void>
   fetchTopThemes: (period: Period, limit: number) => Promise<void>
@@ -54,6 +62,9 @@ type AiInsightState = {
   fetchEntitySentimentTreemap: (period: Period, limit: number) => Promise<void>
   fetchCognitivePatternFrequency: (period: Period, limit: number) => Promise<void>
   fetchTopStressors: (period: Period, limit: number) => Promise<void>
+  // New functions for sentiment summary and top themes
+  fetchSentimentSummary: (period: Period) => Promise<void>
+  fetchTopThemesData: (period: Period, limit?: number) => Promise<void>
 }
 
 export const useAiInsightStore = create<AiInsightState>((set) => ({
@@ -71,6 +82,9 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
   entitySentimentTreemap: [],
   cognitivePatternFrequency: [],
   topStressors: [],
+  // New data fields
+  sentimentSummaryData: null,
+  topThemesData: null,
   isSentimentLoading: false,
   isThemesLoading: false,
   isEmotionDistributionLoading: false,
@@ -80,6 +94,9 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
   isEntitySentimentLoading: false,
   isCognitivePatternLoading: false,
   isTopStressorsLoading: false,
+  // New loading states
+  isSentimentSummaryLoading: false,
+  isTopThemesDataLoading: false,
 
   fetchMoodTrends: async (period?: string) => {
     const res = await safeRequest(api.get('/ai-insights/trends/overall'))
@@ -181,6 +198,39 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
       set({ topStressors: res.data.top_stressors, isTopStressorsLoading: false })
     } else {
       set({ topStressors: [], isTopStressorsLoading: false })
+    }
+  },
+
+  // New functions for sentiment summary and top themes
+  fetchSentimentSummary: async (period: Period) => {
+    set({ isSentimentSummaryLoading: true })
+    try {
+      const result = await safeRequest(api.get(`/ai-insights/sentiment-summary/period/${period}`))
+      if (result.ok) {
+        set({ sentimentSummaryData: result.data, isSentimentSummaryLoading: false })
+      } else if (isApiErr(result)) {
+        console.error('Failed to fetch sentiment summary:', result.error)
+        set({ sentimentSummaryData: null, isSentimentSummaryLoading: false })
+      }
+    } catch (error) {
+      console.error('Error fetching sentiment summary:', error)
+      set({ sentimentSummaryData: null, isSentimentSummaryLoading: false })
+    }
+  },
+
+  fetchTopThemesData: async (period: Period, limit: number = 10) => {
+    set({ isTopThemesDataLoading: true })
+    try {
+      const result = await safeRequest(api.get(`/ai-insights/trends/keyThemes/period/${period}?limit=${limit}`))
+      if (result.ok) {
+        set({ topThemesData: result.data, isTopThemesDataLoading: false })
+      } else if (isApiErr(result)) {
+        console.error('Failed to fetch top themes data:', result.error)
+        set({ topThemesData: null, isTopThemesDataLoading: false })
+      }
+    } catch (error) {
+      console.error('Error fetching top themes data:', error)
+      set({ topThemesData: null, isTopThemesDataLoading: false })
     }
   },
 }))

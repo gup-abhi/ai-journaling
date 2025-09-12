@@ -3,17 +3,22 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator
 import { useThemeColors } from '../theme/colors'
 import { Calendar } from 'react-native-calendars'
 import { useStreakStore } from '../stores/streak.store'
-import { getSentimentSummary, type SentimentSummaryData, getTopThemes, type TopThemesData, isApiErr } from '../lib/api'
+import { useAiInsightStore } from '../stores/ai-insight.store'
 import SentimentSummaryCard from '../components/SentimentSummaryCard'
+import NarrativeSummary from '../components/NarrativeSummary'
 import Toast from 'react-native-simple-toast'
 
 export default function Trends() {
   const colors = useThemeColors()
   const { journalingDays, getStreakData } = useStreakStore()
-  const [sentimentData, setSentimentData] = useState<SentimentSummaryData | null>(null)
-  const [isLoadingSentiment, setIsLoadingSentiment] = useState(false)
-  const [topThemesData, setTopThemesData] = useState<TopThemesData | null>(null)
-  const [isLoadingThemes, setIsLoadingThemes] = useState(false)
+  const {
+    sentimentSummaryData,
+    topThemesData,
+    isSentimentSummaryLoading,
+    isTopThemesDataLoading,
+    fetchSentimentSummary,
+    fetchTopThemesData
+  } = useAiInsightStore()
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'year'>('week')
 
   useEffect(() => {
@@ -21,75 +26,10 @@ export default function Trends() {
   }, [])
 
   useEffect(() => {
-    fetchSentimentData()
-    fetchTopThemes()
-  }, [selectedPeriod])
+    fetchSentimentSummary(selectedPeriod)
+    fetchTopThemesData(selectedPeriod, 8)
+  }, [selectedPeriod, fetchSentimentSummary, fetchTopThemesData])
 
-  const fetchSentimentData = async () => {
-    setIsLoadingSentiment(true)
-    try {
-      const result = await getSentimentSummary(selectedPeriod)
-      if (result.ok) {
-        // Validate the data structure before setting it
-        if (result.data && result.data.sentiment && result.data.sentiment.label) {
-          setSentimentData(result.data)
-        } else {
-          console.error('Invalid sentiment data structure:', result.data)
-          setSentimentData(null)
-          Toast.show('Unable to load sentiment data. Please try again.', Toast.SHORT)
-        }
-      } else if (isApiErr(result)) {
-        console.error('Failed to fetch sentiment data:', result.error)
-        setSentimentData(null)
-        
-        // Show user-friendly toast based on error type
-        if (result.status === 401) {
-          Toast.show('Please sign in again to view your trends', Toast.SHORT)
-        } else if (result.status >= 500) {
-          Toast.show('Server error. Please try again later.', Toast.SHORT)
-        } else if (result.status === 404) {
-          Toast.show('No sentiment data available for this period', Toast.SHORT)
-        } else {
-          Toast.show('Unable to load sentiment data. Please try again.', Toast.SHORT)
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching sentiment data:', error)
-      setSentimentData(null)
-      Toast.show('Network error. Please check your connection.', Toast.SHORT)
-    } finally {
-      setIsLoadingSentiment(false)
-    }
-  }
-
-  const fetchTopThemes = async () => {
-    setIsLoadingThemes(true)
-    try {
-      const result = await getTopThemes(selectedPeriod, 8)
-      if (result.ok) {
-        setTopThemesData(result.data)
-      } else if (isApiErr(result)) {
-        console.error('Failed to fetch top themes:', result.error)
-        setTopThemesData(null)
-        
-        if (result.status === 401) {
-          Toast.show('Please sign in again to view your themes', Toast.SHORT)
-        } else if (result.status >= 500) {
-          Toast.show('Server error. Please try again later.', Toast.SHORT)
-        } else if (result.status === 404) {
-          Toast.show('No themes data available for this period', Toast.SHORT)
-        } else {
-          Toast.show('Unable to load themes data. Please try again.', Toast.SHORT)
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching themes data:', error)
-      setTopThemesData(null)
-      Toast.show('Network error. Please check your connection.', Toast.SHORT)
-    } finally {
-      setIsLoadingThemes(false)
-    }
-  }
 
   const getSentimentColor = (sentiment: 'positive' | 'negative' | 'neutral' | 'mixed') => {
     switch (sentiment) {
@@ -121,8 +61,8 @@ export default function Trends() {
 
   const handlePeriodChange = (period: 'week' | 'month' | 'year') => {
     setSelectedPeriod(period)
-    fetchSentimentData()
-    fetchTopThemes()
+    fetchSentimentSummary(period)
+    fetchTopThemesData(period, 8)
   }
 
 
@@ -200,15 +140,39 @@ export default function Trends() {
       {/* Period Selector */}
       {renderPeriodSelector()}
 
+      {/* Narrative Summary */}
+      {isSentimentSummaryLoading ? (
+        <View style={[styles.loadingContainer, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+          <ActivityIndicator size="small" color={colors.accent} />
+          <Text style={[styles.loadingText, { color: colors.text }]}>Loading your story...</Text>
+        </View>
+      ) : sentimentSummaryData && sentimentSummaryData.narrativeSummary ? (
+        <NarrativeSummary 
+          summary={sentimentSummaryData.narrativeSummary}
+          onPress={() => {
+            Toast.show('Narrative insights help you understand your emotional patterns!', Toast.SHORT)
+          }}
+        />
+      ) : sentimentSummaryData && !sentimentSummaryData.narrativeSummary ? (
+        <View style={[styles.errorContainer, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+          <Text style={[styles.errorText, { color: colors.muted }]}>
+            Unable to generate narrative summary
+          </Text>
+          <Text style={[styles.errorSubtext, { color: colors.muted }]}>
+            Try refreshing or check back later
+          </Text>
+        </View>
+      ) : null}
+
       {/* Sentiment Summary Card */}
-      {isLoadingSentiment ? (
+      {isSentimentSummaryLoading ? (
         <View style={[styles.loadingContainer, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
           <ActivityIndicator size="small" color={colors.accent} />
           <Text style={[styles.loadingText, { color: colors.text }]}>Loading sentiment data...</Text>
         </View>
-      ) : sentimentData ? (
+      ) : sentimentSummaryData ? (
         <SentimentSummaryCard 
-          data={sentimentData} 
+          data={sentimentSummaryData} 
           onPress={() => {
             // Could navigate to detailed sentiment view
             Toast.show('Sentiment details coming soon!', Toast.SHORT)
@@ -226,7 +190,7 @@ export default function Trends() {
       )}
 
       {/* Top Themes Card */}
-      {isLoadingThemes ? (
+      {isTopThemesDataLoading ? (
         <View style={[styles.loadingContainer, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
           <ActivityIndicator size="small" color={colors.accent} />
           <Text style={[styles.loadingText, { color: colors.text }]}>Loading themes data...</Text>
