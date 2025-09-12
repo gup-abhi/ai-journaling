@@ -192,3 +192,26 @@ export type SentimentSummaryData = {
 export async function getSentimentSummary(period: 'week' | 'month' | 'year' = 'week'): Promise<ApiResult<SentimentSummaryData>> {
   return safeRequest(api.get(`/ai-insights/sentiment-summary/period/${period}`))
 }
+
+// Top Themes API
+export type TopTheme = {
+  theme: string
+  frequency: number
+  dominant_sentiment: 'positive' | 'negative' | 'neutral' | 'mixed'
+  sentiment_breakdown: {
+    positive: number
+    negative: number
+    neutral: number
+    mixed: number
+  }
+}
+
+export type TopThemesData = {
+  user_id: string
+  period: string
+  top_themes: TopTheme[]
+}
+
+export async function getTopThemes(period: 'week' | 'month' | 'year' = 'week', limit: number = 10): Promise<ApiResult<TopThemesData>> {
+  return safeRequest(api.get(`/ai-insights/trends/keyThemes/period/${period}?limit=${limit}`))
+}

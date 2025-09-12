@@ -202,6 +202,7 @@ export const getKeyThemesByPeriod = async (req, res) => {
         $group: {
           _id: "$themes_topics.theme",
           count: { $sum: 1 }, // frequency of each theme
+          sentiments: { $push: "$themes_topics.sentiment_towards_theme" }, // collect all sentiments for this theme
         },
       },
       { $sort: { count: -1 } },
@@ -211,6 +212,49 @@ export const getKeyThemesByPeriod = async (req, res) => {
           _id: 0,
           theme: "$_id",
           frequency: "$count",
+          dominant_sentiment: {
+            $let: {
+              vars: {
+                sentimentCounts: {
+                  $reduce: {
+                    input: "$sentiments",
+                    initialValue: { positive: 0, negative: 0, neutral: 0, mixed: 0 },
+                    in: {
+                      positive: { $add: ["$$value.positive", { $cond: [{ $eq: ["$$this", "positive"] }, 1, 0] }] },
+                      negative: { $add: ["$$value.negative", { $cond: [{ $eq: ["$$this", "negative"] }, 1, 0] }] },
+                      neutral: { $add: ["$$value.neutral", { $cond: [{ $eq: ["$$this", "neutral"] }, 1, 0] }] },
+                      mixed: { $add: ["$$value.mixed", { $cond: [{ $eq: ["$$this", "mixed"] }, 1, 0] }] },
+                    }
+                  }
+                }
+              },
+              in: {
+                $switch: {
+                  branches: [
+                    { 
+                      case: { $gt: ["$$sentimentCounts.positive", { $max: ["$$sentimentCounts.negative", "$$sentimentCounts.neutral", "$$sentimentCounts.mixed"] }] }, 
+                      then: "positive" 
+                    },
+                    { 
+                      case: { $gt: ["$$sentimentCounts.negative", { $max: ["$$sentimentCounts.positive", "$$sentimentCounts.neutral", "$$sentimentCounts.mixed"] }] }, 
+                      then: "negative" 
+                    },
+                    { 
+                      case: { $gt: ["$$sentimentCounts.mixed", { $max: ["$$sentimentCounts.positive", "$$sentimentCounts.negative", "$$sentimentCounts.neutral"] }] }, 
+                      then: "mixed" 
+                    }
+                  ],
+                  default: "neutral"
+                }
+              }
+            }
+          },
+          sentiment_breakdown: {
+            positive: { $reduce: { input: "$sentiments", initialValue: 0, in: { $add: ["$$value", { $cond: [{ $eq: ["$$this", "positive"] }, 1, 0] }] } } },
+            negative: { $reduce: { input: "$sentiments", initialValue: 0, in: { $add: ["$$value", { $cond: [{ $eq: ["$$this", "negative"] }, 1, 0] }] } } },
+            neutral: { $reduce: { input: "$sentiments", initialValue: 0, in: { $add: ["$$value", { $cond: [{ $eq: ["$$this", "neutral"] }, 1, 0] }] } } },
+            mixed: { $reduce: { input: "$sentiments", initialValue: 0, in: { $add: ["$$value", { $cond: [{ $eq: ["$$this", "mixed"] }, 1, 0] }] } } }
+          }
         },
       },
     ]);

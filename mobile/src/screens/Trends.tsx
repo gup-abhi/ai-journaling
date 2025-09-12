@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator
 import { useThemeColors } from '../theme/colors'
 import { Calendar } from 'react-native-calendars'
 import { useStreakStore } from '../stores/streak.store'
-import { getSentimentSummary, type SentimentSummaryData, isApiErr } from '../lib/api'
+import { getSentimentSummary, type SentimentSummaryData, getTopThemes, type TopThemesData, isApiErr } from '../lib/api'
 import SentimentSummaryCard from '../components/SentimentSummaryCard'
 import Toast from 'react-native-simple-toast'
 
@@ -12,6 +12,8 @@ export default function Trends() {
   const { journalingDays, getStreakData } = useStreakStore()
   const [sentimentData, setSentimentData] = useState<SentimentSummaryData | null>(null)
   const [isLoadingSentiment, setIsLoadingSentiment] = useState(false)
+  const [topThemesData, setTopThemesData] = useState<TopThemesData | null>(null)
+  const [isLoadingThemes, setIsLoadingThemes] = useState(false)
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'year'>('week')
 
   useEffect(() => {
@@ -20,6 +22,7 @@ export default function Trends() {
 
   useEffect(() => {
     fetchSentimentData()
+    fetchTopThemes()
   }, [selectedPeriod])
 
   const fetchSentimentData = async () => {
@@ -59,9 +62,67 @@ export default function Trends() {
     }
   }
 
+  const fetchTopThemes = async () => {
+    setIsLoadingThemes(true)
+    try {
+      const result = await getTopThemes(selectedPeriod, 8)
+      if (result.ok) {
+        setTopThemesData(result.data)
+      } else if (isApiErr(result)) {
+        console.error('Failed to fetch top themes:', result.error)
+        setTopThemesData(null)
+        
+        if (result.status === 401) {
+          Toast.show('Please sign in again to view your themes', Toast.SHORT)
+        } else if (result.status >= 500) {
+          Toast.show('Server error. Please try again later.', Toast.SHORT)
+        } else if (result.status === 404) {
+          Toast.show('No themes data available for this period', Toast.SHORT)
+        } else {
+          Toast.show('Unable to load themes data. Please try again.', Toast.SHORT)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching themes data:', error)
+      setTopThemesData(null)
+      Toast.show('Network error. Please check your connection.', Toast.SHORT)
+    } finally {
+      setIsLoadingThemes(false)
+    }
+  }
+
+  const getSentimentColor = (sentiment: 'positive' | 'negative' | 'neutral' | 'mixed') => {
+    switch (sentiment) {
+      case 'positive':
+        return '#10B981' // green
+      case 'negative':
+        return '#EF4444' // red
+      case 'mixed':
+        return '#F59E0B' // amber
+      case 'neutral':
+      default:
+        return '#EAB308' // yellow
+    }
+  }
+
+  const getSentimentBackgroundColor = (sentiment: 'positive' | 'negative' | 'neutral' | 'mixed') => {
+    switch (sentiment) {
+      case 'positive':
+        return '#10B98120' // green with opacity
+      case 'negative':
+        return '#EF444420' // red with opacity
+      case 'mixed':
+        return '#F59E0B20' // amber with opacity
+      case 'neutral':
+      default:
+        return '#EAB30820' // yellow with opacity
+    }
+  }
+
   const handlePeriodChange = (period: 'week' | 'month' | 'year') => {
     setSelectedPeriod(period)
     fetchSentimentData()
+    fetchTopThemes()
   }
 
 
@@ -160,6 +221,59 @@ export default function Trends() {
           </Text>
           <Text style={[styles.errorSubtext, { color: colors.muted }]}>
             Start journaling to see your sentiment trends
+          </Text>
+        </View>
+      )}
+
+      {/* Top Themes Card */}
+      {isLoadingThemes ? (
+        <View style={[styles.loadingContainer, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+          <ActivityIndicator size="small" color={colors.accent} />
+          <Text style={[styles.loadingText, { color: colors.text }]}>Loading themes data...</Text>
+        </View>
+      ) : topThemesData && topThemesData.top_themes.length > 0 ? (
+        <View style={[styles.card, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+          <Text style={[styles.cardTitle, { color: colors.accent }]}>Top Themes</Text>
+          <View style={styles.themesContainer}>
+            {topThemesData.top_themes.map((theme, index) => (
+              <TouchableOpacity
+                key={`${theme.theme}-${index}`}
+                style={[
+                  styles.themeTag, 
+                  { 
+                    backgroundColor: getSentimentBackgroundColor(theme.dominant_sentiment), 
+                    borderColor: getSentimentColor(theme.dominant_sentiment) 
+                  }
+                ]}
+                onPress={() => {
+                  const sentimentBreakdown = Object.entries(theme.sentiment_breakdown)
+                    .filter(([_, count]) => count > 0)
+                    .map(([sentiment, count]) => `${sentiment}: ${count}`)
+                    .join(', ')
+                  Toast.show(
+                    `${theme.theme}\nMentions: ${theme.frequency}\nSentiment: ${theme.dominant_sentiment}\nBreakdown: ${sentimentBreakdown}`, 
+                    Toast.LONG
+                  )
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.themeText, { color: getSentimentColor(theme.dominant_sentiment) }]}>
+                  {theme.theme}
+                </Text>
+                <Text style={[styles.themeFrequency, { color: colors.muted }]}>
+                  {theme.frequency}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      ) : (
+        <View style={[styles.errorContainer, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
+          <Text style={[styles.errorText, { color: colors.muted }]}>
+            No themes data available
+          </Text>
+          <Text style={[styles.errorSubtext, { color: colors.muted }]}>
+            Start journaling to see your recurring themes
           </Text>
         </View>
       )}
@@ -281,5 +395,34 @@ const styles = StyleSheet.create({
   errorSubtext: {
     fontSize: 12,
     textAlign: 'center',
+  },
+  themesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+  },
+  themeTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    marginBottom: 4,
+  },
+  themeText: {
+    fontSize: 12,
+    fontWeight: '500',
+    marginRight: 6,
+  },
+  themeFrequency: {
+    fontSize: 10,
+    fontWeight: '600',
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
 })

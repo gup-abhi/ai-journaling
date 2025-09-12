@@ -35,7 +35,7 @@ export default function SentimentSummaryCard({ data, onPress }: SentimentSummary
       case 'positive': return '#10B981' // green
       case 'negative': return '#EF4444' // red
       case 'mixed': return '#F59E0B' // amber
-      default: return colors.muted // neutral
+      default: return '#EAB308' // yellow for neutral
     }
   }
   
@@ -100,28 +100,42 @@ export default function SentimentSummaryCard({ data, onPress }: SentimentSummary
     <View>
       <InsightCard {...cardProps}>
         <View style={styles.distributionContainer}>
-          <Text style={[styles.distributionTitle, { color: colors.text }]}>
+          <Text style={[styles.distributionTitle, { color: colors.muted }]}>
             Sentiment Distribution
           </Text>
           <View style={styles.distributionBars}>
-            {Object.entries(distribution).map(([sentiment, percentage]) => (
-              <View key={sentiment} style={styles.distributionItem}>
+            {Object.entries(distribution)
+              .filter(([_, percentage]) => percentage > 0).length > 0 ? (
+              Object.entries(distribution)
+                .filter(([_, percentage]) => percentage > 0) // Only show sentiments with > 0%
+                .map(([sentiment, percentage]) => (
+                <View key={sentiment} style={styles.distributionItem}>
                 <View style={styles.distributionBarContainer}>
-                  <View 
-                    style={[
-                      styles.distributionBar, 
-                      { 
-                        backgroundColor: getSentimentColor(sentiment),
-                        width: `${percentage}%`
-                      }
-                    ]} 
-                  />
+                    <View 
+                      style={[
+                        styles.distributionBar, 
+                        { 
+                          backgroundColor: getSentimentColor(sentiment),
+                          width: `${Math.max(percentage, 2)}%` // Ensure minimum 2% width for visibility
+                        }
+                      ]} 
+                    />
+                    {percentage < 5 && (
+                      <View style={styles.smallPercentageIndicator}>
+                        <Text style={styles.smallPercentageText}>•</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={[styles.distributionLabel, { color: getSentimentColor(sentiment) }]}>
+                    {sentiment.charAt(0).toUpperCase() + sentiment.slice(1)} {percentage}%
+                  </Text>
                 </View>
-                <Text style={[styles.distributionLabel, { color: colors.muted }]}>
-                  {sentiment.charAt(0).toUpperCase() + sentiment.slice(1)} {percentage}%
-                </Text>
-              </View>
-            ))}
+              ))
+            ) : (
+              <Text style={[styles.noDataText, { color: colors.muted }]}>
+                No sentiment data available
+              </Text>
+            )}
           </View>
           <Text style={[styles.entriesCount, { color: colors.muted }]}>
             Based on {totalEntries} journal entries
@@ -151,24 +165,52 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   distributionBarContainer: {
-    height: 6,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 3,
-    marginBottom: 2,
+    height: 10,
+    borderRadius: 5,
+    marginBottom: 4,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.1)',
   },
   distributionBar: {
     height: '100%',
-    borderRadius: 3,
+    borderRadius: 4,
+    minWidth: 3, // Ensure very small percentages are still visible
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 1,
+    elevation: 2,
   },
   distributionLabel: {
-    fontSize: 11,
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 2,
   },
   entriesCount: {
     fontSize: 10,
     fontStyle: 'italic',
     textAlign: 'center',
+  },
+  smallPercentageIndicator: {
+    position: 'absolute',
+    right: 4,
+    top: '50%',
+    transform: [{ translateY: -6 }],
+  },
+  smallPercentageText: {
+    color: '#6B7280',
+    fontSize: 8,
+    fontWeight: 'bold',
+  },
+  noDataText: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginVertical: 8,
   },
   errorCard: {
     borderWidth: 1,
