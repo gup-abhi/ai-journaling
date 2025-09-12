@@ -4,6 +4,7 @@ import { Feather } from '@expo/vector-icons'
 import { useThemeColors } from '../theme/colors'
 import { useJournalStore } from '../stores/journal.store'
 import { useNavigation, useFocusEffect } from '@react-navigation/native'
+import Header from '../components/Header'
 
 export default function Journals() {
   const {
@@ -165,21 +166,14 @@ export default function Journals() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => nav.goBack()}
-        >
-          <Feather name="arrow-left" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Journals</Text>
-        <TouchableOpacity
-          style={styles.filterButton}
-          onPress={() => setShowDatePicker(true)}
-        >
-          <Feather name="filter" size={20} color={colors.text} />
-        </TouchableOpacity>
-      </View>
+      <Header
+        title="Journals"
+        rightButton={{
+          icon: 'filter',
+          onPress: () => setShowDatePicker(true),
+          accessibilityLabel: 'Filter journals'
+        }}
+      />
 
       <View style={styles.headingContainer}>
         <Text style={[styles.mainHeading, { color: colors.text }]}>Your Journal Entries</Text>
@@ -513,25 +507,6 @@ const styles = StyleSheet.create({
   container: { 
     flex: 1, 
     paddingTop: 48 
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  backButton: {
-    padding: 8,
-  },
-  title: { 
-    fontSize: 20, 
-    fontWeight: '700' 
-  },
-  placeholder: {
-    width: 40,
   },
   headingContainer: {
     paddingHorizontal: 16,

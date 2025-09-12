@@ -13,6 +13,7 @@ import { Feather } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { useThemeColors } from '../theme/colors'
 import { useGoalStore } from '../stores/goal.store'
+import Header from '../components/Header'
 
 export default function NewGoal() {
   const colors = useThemeColors()
@@ -58,17 +59,11 @@ export default function NewGoal() {
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={[styles.backButton, { borderColor: colors.border }]}
-            onPress={() => nav.goBack()}
-          >
-            <Feather name="arrow-left" size={20} color={colors.text} />
-          </TouchableOpacity>
-          <Text style={[styles.title, { color: colors.text }]}>New Goal</Text>
-          <View style={{ width: 40 }} /> {/* Spacer for centering */}
-        </View>
+        <Header
+          title="New Goal"
+          showBackButton={true}
+          onBackPress={() => nav.goBack()}
+        />
 
         {/* Form */}
         <View style={[styles.formContainer, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
@@ -172,24 +167,6 @@ function ProgressButton({ option, progress, colors, onPress }: {
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: 48 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-  },
-  title: { fontSize: 20, fontWeight: '700' },
 
   formContainer: {
     margin: 16,

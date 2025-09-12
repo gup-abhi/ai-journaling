@@ -12,6 +12,7 @@ import { useJournalStore } from '../stores/journal.store'
 import { useNavigation } from '@react-navigation/native'
 import { useThemeColors } from '../theme/colors'
 import { Feather } from '@expo/vector-icons'
+import Header from '../components/Header'
 
 export default function NewJournalEntry() {
   const {
@@ -117,21 +118,16 @@ export default function NewJournalEntry() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.navigate('Root', { screen: 'Dashboard' })}
-        >
-          <Feather name="arrow-left" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>New Journal Entry</Text>
-        <TouchableOpacity
-          style={[styles.templatesButton, { backgroundColor: colors.accent }]}
-          onPress={() => navigation.navigate('JournalTemplates')}
-        >
-          <Feather name="file-text" size={16} color={colors.background} />
-        </TouchableOpacity>
-      </View>
+      <Header
+        title="New Journal Entry"
+        showBackButton={true}
+        onBackPress={() => navigation.navigate('Root', { screen: 'Dashboard' })}
+        rightButton={{
+          icon: 'file-text',
+          onPress: () => navigation.navigate('JournalTemplates'),
+          accessibilityLabel: 'Select template'
+        }}
+      />
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {selectedTemplate && (
@@ -247,26 +243,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 48,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  backButton: {
-    padding: 8,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  templatesButton: {
-    padding: 8,
-    borderRadius: 8,
   },
   scrollView: {
     flex: 1,

@@ -13,6 +13,7 @@ import { useJournalStore } from '../stores/journal.store'
 import { Feather } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { JournalTemplate } from '../types/JournalTemplate.type'
+import Header from '../components/Header'
 
 export default function JournalTemplates() {
   const colors = useThemeColors()
@@ -98,16 +99,11 @@ export default function JournalTemplates() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Feather name="arrow-left" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Journal Templates</Text>
-        <View style={styles.placeholder} />
-      </View>
+      <Header
+        title="Journal Templates"
+        showBackButton={true}
+        onBackPress={() => navigation.goBack()}
+      />
 
       <ScrollView 
         style={styles.scrollView}
@@ -138,25 +134,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 48,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  backButton: {
-    padding: 8,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  placeholder: {
-    width: 40,
   },
   loadingContainer: {
     flex: 1,

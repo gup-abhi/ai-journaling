@@ -9,6 +9,7 @@ import { useAiInsightStore } from '../stores/ai-insight.store'
 import SentimentSummaryCard from '../components/SentimentSummaryCard'
 import NarrativeSummary from '../components/NarrativeSummary'
 import Toast from 'react-native-simple-toast'
+import Header from '../components/Header'
 
 export default function Trends() {
   const colors = useThemeColors()
@@ -389,16 +390,14 @@ export default function Trends() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>Trends & Insights</Text>
-      </View>
+      <Header title="Trends & Insights" />
       
       <FlatList
         data={getTrendsData()}
         keyExtractor={(item) => item.id}
         renderItem={renderTrendsItem}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[styles.contentContainer, { marginTop: 20 }]}
       />
     </View>
   )
@@ -419,18 +418,6 @@ const styles = StyleSheet.create({
   },
   periodSelectorContainer: {
     marginBottom: 8,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
-  },
-  title: { 
-    fontSize: 28, 
-    fontWeight: '800', 
-    marginBottom: 16,
-    textAlign: 'center'
   },
   card: { 
     borderWidth: 1, 

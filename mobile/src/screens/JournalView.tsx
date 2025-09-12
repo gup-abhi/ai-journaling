@@ -4,6 +4,7 @@ import { useThemeColors } from '../theme/colors'
 import { useRoute, useNavigation } from '@react-navigation/native'
 import { api, safeRequest } from '../lib/api'
 import { JournalTemplate } from '../types/JournalTemplate.type'
+import Header from '../components/Header'
 
 type JournalEntry = {
   _id: string
@@ -61,31 +62,16 @@ export default function JournalView() {
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={styles.container}> 
-      <View style={styles.headerRow}>
-        <TouchableOpacity onPress={() => nav.goBack()} style={[styles.backBtn, { borderColor: colors.accent, backgroundColor: colors.accentBg }]}>
-          <Text style={[styles.backText, { color: colors.accentText }]}>Back</Text>
-        </TouchableOpacity>
-
-        {entry && (
-          <View style={[styles.dateContainer, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
-            <Text style={[styles.headerDate, { color: colors.text }]}>
-              {new Date(entry.entry_date).toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
-            </Text>
-            <Text style={[styles.headerTime, { color: colors.muted }]}>
-              {new Date(entry.entry_date).toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-              })}
-            </Text>
-          </View>
-        )}
-      </View>
+      <Header
+        title={entry ? new Date(entry.entry_date).toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }) : 'Journal Entry'}
+        showBackButton={true}
+        onBackPress={() => nav.goBack()}
+      />
 
       {entry && (
         <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg }]}> 
@@ -282,12 +268,6 @@ const styles = StyleSheet.create({
     fontSize: 16, 
     fontWeight: '600' 
   },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 },
-  backBtn: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: '#e5e7eb' },
-  backText: { color: '#0f5132', fontWeight: '700' },
-  dateContainer: { flex: 1, backgroundColor: '#fff', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#e5e7eb' },
-  headerDate: { fontSize: 16, fontWeight: '700', textAlign: 'center', color: '#111827' },
-  headerTime: { fontSize: 14, fontWeight: '500', textAlign: 'center', color: '#6b7280', marginTop: 2 },
   card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#e5e7eb' },
   templateSection: { marginTop: 16, marginBottom: 16, padding: 16, borderRadius: 8, borderWidth: 1, borderColor: '#e5e7eb', backgroundColor: '#f9fafb' },
   templateTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 8 },

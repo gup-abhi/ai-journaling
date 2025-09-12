@@ -6,6 +6,7 @@ import { useTimelineStore } from '../stores/timeline.store'
 import Timeline from '../components/Timeline'
 import { useNavigation } from '@react-navigation/native'
 import { type TimelinePeriod } from '../types/Timeline.type'
+import Header from '../components/Header'
 
 export default function TimelineScreen() {
   const colors = useThemeColors()
@@ -30,16 +31,11 @@ export default function TimelineScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Feather name="arrow-left" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Timeline</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <Header
+        title="Timeline"
+        showBackButton={true}
+        onBackPress={() => navigation.goBack()}
+      />
 
       <View style={styles.periodSelectorContainer}>
         <Text style={[styles.periodLabel, { color: colors.text }]}>Time Period:</Text>
@@ -91,25 +87,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 48,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
-  },
-  backButton: {
-    padding: 8,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  headerSpacer: {
-    width: 40, // Same width as back button to center title
   },
   periodSelectorContainer: {
     paddingHorizontal: 16,

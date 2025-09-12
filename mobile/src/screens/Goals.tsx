@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native'
 import { useThemeColors } from '../theme/colors'
 import { useGoalStore } from '../stores/goal.store'
 import type { Goal } from '../stores/goal.store'
+import Header from '../components/Header'
 
 export default function Goals() {
   const colors = useThemeColors()
@@ -110,20 +111,17 @@ export default function Goals() {
       }
     >
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}>My Goals</Text>
-          <TouchableOpacity
-            style={[styles.addButton, { backgroundColor: colors.accent }]}
-            onPress={() => nav.navigate('NewGoal')}
-          >
-            <Feather name="plus" size={20} color="#fff" />
-            <Text style={styles.addButtonText}>Add Goal</Text>
-          </TouchableOpacity>
-        </View>
+        <Header
+          title="My Goals"
+          rightButton={{
+            icon: 'plus',
+            onPress: () => nav.navigate('NewGoal'),
+            accessibilityLabel: 'Add new goal'
+          }}
+        />
 
         {/* Filter Buttons */}
-        <View style={styles.filterContainer}>
+        <View style={[styles.filterContainer, { marginTop: 20 }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Filter by Status</Text>
           <View style={styles.filterRow}>
             <FilterButton label="All" value="all" isActive={filter === "all"} />
@@ -240,22 +238,6 @@ function GoalCard({
 
 const styles = StyleSheet.create({
   container: { padding: 16, paddingTop: 48 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  title: { fontSize: 28, fontWeight: '800' },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    gap: 8,
-  },
-  addButtonText: { color: '#fff', fontWeight: '600' },
 
   filterContainer: { marginBottom: 20 },
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 12 },

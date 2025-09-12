@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, ScrollView, RefreshControl } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, RefreshControl } from 'react-native'
 import Toast from 'react-native-simple-toast'
 import { Feather } from '@expo/vector-icons'
 import { useJournalStore } from '../stores/journal.store'
@@ -9,7 +9,7 @@ import { useGoalStore } from '../stores/goal.store'
 import { useStreakStore } from '../stores/streak.store'
 import { useAuthStore } from '../stores/auth.store'
 import { useThemeColors } from '../theme/colors'
-import Logo from '../components/Logo'
+import Header from '../components/Header'
 
 // Helper function to get first name from user data
 const getFirstName = (user: any): string => {
@@ -37,7 +37,7 @@ export default function Dashboard() {
   const { fetchMoodTrends, moodTrends } = useAiInsightStore()
   const { getActiveGoals, activeGoals } = useGoalStore()
   const { getStreakData, streakData } = useStreakStore()
-  const { user, signOut, getUser, isAuthenticated } = useAuthStore()
+  const { user, getUser, isAuthenticated } = useAuthStore()
   const nav = useNavigation<any>()
   const colors = useThemeColors()
 
@@ -74,26 +74,6 @@ export default function Dashboard() {
   const moodValue = useMemo(() => `${moodTrends > 0 ? '+' : ''}${moodTrends.toFixed(2)}%`, [moodTrends])
   const moodAccent = useMemo(() => (moodTrends > 0 ? colors.accent : (moodTrends < 0 ? '#e74c3c' : '#eab308')), [moodTrends, colors.accent])
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            await signOut()
-          },
-        },
-      ],
-      { cancelable: true }
-    )
-  }
 
   return (
     <ScrollView
@@ -110,30 +90,14 @@ export default function Dashboard() {
       }
     >
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Logo width={32} height={32} />
-            <View style={styles.welcomeText}>
-              <Text style={[styles.title, { color: colors.text }]}>
-                Welcome back
-              </Text>
-              {user && (
-                <Text style={[styles.title, { color: colors.accent }]}>
-                  {`, ${getFirstName(user)}`}
-                </Text>
-              )}
-            </View>
-          </View>
-          <TouchableOpacity
-            style={[styles.logoutButton, { backgroundColor: colors.cardBg, borderColor: colors.border }]}
-            onPress={handleLogout}
-          >
-            <Feather name="log-out" size={18} color={colors.muted} />
-          </TouchableOpacity>
-        </View>
+        <Header
+          variant="dashboard"
+          title="Welcome back"
+          subtitle={user ? `, ${getFirstName(user)}` : undefined}
+        />
 
         {/* Quick Actions */}
-        <View style={styles.section}>
+        <View style={[styles.section, { marginTop: 20 }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Quick Actions</Text>
           <View style={styles.actionsRow}>
             <ActionButton label="Start Journal" onPress={() => nav.navigate('NewJournalEntry')} accent={colors.accent} />
@@ -204,30 +168,6 @@ function StatCard({ label, value, accent = '#2ecc71', border = '#e5e7eb', bg = '
 
 const styles = StyleSheet.create({
   container: { padding: 16, paddingTop: 48 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  welcomeText: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 12,
-    flexWrap: 'wrap',
-  },
-  title: { fontSize: 20, fontWeight: '800' },
-  logoutButton: {
-    padding: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginLeft: 12,
-  },
   section: { marginBottom: 16 },
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
   actionsRow: { flexDirection: 'row', gap: 8 },

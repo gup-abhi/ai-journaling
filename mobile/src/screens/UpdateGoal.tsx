@@ -13,6 +13,7 @@ import { useNavigation, useRoute } from '@react-navigation/native'
 import { useThemeColors } from '../theme/colors'
 import { useGoalStore } from '../stores/goal.store'
 import type { Goal } from '../stores/goal.store'
+import Header from '../components/Header'
 
 export default function UpdateGoal() {
   const colors = useThemeColors()
@@ -78,17 +79,11 @@ export default function UpdateGoal() {
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={[styles.backButton, { borderColor: colors.border }]}
-            onPress={() => nav.goBack()}
-          >
-            <Feather name="arrow-left" size={20} color={colors.text} />
-          </TouchableOpacity>
-          <Text style={[styles.title, { color: colors.text }]}>Update Goal</Text>
-          <View style={{ width: 40 }} /> {/* Spacer for centering */}
-        </View>
+        <Header
+          title="Update Goal"
+          showBackButton={true}
+          onBackPress={() => nav.goBack()}
+        />
 
         {/* Form */}
         <View style={[styles.formContainer, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
@@ -189,24 +184,6 @@ const styles = StyleSheet.create({
   },
   loadingText: { marginTop: 12, fontSize: 16 },
 
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-  },
-  title: { fontSize: 20, fontWeight: '700' },
 
   formContainer: {
     margin: 16,
