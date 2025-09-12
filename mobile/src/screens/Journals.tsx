@@ -1,7 +1,6 @@
 import React, { useEffect, useCallback, useRef, useState } from 'react'
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Modal, Alert, ScrollView } from 'react-native'
 import { Feather } from '@expo/vector-icons'
-import { Calendar, LocaleConfig } from 'react-native-calendars'
 import { useThemeColors } from '../theme/colors'
 import { useJournalStore } from '../stores/journal.store'
 import { useNavigation, useFocusEffect } from '@react-navigation/native'

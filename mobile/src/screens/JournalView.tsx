@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { useThemeColors } from '../theme/colors'
 import { useRoute, useNavigation } from '@react-navigation/native'
 import { api, safeRequest } from '../lib/api'
+import { JournalTemplate } from '../types/JournalTemplate'
 
 type JournalEntry = {
   _id: string
@@ -22,12 +23,22 @@ export default function JournalView() {
   const [entry, setEntry] = useState<JournalEntry | null>(null)
   const [trend, setTrend] = useState<Trend | null>(null)
   const [noInsights, setNoInsights] = useState(false)
+  const [template, setTemplate] = useState<JournalTemplate | null>(null)
 
   useEffect(() => {
     const load = async () => {
       const res = await safeRequest(api.get<JournalEntry>(`/journal/${id}`))
       if (res.ok) {
         setEntry(res.data)
+        // Fetch template if template_id exists
+        if (res.data.template_id) {
+          const templateRes = await safeRequest(api.get<JournalTemplate>(`/journal-template/${res.data.template_id}`))
+          if (templateRes.ok) {
+            setTemplate(templateRes.data)
+          } else {
+            setTemplate(null)
+          }
+        }
       }
       const t = await safeRequest(api.get(`/ai-insights/trends/journal/${id}`))
       if (t.ok) setTrend(t.data as any)
@@ -38,14 +49,44 @@ export default function JournalView() {
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={styles.container}> 
-      <TouchableOpacity onPress={() => nav.goBack()} style={[styles.backBtn, { borderColor: colors.accent, backgroundColor: colors.accentBg }]}>
-        <Text style={[styles.backText, { color: colors.accentText }]}>Back</Text>
-      </TouchableOpacity>
+      <View style={styles.headerRow}>
+        <TouchableOpacity onPress={() => nav.goBack()} style={[styles.backBtn, { borderColor: colors.accent, backgroundColor: colors.accentBg }]}>
+          <Text style={[styles.backText, { color: colors.accentText }]}>Back</Text>
+        </TouchableOpacity>
+
+        {entry && (
+          <View style={[styles.dateContainer, { borderColor: colors.border, backgroundColor: colors.cardBg }]}>
+            <Text style={[styles.headerDate, { color: colors.text }]}>
+              {new Date(entry.entry_date).toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </Text>
+            <Text style={[styles.headerTime, { color: colors.muted }]}>
+              {new Date(entry.entry_date).toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              })}
+            </Text>
+          </View>
+        )}
+      </View>
 
       {entry && (
         <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.cardBg }]}> 
           <Text style={[styles.date, { color: colors.muted }]}>{new Date(entry.entry_date).toLocaleString()}</Text>
           {!!entry.word_count && <Text style={[styles.muted, { color: colors.muted }]}>{entry.word_count} words</Text>}
+          
+          {template && (
+            <View style={[styles.templateSection, { borderColor: colors.border, backgroundColor: colors.mutedBg }]}>
+              <Text style={[styles.templateTitle, { color: colors.text }]}>Template Used: {template.name}</Text>
+            </View>
+          )}
+          
+          <Text style={[styles.journalEntryTitle, { color: colors.accent }]}>Journal Entry:</Text>
           <Text style={[styles.content, { color: colors.text }]}>{entry.content}</Text>
         </View>
       )}
@@ -203,9 +244,16 @@ export default function JournalView() {
 
 const styles = StyleSheet.create({
   container: { padding: 16, paddingTop: 48, gap: 12 },
-  backBtn: { alignSelf: 'flex-start', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: '#e5e7eb' },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 },
+  backBtn: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: '#e5e7eb' },
   backText: { color: '#0f5132', fontWeight: '700' },
+  dateContainer: { flex: 1, backgroundColor: '#fff', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#e5e7eb' },
+  headerDate: { fontSize: 16, fontWeight: '700', textAlign: 'center', color: '#111827' },
+  headerTime: { fontSize: 14, fontWeight: '500', textAlign: 'center', color: '#6b7280', marginTop: 2 },
   card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#e5e7eb' },
+  templateSection: { marginTop: 16, marginBottom: 16, padding: 16, borderRadius: 8, borderWidth: 1, borderColor: '#e5e7eb', backgroundColor: '#f9fafb' },
+  templateTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 8 },
+  journalEntryTitle: { fontSize: 18, fontWeight: '700', color: '#111827', marginTop: 8, marginBottom: 8 },
   date: { color: '#6b7280', marginBottom: 4 },
   muted: { color: '#6b7280' },
   content: { marginTop: 8, color: '#111827', lineHeight: 22 },

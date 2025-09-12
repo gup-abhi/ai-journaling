@@ -166,28 +166,7 @@ export function JournalView() {
               <CardContent>
                 {template && (
                   <div className="mb-4 p-4 border rounded-md bg-muted/50">
-                    <h2 className="text-xl font-semibold mb-2">Template: {template.name}</h2>
-                    {template.prompts && template.prompts.length > 0 && (
-                      <div className="mb-4">
-                        <h3 className="text-lg font-medium mb-1">Prompts:</h3>
-                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                          {template.prompts.map((prompt, index) => (
-                            <li key={index}>{prompt}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-
-                    {template.benefits && template.benefits.length > 0 && (
-                      <div className="mb-4">
-                        <h3 className="text-lg font-medium mb-1">Benefits:</h3>
-                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                          {template.benefits.map((benefit, index) => (
-                            <li key={index}>{benefit}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+                    <h2 className="text-lg font-semibold mb-2">Template Used: {template.name}</h2>
                   </div>
                 )}
                 <h3 className="text-lg text-accent font-bold mb-3">Journal Entry:</h3>
