@@ -120,7 +120,7 @@ export default function NewJournalEntry() {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate('Root', { screen: 'Dashboard' })}
         >
           <Feather name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>

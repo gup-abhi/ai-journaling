@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native'
 import { useThemeColors } from '../theme/colors'
 import { useRoute, useNavigation } from '@react-navigation/native'
 import { api, safeRequest } from '../lib/api'
@@ -24,9 +24,11 @@ export default function JournalView() {
   const [trend, setTrend] = useState<Trend | null>(null)
   const [noInsights, setNoInsights] = useState(false)
   const [template, setTemplate] = useState<JournalTemplate | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const load = async () => {
+      setIsLoading(true)
       const res = await safeRequest(api.get<JournalEntry>(`/journal/${id}`))
       if (res.ok) {
         setEntry(res.data)
@@ -43,9 +45,19 @@ export default function JournalView() {
       const t = await safeRequest(api.get(`/ai-insights/trends/journal/${id}`))
       if (t.ok) setTrend(t.data as any)
       else setNoInsights(true)
+      setIsLoading(false)
     }
     load()
   }, [id])
+
+  if (isLoading) {
+    return (
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.accent} />
+        <Text style={[styles.loadingText, { color: colors.text }]}>Loading journal entry...</Text>
+      </View>
+    )
+  }
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={styles.container}> 
@@ -244,6 +256,17 @@ export default function JournalView() {
 
 const styles = StyleSheet.create({
   container: { padding: 16, paddingTop: 48, gap: 12 },
+  loadingContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    paddingTop: 48 
+  },
+  loadingText: { 
+    marginTop: 16, 
+    fontSize: 16, 
+    fontWeight: '600' 
+  },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 },
   backBtn: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: '#e5e7eb' },
   backText: { color: '#0f5132', fontWeight: '700' },
