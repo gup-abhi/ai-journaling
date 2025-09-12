@@ -163,3 +163,32 @@ export async function safeRequest<T = any>(promise: Promise<AxiosResponse<T>>): 
     return { ok: false, status, error: String(message) }
   }
 }
+
+// Sentiment Summary API
+export type SentimentSummaryData = {
+  period: string
+  sentiment: {
+    label: 'positive' | 'negative' | 'neutral' | 'mixed'
+    score: number
+    percentage: number
+    trend: {
+      percentageChange: number
+      description: string
+    }
+  }
+  distribution: {
+    positive: number
+    negative: number
+    neutral: number
+    mixed: number
+  }
+  totalEntries: number
+  trendData: Array<{
+    date: string
+    value: number
+  }>
+}
+
+export async function getSentimentSummary(period: 'week' | 'month' | 'year' = 'week'): Promise<ApiResult<SentimentSummaryData>> {
+  return safeRequest(api.get(`/ai-insights/sentiment-summary/period/${period}`))
+}

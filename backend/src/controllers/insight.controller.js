@@ -900,3 +900,174 @@ export const getTopStressors = async (req, res) => {
         throw new AppError('Internal Server Error', 500);
     }
 };
+
+export const getSentimentSummary = async (req, res) => {
+    const { _id: user_id } = req.user;
+    const { period = 'week' } = req.params;
+
+    if (!['week', 'month', 'year'].includes(period)) {
+        throw new AppError("Invalid period. Please specify 'week', 'month', or 'year'.", 400);
+    }
+
+    try {
+        const now = new Date();
+        let startDate, previousStartDate;
+
+        // Calculate current period and previous period for comparison
+        switch (period) {
+            case 'week':
+                startDate = new Date(now);
+                startDate.setDate(startDate.getDate() - 7);
+                previousStartDate = new Date(startDate);
+                previousStartDate.setDate(previousStartDate.getDate() - 7);
+                break;
+            case 'month':
+                startDate = new Date(now);
+                startDate.setMonth(startDate.getMonth() - 1);
+                previousStartDate = new Date(startDate);
+                previousStartDate.setMonth(previousStartDate.getMonth() - 1);
+                break;
+            case 'year':
+                startDate = new Date(now);
+                startDate.setFullYear(startDate.getFullYear() - 1);
+                previousStartDate = new Date(startDate);
+                previousStartDate.setFullYear(previousStartDate.getFullYear() - 1);
+                break;
+        }
+
+        // Get current period sentiment data
+        const currentPeriodData = await Insight.aggregate([
+            {
+                $match: {
+                    user_id: new mongoose.Types.ObjectId(user_id),
+                    processed_at: { $gte: startDate }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    averageSentiment: { $avg: '$sentiment.score' },
+                    totalEntries: { $sum: 1 },
+                    sentimentDistribution: {
+                        $push: {
+                            $switch: {
+                                branches: [
+                                    { case: { $eq: ['$sentiment.overall', 'positive'] }, then: 'positive' },
+                                    { case: { $eq: ['$sentiment.overall', 'negative'] }, then: 'negative' },
+                                    { case: { $eq: ['$sentiment.overall', 'neutral'] }, then: 'neutral' },
+                                    { case: { $eq: ['$sentiment.overall', 'mixed'] }, then: 'mixed' }
+                                ],
+                                default: 'neutral'
+                            }
+                        }
+                    }
+                }
+            }
+        ]);
+
+        // Get previous period sentiment data for comparison
+        const previousPeriodData = await Insight.aggregate([
+            {
+                $match: {
+                    user_id: new mongoose.Types.ObjectId(user_id),
+                    processed_at: { $gte: previousStartDate, $lt: startDate }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    averageSentiment: { $avg: '$sentiment.score' },
+                    totalEntries: { $sum: 1 }
+                }
+            }
+        ]);
+
+        // Get trend data for sparkline (last 7 data points)
+        const trendData = await Insight.aggregate([
+            {
+                $match: {
+                    user_id: new mongoose.Types.ObjectId(user_id),
+                    processed_at: { $gte: new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000)) } // Last 7 days
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        $dateToString: { format: '%Y-%m-%d', date: '$processed_at' }
+                    },
+                    averageSentiment: { $avg: '$sentiment.score' }
+                }
+            },
+            {
+                $sort: { '_id': 1 }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    date: '$_id',
+                    sentiment: '$averageSentiment'
+                }
+            }
+        ]);
+
+        const currentData = currentPeriodData[0] || { averageSentiment: 0, totalEntries: 0, sentimentDistribution: [] };
+        const previousData = previousPeriodData[0] || { averageSentiment: 0, totalEntries: 0 };
+
+        // Calculate sentiment label
+        const sentimentScore = currentData.averageSentiment;
+        let sentimentLabel = 'neutral';
+        if (sentimentScore > 0.1) sentimentLabel = 'positive';
+        else if (sentimentScore < -0.1) sentimentLabel = 'negative';
+
+        // Calculate percentage change
+        const previousSentiment = previousData.averageSentiment;
+        const percentageChange = previousSentiment !== 0 
+            ? ((sentimentScore - previousSentiment) / Math.abs(previousSentiment)) * 100 
+            : 0;
+
+        // Calculate sentiment distribution
+        const distribution = currentData.sentimentDistribution.reduce((acc, sentiment) => {
+            acc[sentiment] = (acc[sentiment] || 0) + 1;
+            return acc;
+        }, {});
+
+        const totalEntries = currentData.totalEntries;
+        const sentimentDistribution = {
+            positive: totalEntries > 0 ? Math.round((distribution.positive || 0) / totalEntries * 100) : 0,
+            negative: totalEntries > 0 ? Math.round((distribution.negative || 0) / totalEntries * 100) : 0,
+            neutral: totalEntries > 0 ? Math.round((distribution.neutral || 0) / totalEntries * 100) : 0,
+            mixed: totalEntries > 0 ? Math.round((distribution.mixed || 0) / totalEntries * 100) : 0
+        };
+
+        // Generate trend description
+        let trendDescription = 'No change';
+        if (Math.abs(percentageChange) >= 5) {
+            const direction = percentageChange > 0 ? 'up' : 'down';
+            const change = Math.abs(Math.round(percentageChange));
+            trendDescription = `${direction} ${change}% from last ${period}`;
+        }
+
+        res.status(200).json({
+            period,
+            sentiment: {
+                label: sentimentLabel,
+                score: Math.round(sentimentScore * 100) / 100,
+                percentage: Math.round(sentimentScore * 100),
+                trend: {
+                    percentageChange: Math.round(percentageChange * 10) / 10,
+                    description: trendDescription
+                }
+            },
+            distribution: sentimentDistribution,
+            totalEntries: currentData.totalEntries,
+            trendData: trendData.map(item => ({
+                date: item.date,
+                value: Math.round(item.sentiment * 100) / 100
+            }))
+        });
+
+    } catch (error) {
+        logger.error(`Error fetching sentiment summary: ${error}`);
+        throw new AppError("Internal Server Error", 500);
+    }
+};
