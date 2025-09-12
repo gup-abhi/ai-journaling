@@ -4,6 +4,7 @@ import AppError from "../util/AppError.js";
 import User from '../models/Users.model.js';
 import logger from "../lib/logger.js";
 import { verifyProjectJWT } from '../util/verifyJWT.js';
+import { isMobileRequest } from '../util/mobileDetection.js';
 
 export const validateToken = async (req, res, next) => {
   try {
@@ -164,27 +165,4 @@ export const checkUser = (req, res, next) => {
     throw new AppError("User not authenticated", 401);
   }
   next();
-};
-
-const isMobileRequest = (req) => {
-  const userAgent = req.headers['user-agent'] || '';
-  const hasAuthHeader = req.headers['authorization']?.startsWith('Bearer');
-  const hasRefreshHeader = req.headers['refresh']?.startsWith('Bearer');
-  
-  // More reliable mobile detection
-  const mobileIndicators = [
-    'ReactNative',
-    'Expo',
-    'okhttp',
-    'CFNetwork', // iOS
-    'Mobile', // Generic mobile
-    'AI-Journaling' // Your custom user agent
-  ];
-  
-  const isMobileUserAgent = mobileIndicators.some(indicator => 
-    userAgent.includes(indicator)
-  );
-  
-  // If using Bearer tokens or mobile user agent, treat as mobile
-  return hasAuthHeader || hasRefreshHeader || isMobileUserAgent;
 };

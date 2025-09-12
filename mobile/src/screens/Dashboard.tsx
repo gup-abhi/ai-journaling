@@ -51,7 +51,8 @@ export default function Dashboard() {
       fetchJournalEntries(),
       fetchMoodTrends(),
       getActiveGoals(),
-      getStreakData()
+      getStreakData(),
+      getUser()
     ])
   }, [fetchTotalEntries, fetchMonthlyEntries, fetchJournalEntries, fetchMoodTrends, getActiveGoals, getStreakData])
 

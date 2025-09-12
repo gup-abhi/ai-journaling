@@ -24,8 +24,8 @@ api.interceptors.request.use(async (config) => {
       method: config.method?.toUpperCase(),
       hasAccessToken: !!access_token,
       hasRefreshToken: !!refresh_token,
-      accessTokenPreview: access_token ? access_token : 'none',
-      refreshTokenPreview: refresh_token ? refresh_token : 'none'
+      accessTokenPreview: access_token ? access_token.substring(0, 20) + "..." : 'none',
+      refreshTokenPreview: refresh_token ? refresh_token.substring(0, 10) + "..." : 'none'
     })
 
     if (access_token) {

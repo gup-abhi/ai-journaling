@@ -4,6 +4,7 @@ import cookieOptions from '../util/cookiesOptions.js';
 import { FRONTEND_URL, BACKEND_URL } from '../config/index.js';
 import AppError from '../util/AppError.js'; // Import AppError
 import logger from '../lib/logger.js';
+import { isMobileRequest } from '../util/mobileDetection.js';
 
 /**
  * Sign up a new user
@@ -84,11 +85,16 @@ export const loginUser = async (req, res) => {
       user_id = newUser._id.toString();
     }
 
-    // Store access token in secure cookie
-    res.cookie("access_token", data.session.access_token, cookieOptions(60 * 60 * 1000));
-    res.cookie("refresh_token", data.session.refresh_token, cookieOptions(7 * 24 * 60 * 60 * 1000)); // 7 days for refresh token
+    // Store access token in secure cookie only for non-mobile requests
+    if (!isMobileRequest(req)) {
+      res.cookie("access_token", data.session.access_token, cookieOptions(60 * 60 * 1000));
+      res.cookie("refresh_token", data.session.refresh_token, cookieOptions(7 * 24 * 60 * 60 * 1000)); // 7 days for refresh token
+      logger.info("Web request - tokens set in cookies");
+    } else {
+      logger.info("Mobile request - skipping cookie storage");
+    }
 
-    // Also return tokens in body for mobile clients that cannot use cookies
+    // Return tokens in body for all clients (mobile clients need them, web clients can use them programmatically)
     return res.status(200).json({
       message: "User logged in successfully.",
       access_token: data.session.access_token,
