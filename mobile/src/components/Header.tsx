@@ -2,7 +2,6 @@ import React from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useThemeColors } from '../theme/colors'
-import Logo from './Logo'
 
 interface HeaderProps {
   title?: string
@@ -31,21 +30,7 @@ export default function Header({
 
   const renderLeftContent = () => {
     if (variant === 'dashboard') {
-      return (
-        <View style={styles.headerLeft}>
-          <Logo width={32} height={32} />
-          <View style={styles.welcomeText}>
-            <Text style={[styles.title, { color: colors.text }]}>
-              {title || 'Welcome back'}
-            </Text>
-            {subtitle && (
-              <Text style={[styles.subtitle, { color: colors.accent }]}>
-                {subtitle}
-              </Text>
-            )}
-          </View>
-        </View>
-      )
+      return <View style={styles.placeholder} />
     }
 
     if (showBackButton) {
@@ -85,7 +70,11 @@ export default function Header({
 
   const renderCenterContent = () => {
     if (variant === 'dashboard') {
-      return null
+      return (
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
+          {title || 'Dashboard'}
+        </Text>
+      )
     }
 
     if (title) {
@@ -118,25 +107,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     minHeight: 56,
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  welcomeText: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 12,
-    flexWrap: 'wrap',
-    flex: 1,
-  },
   title: {
     fontSize: 20,
     fontWeight: '700',
-  },
-  subtitle: {
-    fontSize: 20,
-    fontWeight: '800',
   },
   backButton: {
     padding: 8,

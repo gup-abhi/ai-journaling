@@ -1,6 +1,7 @@
 import { useColorScheme } from 'react-native'
 import { formatHex, oklch } from 'culori'
 import { theme as webTokens } from './tokens'
+import { useThemeStore } from '../stores/theme.store'
 
 type ThemeColors = {
   accent: string
@@ -15,8 +16,11 @@ type ThemeColors = {
 }
 
 export function useThemeColors(): ThemeColors {
-  const scheme = useColorScheme()
-  const isDark = scheme === 'dark'
+  const systemScheme = useColorScheme()
+  const { themeMode } = useThemeStore()
+  
+  // Determine if we should use dark theme
+  const isDark = themeMode === 'dark' || (themeMode === 'system' && systemScheme === 'dark')
 
   const tokens = isDark ? webTokens.dark : webTokens.light
 

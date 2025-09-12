@@ -92,8 +92,7 @@ export default function Dashboard() {
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <Header
           variant="dashboard"
-          title="Welcome back"
-          subtitle={user ? `, ${getFirstName(user)}` : undefined}
+          title="Dashboard"
         />
 
         {/* Quick Actions */}

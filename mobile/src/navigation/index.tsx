@@ -19,6 +19,7 @@ import Trends from '../screens/Trends';
 import Timeline from '../screens/Timeline';
 import JournalTemplates from '../screens/JournalTemplates';
 import GoogleOAuth from '../screens/GoogleOAuth';
+import Settings from '../screens/Settings';
 import { navigationRef } from '../lib/navigation-service';
 
 export type RootStackParamList = {
@@ -32,6 +33,7 @@ export type RootStackParamList = {
   NewGoal: undefined;
   UpdateGoal: { goalId: string };
   Timeline: undefined;
+  Settings: undefined;
   GoogleOAuth: undefined;
 };
 
@@ -54,6 +56,7 @@ function AuthedTabs() {
             Journals: 'book-open',
             Goals: 'check-circle',
             Trends: 'bar-chart-2',
+            Settings: 'settings',
           };
           const iconName = iconMap[route.name] || 'circle';
           return <Feather name={iconName} size={size} color={color} />;
@@ -64,6 +67,7 @@ function AuthedTabs() {
       <Tab.Screen name="Journals" component={Journals} />
       <Tab.Screen name="Goals" component={Goals} />
       <Tab.Screen name="Trends" component={Trends} />
+      <Tab.Screen name="Settings" component={Settings} />
     </Tab.Navigator>
   );
 }
@@ -96,6 +100,7 @@ export default function AppNavigator() {
             <Stack.Screen name="NewGoal" component={NewGoal} />
             <Stack.Screen name="UpdateGoal" component={UpdateGoal} />
             <Stack.Screen name="Timeline" component={Timeline} />
+            <Stack.Screen name="Settings" component={Settings} />
           </>
         ) : (
           <>
