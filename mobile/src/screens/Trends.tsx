@@ -98,10 +98,13 @@ export default function Trends() {
   const getMarkedDates = () => {
     const marked: any = {}
     if (journalingDays) {
+      console.log('Mobile: Journaling days data:', Array.from(journalingDays.entries()))
       journalingDays.forEach((value, dateString) => {
         if (value) {
+          console.log('Mobile: Marking date:', dateString)
           marked[dateString] = {
-            selected: true,
+            marked: true,
+            dotColor: colors.accent,
             selectedColor: colors.accent,
             selectedTextColor: colors.background
           }
@@ -109,6 +112,11 @@ export default function Trends() {
       })
     }
     return marked
+  }
+
+  const getJournaledDaysCount = () => {
+    if (!journalingDays) return 0
+    return Array.from(journalingDays.values()).filter(Boolean).length
   }
 
   const renderChart = (title: string, children: React.ReactNode, isLoading?: boolean) => (
@@ -136,20 +144,35 @@ export default function Trends() {
       </View>
 
       {/* Journaling Activity Calendar */}
-      {renderChart('Journaling Activity', (
-        <Calendar
-          markedDates={getMarkedDates()}
-          theme={{
-            calendarBackground: colors.cardBg,
-            dayTextColor: colors.text,
-            monthTextColor: colors.text,
-            textDisabledColor: colors.muted,
-            selectedDayBackgroundColor: colors.accent,
-            selectedDayTextColor: colors.background,
-            arrowColor: colors.accent,
-            todayTextColor: colors.accent
-          }}
-        />
+      {renderChart(`Journaling Activity (${getJournaledDaysCount()} days)`, (
+        <View>
+          <Calendar
+            markedDates={getMarkedDates()}
+            theme={{
+              calendarBackground: colors.cardBg,
+              dayTextColor: colors.text,
+              monthTextColor: colors.text,
+              textDisabledColor: colors.muted,
+              selectedDayBackgroundColor: colors.accent,
+              selectedDayTextColor: colors.background,
+              arrowColor: colors.accent,
+              todayTextColor: colors.accent,
+              dotColor: colors.accent
+            }}
+            enableSwipeMonths={true}
+            onMonthChange={(month) => {
+              console.log('Month changed:', month)
+            }}
+          />
+          <View style={styles.calendarInfo}>
+            <Text style={[styles.calendarInfoText, { color: colors.muted }]}>
+              • Dots indicate journaled days
+            </Text>
+            <Text style={[styles.calendarInfoText, { color: colors.muted }]}>
+              • Swipe to view different months
+            </Text>
+          </View>
+        </View>
       ))}
 
       {/* Sentiment Trends */}
@@ -657,5 +680,13 @@ const styles = StyleSheet.create({
   listItemValue: {
     fontSize: 14,
     fontWeight: '700'
+  },
+  calendarInfo: {
+    marginTop: 12,
+    paddingHorizontal: 8
+  },
+  calendarInfoText: {
+    fontSize: 12,
+    marginBottom: 4
   }
 })

@@ -37,7 +37,7 @@ export const createJournalEntry = async (req, res) => {
         content: newEntry.content,
         processed_at: newEntry.entry_date,
       });
-      calculateStreak(newEntry.user_id);
+      calculateStreak(newEntry.user_id, newEntry.entry_date);
     });
   } catch (error) {
     logger.error(error);

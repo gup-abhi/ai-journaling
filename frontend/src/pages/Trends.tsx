@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -18,10 +18,19 @@ import '../styles/Calendar.css';
 export function Trends() {
   const navigate = useNavigate();
   const { journalingDays, getStreakData } = useStreakStore();
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   useEffect(() => {
     getStreakData();
   }, [getStreakData]);
+
+  useEffect(() => {
+    console.log('Journaling days data:', journalingDays);
+    if (journalingDays) {
+      console.log('Journaling days size:', journalingDays.size);
+      console.log('Journaling days entries:', Array.from(journalingDays.entries()));
+    }
+  }, [journalingDays]);
 
   const tileClassName = ({ date, view }: { date: Date; view: string }) => {
     if (view === 'month') {
@@ -37,9 +46,19 @@ export function Trends() {
     return null;
   };
 
-  useEffect(() => {
-    tileClassName({ date: new Date(), view: 'month' });
-  }, [journalingDays]);
+  const handleDateChange = (value: Date) => {
+    setSelectedDate(value);
+  };
+
+  const getJournaledDaysCount = () => {
+    if (!journalingDays) return 0;
+    return Array.from(journalingDays.values()).filter(Boolean).length;
+  };
+
+  const tileContent = ({ date, view }: { date: Date; view: string }) => {
+    // Remove tileContent to avoid duplicate dots - using only CSS class styling
+    return null;
+  };
 
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8">
@@ -52,9 +71,27 @@ export function Trends() {
         <Card>
           <CardHeader>
             <CardTitle className='text-accent'>Journaling Activity</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Total journaled days: {getJournaledDaysCount()}
+            </p>
           </CardHeader>
           <CardContent>
-            <Calendar tileDisabled={() => true} tileClassName={tileClassName} />
+            {journalingDays ? (
+              <Calendar 
+                value={selectedDate}
+                onChange={handleDateChange}
+                tileClassName={tileClassName}
+                className="w-full"
+              />
+            ) : (
+              <div className="flex items-center justify-center h-64">
+                <div className="text-muted-foreground">Loading journaling data...</div>
+              </div>
+            )}
+            <div className="mt-4 text-sm text-muted-foreground">
+              <p>• Highlighted days show when you journaled</p>
+              <p>• Use navigation arrows to view different months/years</p>
+            </div>
           </CardContent>
         </Card>
         <Card>

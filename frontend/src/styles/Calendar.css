@@ -168,3 +168,17 @@
 .react-calendar__month-view__days__day {
   height: 40px;
 }
+
+/* Journaled day styling */
+.react-calendar .journaled-day {
+  background-color: var(--accent) !important;
+  color: white !important;
+  font-weight: bold !important;
+  border-radius: 50% !important;
+  position: relative !important;
+}
+
+.react-calendar .journaled-day:hover {
+  background-color: var(--accent-foreground) !important;
+  color: var(--background) !important;
+}
