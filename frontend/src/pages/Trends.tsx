@@ -46,7 +46,7 @@ export function Trends() {
     return null;
   };
 
-  const handleDateChange = (value: Date | Date[] | null) => {
+  const handleDateChange = (value: any) => {
     if (value instanceof Date) {
       setSelectedDate(value);
     }
