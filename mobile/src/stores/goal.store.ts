@@ -15,7 +15,9 @@ type GoalState = {
   goals: Goal[]
   activeGoals: Goal[]
   isLoading: boolean
+  currentFilter: string
   fetchGoals: (filter?: string) => Promise<void>
+  setFilter: (filter: string) => void
   addGoal: (newGoal: { name: string; description?: string; progress: string }) => Promise<void>
   updateGoal: (goalId: string, progress: string) => Promise<void>
   deleteGoal: (goalId: string) => Promise<void>
@@ -26,6 +28,7 @@ export const useGoalStore = create<GoalState>((set, get) => ({
   goals: [],
   activeGoals: [],
   isLoading: false,
+  currentFilter: 'all',
 
   fetchGoals: async (filter?: string) => {
     set({ isLoading: true })
@@ -37,10 +40,14 @@ export const useGoalStore = create<GoalState>((set, get) => ({
 
     const response = await safeRequest(api.get<{ goals: Goal[] }>('/goal-tracking', params))
     if (response.ok) {
-      set({ goals: response.data.goals, isLoading: false })
+      set({ goals: response.data.goals, currentFilter: filter || 'all', isLoading: false })
     } else {
-      set({ goals: [], isLoading: false })
+      set({ goals: [], currentFilter: filter || 'all', isLoading: false })
     }
+  },
+
+  setFilter: (filter: string) => {
+    set({ currentFilter: filter })
   },
 
   addGoal: async (newGoal: { name: string; description?: string; progress: string }) => {
@@ -62,7 +69,17 @@ export const useGoalStore = create<GoalState>((set, get) => ({
     set({ isLoading: true })
     const response = await safeRequest(api.put(`/goal-tracking/${goalId}`, { progress }))
     if (response.ok) {
-      set({ isLoading: false })
+      // Update activeGoals if the goal is in there
+      const { activeGoals } = get()
+      const updatedActiveGoals = activeGoals.map(goal => 
+        goal._id === goalId ? { ...goal, progress, updatedAt: new Date().toISOString() } : goal
+      )
+      
+      set({ activeGoals: updatedActiveGoals })
+      
+      // Re-fetch goals with current filter to ensure correct filtering
+      const { currentFilter } = get()
+      await get().fetchGoals(currentFilter)
     } else {
       set({ isLoading: false })
       throw new Error(isApiErr(response) ? response.error : 'Failed to update goal')

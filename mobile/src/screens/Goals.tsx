@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   ScrollView,
   RefreshControl,
-  ActivityIndicator
+  ActivityIndicator,
+  Alert
 } from 'react-native'
 import { useToast } from '../contexts/ToastContext'
 import { Feather } from '@expo/vector-icons'
@@ -20,22 +21,21 @@ export default function Goals() {
   const colors = useThemeColors()
   const nav = useNavigation<any>()
   const { showToast } = useToast()
-  const { goals, fetchGoals, deleteGoal, isLoading } = useGoalStore()
+  const { goals, fetchGoals, deleteGoal, isLoading, currentFilter, setFilter } = useGoalStore()
   const [refreshing, setRefreshing] = useState(false)
-  const [filter, setFilter] = useState<string>("all")
 
   useEffect(() => {
-    fetchGoals(filter)
-  }, [fetchGoals, filter])
+    fetchGoals(currentFilter)
+  }, [fetchGoals, currentFilter])
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true)
     try {
-      await fetchGoals(filter)
+      await fetchGoals(currentFilter)
     } finally {
       setRefreshing(false)
     }
-  }, [fetchGoals, filter])
+  }, [fetchGoals, currentFilter])
 
   const handleFilterChange = (newFilter: string) => {
     setFilter(newFilter)
@@ -57,20 +57,31 @@ export default function Goals() {
   }
 
   const handleDeleteGoal = (goalId: string, goalName: string) => {
-    // Show confirmation toast instead of alert
-    showToast(`Deleting "${goalName}"...`, 'info', 2000)
-    
-    // Proceed with deletion after a brief delay to show the confirmation
-    setTimeout(async () => {
-      try {
-        await deleteGoal(goalId)
-        // Refresh the goals list to ensure UI is in sync
-        await fetchGoals(filter)
-        showToast('Goal deleted successfully!', 'success')
-      } catch (error) {
-        showToast('Failed to delete goal. Please try again.', 'error')
-      }
-    }, 1000)
+    Alert.alert(
+      'Delete Goal',
+      `Are you sure you want to delete "${goalName}"? This action cannot be undone.`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              showToast(`Deleting "${goalName}"...`, 'info', 2000)
+              await deleteGoal(goalId)
+              // Refresh the goals list to ensure UI is in sync
+              await fetchGoals(currentFilter)
+              showToast('Goal deleted successfully!', 'success')
+            } catch (error) {
+              showToast('Failed to delete goal. Please try again.', 'error')
+            }
+          },
+        },
+      ]
+    )
   }
 
   const FilterButton = ({ label, value, isActive }: { label: string; value: string; isActive: boolean }) => (
@@ -130,7 +141,7 @@ export default function Goals() {
                 key={key} 
                 label={label} 
                 value={value} 
-                isActive={filter === value} 
+                isActive={currentFilter === value} 
               />
             ))}
           </View>
@@ -161,9 +172,9 @@ export default function Goals() {
             <Feather name="target" size={48} color={colors.muted} />
             <Text style={[styles.emptyTitle, { color: colors.text }]}>No goals found</Text>
             <Text style={[styles.emptyText, { color: colors.muted }]}>
-              {filter === "all"
+              {currentFilter === "all"
                 ? "Get started by adding your first goal!"
-                : `No goals with status "${filter}". Try changing the filter.`
+                : `No goals with status "${currentFilter}". Try changing the filter.`
               }
             </Text>
           </View>
