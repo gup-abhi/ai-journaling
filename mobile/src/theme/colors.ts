@@ -7,6 +7,7 @@ type ThemeColors = {
   accent: string
   accentBg: string
   accentText: string
+  primaryForeground: string
   text: string
   muted: string
   mutedBg: string
@@ -31,8 +32,9 @@ export function useThemeColors(): ThemeColors {
 
   return {
     accent: toHex(tokens.primary),
-    accentBg: toHex(tokens.accent),
-    accentText: toHex(tokens.accentForeground || tokens.foreground),
+    accentBg: toHex(tokens.muted),
+    accentText: toHex(tokens.primary),
+    primaryForeground: toHex(tokens.primaryForeground),
     text: toHex(tokens.foreground),
     muted: toHex(tokens.mutedForeground || tokens.foreground),
     mutedBg: toHex(tokens.muted),

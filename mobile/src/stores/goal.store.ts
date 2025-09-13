@@ -49,7 +49,7 @@ export const useGoalStore = create<GoalState>((set, get) => ({
     if (response.ok) {
       const { goals } = get()
       set({
-        goals: [...goals, response.data],
+        goals: [...goals, response.data.newGoal],
         isLoading: false
       })
     } else {
@@ -74,8 +74,9 @@ export const useGoalStore = create<GoalState>((set, get) => ({
     const response = await safeRequest(api.delete(`/goal-tracking/${goalId}`))
     if (response.ok) {
       const { goals } = get()
+      const filteredGoals = goals.filter((goal) => goal._id !== goalId)
       set({
-        goals: goals.filter((goal) => goal._id !== goalId),
+        goals: filteredGoals,
         isLoading: false
       })
     } else {

@@ -93,9 +93,9 @@ const CustomToast: React.FC<ToastProps> = ({
   const getTextColor = () => {
     switch (type) {
       case 'success':
-        return colors.accentText
+        return colors.primaryForeground  // Use theme's primary foreground for proper contrast
       case 'error':
-        return '#ffffff'
+        return '#ffffff'  // Keep white for error toasts for high contrast
       default:
         return colors.text
     }

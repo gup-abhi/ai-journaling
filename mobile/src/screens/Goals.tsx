@@ -69,6 +69,8 @@ export default function Goals() {
           onPress: async () => {
             try {
               await deleteGoal(goalId)
+              // Refresh the goals list to ensure UI is in sync
+              await fetchGoals(filter)
               showToast('Goal deleted successfully!', 'success')
             } catch (error) {
               showToast('Failed to delete goal. Please try again.', 'error')
@@ -125,11 +127,20 @@ export default function Goals() {
         <View style={[styles.filterContainer, { marginTop: 20 }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Filter by Status</Text>
           <View style={styles.filterRow}>
-            <FilterButton label="All" value="all" isActive={filter === "all"} />
-            <FilterButton label="Not Started" value="not-started" isActive={filter === "not-started"} />
-            <FilterButton label="In Progress" value="in-progress" isActive={filter === "in-progress"} />
-            <FilterButton label="Completed" value="completed" isActive={filter === "completed"} />
-            <FilterButton label="On Hold" value="on-hold" isActive={filter === "on-hold"} />
+            {[
+              { key: "all", label: "All", value: "all" },
+              { key: "not-started", label: "Not Started", value: "not-started" },
+              { key: "in-progress", label: "In Progress", value: "in-progress" },
+              { key: "completed", label: "Completed", value: "completed" },
+              { key: "on-hold", label: "On Hold", value: "on-hold" }
+            ].map(({ key, label, value }) => (
+              <FilterButton 
+                key={key} 
+                label={label} 
+                value={value} 
+                isActive={filter === value} 
+              />
+            ))}
           </View>
         </View>
 
@@ -141,15 +152,17 @@ export default function Goals() {
           </View>
         ) : goals.length > 0 ? (
           <View style={styles.goalsGrid}>
-            {goals.map((goal) => (
-              <GoalCard
-                key={goal._id}
-                goal={goal}
-                onDelete={handleDeleteGoal}
-                onUpdate={() => nav.navigate('UpdateGoal', { goalId: goal._id })}
-                colors={colors}
-              />
-            ))}
+            {goals
+              .filter((goal) => goal && goal._id && goal.name) // Filter out invalid goals
+              .map((goal) => (
+                <GoalCard
+                  key={goal._id}
+                  goal={goal}
+                  onDelete={handleDeleteGoal}
+                  onUpdate={() => nav.navigate('UpdateGoal', { goalId: goal._id })}
+                  colors={colors}
+                />
+              ))}
           </View>
         ) : (
           <View style={styles.emptyContainer}>
@@ -181,7 +194,10 @@ function GoalCard({
 }) {
   const progressIcon = getProgressIcon(goal.progress)
 
-  function getProgressIcon(progress: string) {
+  function getProgressIcon(progress: string | undefined) {
+    if (!progress) {
+      return { name: "circle" as const, color: colors.muted }
+    }
     switch (progress) {
       case "not-started":
         return { name: "x-circle" as const, color: colors.muted }
@@ -200,12 +216,12 @@ function GoalCard({
     <View style={[styles.goalCard, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
       <View style={styles.cardHeader}>
         <Text style={[styles.goalTitle, { color: colors.text }]} numberOfLines={2}>
-          {goal.name}
+          {goal.name || 'Untitled Goal'}
         </Text>
         <View style={styles.progressContainer}>
           <Feather name={progressIcon.name} size={16} color={progressIcon.color} />
           <Text style={[styles.progressText, { color: colors.muted }]}>
-            {goal.progress.replace('-', ' ')}
+            {goal.progress ? goal.progress.replace('-', ' ') : 'Unknown'}
           </Text>
         </View>
       </View>
@@ -222,7 +238,7 @@ function GoalCard({
           onPress={onUpdate}
         >
           <Feather name="edit-2" size={14} color={colors.accent} />
-          <Text style={[styles.actionButtonText, { color: colors.accent }]}>Update</Text>
+          <Text style={[styles.actionButtonText, { color: colors.accent, fontWeight: '600' }]}>Update</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -298,13 +314,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 6,
     borderWidth: 1,
     gap: 6,
+    minHeight: 36,
   },
-  actionButtonText: { fontSize: 12, fontWeight: '500' },
+  actionButtonText: { fontSize: 13, fontWeight: '600' },
   deleteButton: { backgroundColor: '#fef2f2' },
 
   emptyContainer: {
