@@ -262,12 +262,12 @@ export default function JournalView() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, paddingTop: 48, gap: 12 },
+  container: { padding: 16, paddingTop: 32, gap: 12 },
   loadingContainer: { 
     flex: 1, 
     justifyContent: 'center', 
     alignItems: 'center', 
-    paddingTop: 48 
+    paddingTop: 32 
   },
   loadingText: { 
     marginTop: 16, 

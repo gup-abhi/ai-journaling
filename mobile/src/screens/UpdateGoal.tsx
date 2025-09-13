@@ -177,7 +177,7 @@ function ProgressButton({ option, progress, colors, onPress }: {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: 48 },
+  container: { flex: 1, paddingTop: 32 },
   loadingContainer: {
     flex: 1,
     alignItems: 'center',

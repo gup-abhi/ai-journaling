@@ -34,7 +34,7 @@ export function useThemeColors(): ThemeColors {
   return useMemo(() => ({
     accent: toHex(tokens.primary),
     accentBg: toHex(tokens.muted),
-    accentText: toHex(tokens.primary),
+    accentText: toHex(tokens.primaryForeground),
     primaryForeground: toHex(tokens.primaryForeground),
     text: toHex(tokens.foreground),
     muted: toHex(tokens.mutedForeground || tokens.foreground),

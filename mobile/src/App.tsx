@@ -8,18 +8,8 @@ import { getAuthTokens } from './lib/auth-tokens'
 import { ToastProvider } from './contexts/ToastContext'
 
 export default function App() {
-  const { restore, setIsAuthenticated } = useAuthStore()
+  const { restore } = useAuthStore()
   const colors = useThemeColors()
-
-  const checkAuthTokenInStore = async () => {
-    const { access_token } = await getAuthTokens();
-
-    if (access_token) setIsAuthenticated(true);
-  }
-  
-  useEffect(() => { 
-     checkAuthTokenInStore();
-  }, [checkAuthTokenInStore])
 
   useEffect(() => { 
     // Initialize authentication state on app start

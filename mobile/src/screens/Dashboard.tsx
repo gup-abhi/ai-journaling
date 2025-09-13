@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView
 import { useToast } from '../contexts/ToastContext'
 import { Feather } from '@expo/vector-icons'
 import { useJournalStore } from '../stores/journal.store'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useFocusEffect } from '@react-navigation/native'
 import { useAiInsightStore } from '../stores/ai-insight.store'
 import { useGoalStore } from '../stores/goal.store'
 import { useStreakStore } from '../stores/streak.store'
@@ -72,6 +72,14 @@ export default function Dashboard() {
       loadAllData()
   }, [loadAllData])
 
+  // Refresh data when screen comes into focus (e.g., after creating journal or goal)
+  useFocusEffect(
+    useCallback(() => {
+      console.log('🔄 Dashboard focused, refreshing data...')
+      loadAllData()
+    }, [loadAllData])
+  )
+
   const recent = useMemo(() => (dashboardEntries || []).slice(0, 6), [dashboardEntries])
   const moodValue = useMemo(() => `${moodTrends > 0 ? '+' : ''}${moodTrends.toFixed(2)}%`, [moodTrends])
   const moodAccent = useMemo(() => (moodTrends > 0 ? colors.accent : (moodTrends < 0 ? '#e74c3c' : '#eab308')), [moodTrends, colors.accent])
@@ -104,6 +112,21 @@ export default function Dashboard() {
             <ActionButton label="Start Journal" onPress={() => nav.navigate('NewJournalEntry')} accent={colors.accent} />
             <ActionButton label="View Journals" variant="secondary" onPress={() => nav.navigate('Journals')} accentBg={colors.accentBg} accentText={colors.accentText} />
             <ActionButton label="Templates" variant="secondary" onPress={() => nav.navigate('JournalTemplates')} accentBg={colors.accentBg} accentText={colors.accentText} />
+          </View>
+        </View>
+
+        {/* Stats */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Your Progress</Text>
+          <View style={styles.statsGrid}>
+            <StatCard label="Total Entries" value={String(totalEntries)} accent={colors.accent} border={colors.border} bg={colors.cardBg} muted={colors.muted} />
+            <StatCard label="This Month" value={String(monthlyEntries)} accent={colors.accent} border={colors.border} bg={colors.cardBg} muted={colors.muted} />
+            <StatCard label="Mood Trend" value={moodValue} accent={moodAccent} border={colors.border} bg={colors.cardBg} muted={colors.muted} />
+          </View>
+          <View style={[styles.statsGrid, { marginTop: 8 }]}>
+            <StatCard label="Current Streak" value={`${streakData?.currentStreak ?? 0} Days`} accent={colors.accent} border={colors.border} bg={colors.cardBg} muted={colors.muted} />
+            <StatCard label="Longest Streak" value={`${streakData?.longestStreak ?? 0} Days`} accent={colors.accent} border={colors.border} bg={colors.cardBg} muted={colors.muted} />
+            <StatCard label="Active Goals" value={String(activeGoals.length)} accent={colors.accent} border={colors.border} bg={colors.cardBg} muted={colors.muted} />
           </View>
         </View>
 
@@ -148,21 +171,6 @@ export default function Dashboard() {
           </View>
         )}
 
-        {/* Stats */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Your Progress</Text>
-          <View style={styles.statsGrid}>
-            <StatCard label="Total Entries" value={String(totalEntries)} accent={colors.accent} border={colors.border} bg={colors.cardBg} muted={colors.muted} />
-            <StatCard label="This Month" value={String(monthlyEntries)} accent={colors.accent} border={colors.border} bg={colors.cardBg} muted={colors.muted} />
-            <StatCard label="Mood Trend" value={moodValue} accent={moodAccent} border={colors.border} bg={colors.cardBg} muted={colors.muted} />
-          </View>
-          <View style={[styles.statsGrid, { marginTop: 8 }]}>
-            <StatCard label="Current Streak" value={`${streakData?.currentStreak ?? 0} Days`} accent={colors.accent} border={colors.border} bg={colors.cardBg} muted={colors.muted} />
-            <StatCard label="Longest Streak" value={`${streakData?.longestStreak ?? 0} Days`} accent={colors.accent} border={colors.border} bg={colors.cardBg} muted={colors.muted} />
-            <StatCard label="Active Goals" value={String(activeGoals.length)} accent={colors.accent} border={colors.border} bg={colors.cardBg} muted={colors.muted} />
-          </View>
-        </View>
-
         {/* Recent Journals */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Journals</Text>
@@ -174,7 +182,7 @@ export default function Dashboard() {
                   hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   style={[styles.viewBtnAbsolute, { borderColor: colors.accent, backgroundColor: colors.accentBg, paddingVertical: 4, paddingHorizontal: 8, zIndex: 10, elevation: 2 }]}
                 >
-                  <Feather name="eye" size={14} color={colors.accentText} />
+                  <Feather name="eye" size={14} color={colors.accent} />
                 </TouchableOpacity>
                 <Text style={[styles.cardDate, { color: colors.muted }]}>{new Date(item.entry_date).toDateString()}</Text>
                 <Text numberOfLines={4} style={[styles.cardText, { color: colors.text }]}>{item.content}</Text>
@@ -209,7 +217,7 @@ function StatCard({ label, value, accent = '#2ecc71', border = '#e5e7eb', bg = '
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, paddingTop: 48 },
+  container: { padding: 16, paddingTop: 32 },
   section: { marginBottom: 16 },
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
   actionsRow: { flexDirection: 'row', gap: 8 },

@@ -133,7 +133,7 @@ export default function JournalTemplates() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 48,
+    paddingTop: 32,
   },
   loadingContainer: {
     flex: 1,

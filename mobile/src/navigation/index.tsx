@@ -75,12 +75,8 @@ function AuthedTabs() {
 }
 
 export default function AppNavigator() {
-  const { isAuthenticated, isLoading, restore } = useAuthStore();
+  const { isAuthenticated, isLoading } = useAuthStore();
   const colors = useThemeColors();
-
-  useEffect(() => {
-    restore();
-  }, []);
 
   if (isLoading) {
     return (

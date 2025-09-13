@@ -106,7 +106,7 @@ export default function NewJournalEntry() {
       setSelectedTemplate(null)
       setPromptResponses({})
       setContent('')
-      navigation.goBack()
+      navigation.navigate('Root', { screen: 'Journals' })
     } else {
       showToast('Failed to save journal entry. Please try again.', 'error')
     }
@@ -243,7 +243,7 @@ export default function NewJournalEntry() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 48,
+    paddingTop: 32,
   },
   scrollView: {
     flex: 1,

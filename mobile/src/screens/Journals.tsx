@@ -274,7 +274,7 @@ export default function Journals() {
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 style={[styles.viewBtnAbsolute, { borderColor: colors.accent, backgroundColor: colors.accentBg, paddingVertical: 4, paddingHorizontal: 8, zIndex: 10, elevation: 2 }]}
               >
-                <Feather name="eye" size={14} color={colors.accentText} />
+                <Feather name="eye" size={14} color={colors.accent} />
               </TouchableOpacity>
               <Text style={[styles.date, { color: colors.muted }]}>{new Date(item.entry_date).toDateString()}</Text>
               <Text numberOfLines={4} style={{ color: colors.text }}>{item.content}</Text>
@@ -508,7 +508,7 @@ export default function Journals() {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    paddingTop: 48 
+    paddingTop: 32 
   },
   headingContainer: {
     paddingHorizontal: 16,

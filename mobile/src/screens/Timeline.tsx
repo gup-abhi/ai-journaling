@@ -86,7 +86,7 @@ export default function TimelineScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 48,
+    paddingTop: 32,
   },
   periodSelectorContainer: {
     paddingHorizontal: 16,

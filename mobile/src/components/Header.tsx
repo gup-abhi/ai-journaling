@@ -106,9 +106,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 8,
     borderBottomWidth: 1,
-    minHeight: 56,
+    minHeight: 48,
   },
   title: {
     fontSize: 20,

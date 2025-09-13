@@ -246,7 +246,7 @@ function GoalCard({
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, paddingTop: 48 },
+  container: { padding: 16, paddingTop: 32 },
 
   filterContainer: { marginBottom: 20 },
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 12 },

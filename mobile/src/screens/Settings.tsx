@@ -113,16 +113,16 @@ export default function Settings() {
                 <Feather 
                   name={getThemeIcon(mode)} 
                   size={20} 
-                  color={themeMode === mode ? colors.accentText : colors.muted} 
+                  color={themeMode === mode ? colors.accent : colors.muted} 
                 />
                 <Text style={[
                   styles.themeOptionText, 
-                  { color: themeMode === mode ? colors.accentText : colors.text }
+                  { color: themeMode === mode ? colors.accent : colors.text }
                 ]}>
                   {getThemeLabel(mode)}
                 </Text>
                 {themeMode === mode && (
-                  <Feather name="check" size={16} color={colors.accentText} />
+                  <Feather name="check" size={16} color={colors.accent} />
                 )}
               </TouchableOpacity>
             ))}
@@ -171,7 +171,7 @@ export default function Settings() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 48,
+    paddingTop: 32,
   },
   section: {
     marginBottom: 16,

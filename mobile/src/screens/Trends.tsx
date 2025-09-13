@@ -495,7 +495,7 @@ export default function Trends() {
 const styles = StyleSheet.create({
   container: { 
     flex: 1,
-    paddingTop: 48 
+    paddingTop: 32 
   },
   contentContainer: {
     padding: 16,
