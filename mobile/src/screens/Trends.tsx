@@ -8,12 +8,13 @@ import { useStreakStore } from '../stores/streak.store'
 import { useAiInsightStore } from '../stores/ai-insight.store'
 import SentimentSummaryCard from '../components/SentimentSummaryCard'
 import NarrativeSummary from '../components/NarrativeSummary'
-import Toast from 'react-native-simple-toast'
+import { useToast } from '../contexts/ToastContext'
 import Header from '../components/Header'
 
 export default function Trends() {
   const colors = useThemeColors()
   const navigation = useNavigation()
+  const { showToast } = useToast()
   const { journalingDays, getStreakData } = useStreakStore()
   const {
     sentimentSummaryData,
@@ -186,7 +187,7 @@ export default function Trends() {
             <NarrativeSummary 
               summary={item.data}
               onPress={() => {
-                Toast.show('Narrative insights help you understand your emotional patterns!', Toast.SHORT)
+                showToast('Narrative insights help you understand your emotional patterns!', 'info', 2000)
               }}
             />
           </View>
@@ -222,7 +223,7 @@ export default function Trends() {
             <SentimentSummaryCard 
               data={item.data} 
               onPress={() => {
-                Toast.show('Sentiment details coming soon!', Toast.SHORT)
+                showToast('Sentiment details coming soon!', 'info', 2000)
               }}
             />
           </View>

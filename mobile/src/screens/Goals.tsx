@@ -9,7 +9,7 @@ import {
   Alert,
   ActivityIndicator
 } from 'react-native'
-import Toast from 'react-native-simple-toast'
+import { useToast } from '../contexts/ToastContext'
 import { Feather } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { useThemeColors } from '../theme/colors'
@@ -20,6 +20,7 @@ import Header from '../components/Header'
 export default function Goals() {
   const colors = useThemeColors()
   const nav = useNavigation<any>()
+  const { showToast } = useToast()
   const { goals, fetchGoals, deleteGoal, isLoading } = useGoalStore()
   const [refreshing, setRefreshing] = useState(false)
   const [filter, setFilter] = useState<string>("all")
@@ -68,9 +69,9 @@ export default function Goals() {
           onPress: async () => {
             try {
               await deleteGoal(goalId)
-              Toast.show('Goal deleted successfully!', Toast.LONG)
+              showToast('Goal deleted successfully!', 'success')
             } catch (error) {
-              Toast.show('Failed to delete goal. Please try again.', Toast.LONG)
+              showToast('Failed to delete goal. Please try again.', 'error')
             }
           }
         }

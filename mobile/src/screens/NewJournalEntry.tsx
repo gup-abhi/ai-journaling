@@ -7,7 +7,7 @@ import {
   StyleSheet,
   ScrollView
 } from 'react-native'
-import Toast from 'react-native-simple-toast'
+import { useToast } from '../contexts/ToastContext'
 import { useJournalStore } from '../stores/journal.store'
 import { useNavigation } from '@react-navigation/native'
 import { useThemeColors } from '../theme/colors'
@@ -20,6 +20,7 @@ export default function NewJournalEntry() {
     selectedTemplate,
     setSelectedTemplate
   } = useJournalStore()
+  const { showToast } = useToast()
   const [content, setContent] = useState('')
   const [promptResponses, setPromptResponses] = useState<{[key: number]: string}>({})
   const navigation = useNavigation<any>()
@@ -91,7 +92,7 @@ export default function NewJournalEntry() {
 
     // If no template, content is required
     if (!selectedTemplate && !finalContent.trim()) {
-      Toast.show('Please write your journal entry content.', Toast.LONG)
+      showToast('Please write your journal entry content.', 'error')
       return
     }
 
@@ -101,13 +102,13 @@ export default function NewJournalEntry() {
     })
 
     if (entry) {
-      Toast.show('Journal entry saved successfully!', Toast.LONG)
+      showToast('Journal entry saved successfully!', 'success')
       setSelectedTemplate(null)
       setPromptResponses({})
       setContent('')
       navigation.goBack()
     } else {
-      Toast.show('Failed to save journal entry. Please try again.', Toast.LONG)
+      showToast('Failed to save journal entry. Please try again.', 'error')
     }
   }
 

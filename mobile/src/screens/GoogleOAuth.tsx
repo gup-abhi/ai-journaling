@@ -8,7 +8,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
-import Toast from 'react-native-simple-toast';
+import { useToast } from '../contexts/ToastContext';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../stores/auth.store';
@@ -22,6 +22,7 @@ interface GoogleOAuthProps {
 
 export default function GoogleOAuth({ forceAccountSelection = true }: GoogleOAuthProps) {
   const navigation = useNavigation();
+  const { showToast } = useToast();
   const { setIsLoading: setIsLoadingAuth, setIsAuthenticated } = useAuthStore();
   const colors = useThemeColors();
   const webViewRef = useRef<WebView>(null);
@@ -62,11 +63,14 @@ export default function GoogleOAuth({ forceAccountSelection = true }: GoogleOAut
         await setAuthTokens(data.access_token, data.refresh_token);
         setIsAuthenticated(true);
         setIsLoadingAuth(false);
+        
+        // Show success toast
+        showToast('Successfully logged in with Google!', 'success');
 
     } catch (err: any) {
       console.error('Auth success error:', err);
       setError(err.message || 'Authentication failed');
-      Toast.show(err.message || 'Authentication failed', Toast.LONG);
+      showToast(err.message || 'Authentication failed', 'error');
       // Navigate back to SignIn screen after showing toast
       setTimeout(() => {
         navigation.navigate('SignIn' as never);
@@ -88,7 +92,7 @@ export default function GoogleOAuth({ forceAccountSelection = true }: GoogleOAut
     } catch (err: any) {
       console.error('OAuth callback error:', err);
       setError(err.message || 'OAuth callback failed');
-      Toast.show(err.message || 'OAuth callback failed', Toast.LONG);
+      showToast(err.message || 'OAuth callback failed', 'error');
       // Navigate back to SignIn screen after showing toast
       setTimeout(() => {
         navigation.navigate('SignIn' as never);

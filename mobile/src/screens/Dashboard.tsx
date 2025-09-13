@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, RefreshControl } from 'react-native'
-import Toast from 'react-native-simple-toast'
+import { useToast } from '../contexts/ToastContext'
 import { Feather } from '@expo/vector-icons'
 import { useJournalStore } from '../stores/journal.store'
 import { useNavigation } from '@react-navigation/native'
@@ -41,6 +41,7 @@ export default function Dashboard() {
   const { user, getUser, isAuthenticated } = useAuthStore()
   const nav = useNavigation<any>()
   const colors = useThemeColors()
+  const { showToast } = useToast()
 
   const [refreshing, setRefreshing] = useState(false)
 
@@ -139,7 +140,7 @@ export default function Dashboard() {
                         nav.navigate('Trends')
                         break
                       default:
-                        Toast.show('Nudge action: ' + nudge.action)
+                        showToast('Nudge action: ' + nudge.action, 'info')
                     }
                   }}
                 />

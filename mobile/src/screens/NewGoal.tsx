@@ -8,7 +8,7 @@ import {
   ScrollView,
   ActivityIndicator
 } from 'react-native'
-import Toast from 'react-native-simple-toast'
+import { useToast } from '../contexts/ToastContext'
 import { Feather } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { useThemeColors } from '../theme/colors'
@@ -18,6 +18,7 @@ import Header from '../components/Header'
 export default function NewGoal() {
   const colors = useThemeColors()
   const nav = useNavigation<any>()
+  const { showToast } = useToast()
   const { addGoal, isLoading } = useGoalStore()
 
   const [goalName, setGoalName] = useState('')
@@ -33,12 +34,12 @@ export default function NewGoal() {
 
   const handleSubmit = async () => {
     if (!goalName.trim()) {
-      Toast.show('Goal name is required', Toast.LONG)
+      showToast('Goal name is required', 'error')
       return
     }
 
     if (!progress) {
-      Toast.show('Please select a progress status', Toast.LONG)
+      showToast('Please select a progress status', 'error')
       return
     }
 
@@ -48,10 +49,10 @@ export default function NewGoal() {
         progress,
         description: description.trim() || undefined
       })
-      Toast.show('Goal created successfully!', Toast.LONG)
+      showToast('Goal created successfully!', 'success')
       nav.goBack()
     } catch (error) {
-      Toast.show('Failed to create goal. Please try again.', Toast.LONG)
+      showToast('Failed to create goal. Please try again.', 'error')
     }
   }
 

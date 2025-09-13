@@ -5,6 +5,7 @@ import AppNavigator from './navigation'
 import { useAuthStore } from './stores/auth.store'
 import { useThemeColors } from './theme/colors'
 import { getAuthTokens } from './lib/auth-tokens'
+import { ToastProvider } from './contexts/ToastContext'
 
 export default function App() {
   const { restore, setIsAuthenticated } = useAuthStore()
@@ -27,9 +28,11 @@ export default function App() {
   
   return (
     <SafeAreaProvider>
-      <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <AppNavigator />
-      </View>
+      <ToastProvider>
+        <View style={{ flex: 1, backgroundColor: colors.background }}>
+          <AppNavigator />
+        </View>
+      </ToastProvider>
     </SafeAreaProvider>
   )
 }

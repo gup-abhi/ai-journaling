@@ -5,7 +5,7 @@
     "scheme": "ai-journaling",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo.svg",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -19,7 +19,7 @@
     "android": {
       "package": "com.ai_journaling.mobile",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/logo.svg",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true

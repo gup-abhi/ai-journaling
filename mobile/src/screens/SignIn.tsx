@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
-import Toast from 'react-native-simple-toast'
 import { useAuthStore } from '../stores/auth.store'
 import { useNavigation } from '@react-navigation/native'
 import { useThemeColors } from '../theme/colors'
 import { Feather } from '@expo/vector-icons'
 import Logo from '../components/Logo'
+import { useToast } from '../contexts/ToastContext'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '../navigation'
 
@@ -13,21 +13,24 @@ export default function SignIn() {
   const { signIn, isLoading, error } = useAuthStore()
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
   const colors = useThemeColors()
+  const { showToast } = useToast()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
   const onSubmit = async () => {
     if (!email.trim() || !password.trim()) {
-      Toast.show('Please fill in all fields', Toast.LONG)
+      showToast('Please fill in all fields', 'error')
       return
     }
 
     const res = await signIn({ email, password })
-    if (!res.ok && error) {
-      Toast.show(error, Toast.LONG)
+    if (res.ok) {
+      showToast('Successfully logged in!', 'success')
+      // On success, the navigator will automatically swap stacks when isAuthenticated flips
+    } else if (error) {
+      showToast(error, 'error')
     }
-    // On success, the navigator will automatically swap stacks when isAuthenticated flips
   }
 
   const onGoogleSignIn = () => {

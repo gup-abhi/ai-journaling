@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
-import Toast from 'react-native-simple-toast'
+import { useToast } from '../contexts/ToastContext'
 import { useAuthStore } from '../stores/auth.store'
 import { useNavigation } from '@react-navigation/native'
 import { useThemeColors } from '../theme/colors'
@@ -11,6 +11,7 @@ export default function SignUp() {
   const { signUp, isLoading, error } = useAuthStore()
   const nav = useNavigation<any>()
   const colors = useThemeColors()
+  const { showToast } = useToast()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -20,27 +21,27 @@ export default function SignUp() {
 
   const onSubmit = async () => {
     if (!displayName.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
-      Toast.show('Please fill in all fields', Toast.LONG)
+      showToast('Please fill in all fields', 'error')
       return
     }
 
     if (password.length < 6) {
-      Toast.show('Password must be at least 6 characters long', Toast.LONG)
+      showToast('Password must be at least 6 characters long', 'error')
       return
     }
 
     if (password !== confirmPassword) {
-      Toast.show('Passwords do not match', Toast.LONG)
+      showToast('Passwords do not match', 'error')
       return
     }
 
     const res = await signUp({ email, password, display_name: displayName })
     if (res.ok) {
-      Toast.show('Account created successfully! Please check your email to verify your account.', Toast.LONG)
+      showToast('Account created successfully! Please check your email to verify your account.', 'success', 4000)
       // Navigate to sign in after a short delay to allow user to see the success message
       setTimeout(() => nav.navigate('SignIn'), 2000)
     } else if (error) {
-      Toast.show(error, Toast.LONG)
+      showToast(error, 'error')
     }
   }
 
