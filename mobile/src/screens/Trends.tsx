@@ -339,6 +339,7 @@ export default function Trends() {
             {renderCard(`Journaling Activity (${getJournaledDaysCount()} days)`, (
               <View>
                 <Calendar
+                  key={`calendar-${colors.background}-${colors.text}`}
                   markedDates={getMarkedDates()}
                   theme={{
                     calendarBackground: colors.cardBg,
@@ -346,10 +347,68 @@ export default function Trends() {
                     monthTextColor: colors.text,
                     textDisabledColor: colors.muted,
                     selectedDayBackgroundColor: colors.accent,
-                    selectedDayTextColor: colors.background,
+                    selectedDayTextColor: colors.accentText || '#ffffff',
                     arrowColor: colors.accent,
                     todayTextColor: colors.accent,
-                    dotColor: colors.accent
+                    dotColor: colors.accent,
+                    textSectionTitleColor: colors.muted,
+                    textDayFontWeight: '500',
+                    textMonthFontWeight: '600',
+                    textDayHeaderFontWeight: '500',
+                    textDayFontSize: 16,
+                    textMonthFontSize: 18,
+                    textDayHeaderFontSize: 14,
+                    agendaDayTextColor: colors.text,
+                    agendaDayNumColor: colors.accent,
+                    agendaTodayColor: colors.accent,
+                    agendaKnobColor: colors.accent,
+                    todayBackgroundColor: colors.accent + '20',
+                    selectedDotColor: colors.accentText || '#ffffff',
+                    disabledDotColor: colors.muted,
+                    dotStyle: {
+                      backgroundColor: colors.accent,
+                      width: 6,
+                      height: 6,
+                      borderRadius: 3,
+                    },
+                    arrowStyle: {
+                      padding: 0,
+                    },
+                    indicatorColor: colors.accent,
+                    weekVerticalMargin: 7,
+                    'stylesheet.calendar.header.week': {
+                      marginTop: 7,
+                      flexDirection: 'row',
+                      justifyContent: 'space-around'
+                    },
+                    'stylesheet.day.basic': {
+                      today: {
+                        backgroundColor: colors.accent + '20',
+                        borderRadius: 16,
+                      },
+                      todayText: {
+                        color: colors.accent,
+                        fontWeight: 'bold',
+                      },
+                      selected: {
+                        backgroundColor: colors.accent,
+                        borderRadius: 16,
+                      },
+                      selectedText: {
+                        color: colors.accentText || '#ffffff',
+                        fontWeight: 'bold',
+                      }
+                    },
+                    'stylesheet.day.period': {
+                      selected: {
+                        backgroundColor: colors.accent,
+                        borderRadius: 16,
+                      },
+                      selectedText: {
+                        color: colors.accentText || '#ffffff',
+                        fontWeight: 'bold',
+                      }
+                    }
                   }}
                   enableSwipeMonths={true}
                   onMonthChange={(month) => {
