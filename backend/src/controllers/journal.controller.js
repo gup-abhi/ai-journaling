@@ -90,7 +90,10 @@ export const getJournalEntryById = async (req, res) => {
   try {
     if (!id || !mongoose.Types.ObjectId.isValid(id)) throw new AppError("Invalid entry ID.", 400);
 
-    const entry = await JournalEntry.findOne({ _id: id });
+    const entry = await JournalEntry.findOne({ 
+      _id: id,
+      user_id: req.user._id 
+    });
     if (!entry)
       throw new AppError("Journal entry not found.", 404);
 
@@ -308,6 +311,138 @@ export const getTimelineData = async (req, res) => {
         start: startDate,
         end: endDate
       }
+    });
+  } catch (error) {
+    logger.error(error);
+    throw new AppError("Internal Server Error", 500);
+  }
+};
+
+export const getJournalEntriesByTheme = async (req, res) => {
+  try {
+    const { theme, period } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    if (!theme) {
+      throw new AppError("Theme parameter is required.", 400);
+    }
+
+    // Calculate date range based on period
+    let startDate, endDate;
+    const now = new Date();
+    
+    if (period) {
+      switch (period) {
+        case 'week':
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          endDate = now;
+          break;
+        case 'month':
+          startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+          endDate = now;
+          break;
+        case 'year':
+          startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+          endDate = now;
+          break;
+        default:
+          startDate = null;
+          endDate = null;
+      }
+    }
+
+    // Build date filter for journal entries
+    const journalDateFilter = {};
+    if (startDate && endDate) {
+      journalDateFilter.entry_date = {
+        $gte: startDate,
+        $lte: endDate
+      };
+    }
+
+    // Get all journal entries for the user with date filter
+    const entries = await JournalEntry.find({
+      user_id: req.user._id,
+      ...journalDateFilter
+    })
+    .sort({ entry_date: -1 })
+    .lean();
+
+    // Get insights for all entries
+    const Insight = (await import('../models/Insights.model.js')).default;
+    const entryIds = entries.map(entry => entry._id);
+    const insights = await Insight.find({
+      journal_entry_id: { $in: entryIds },
+      user_id: req.user._id,
+      'themes_topics.theme': { $regex: theme, $options: 'i' }
+    }).lean();
+
+    // Create a map of insights by journal entry ID
+    const insightsMap = {};
+    insights.forEach(insight => {
+      insightsMap[insight.journal_entry_id.toString()] = insight;
+    });
+
+    // Filter entries that have the specified theme
+    const filteredEntries = entries.filter(entry => 
+      insightsMap[entry._id.toString()]
+    );
+
+    // Get total count for pagination
+    const totalEntries = filteredEntries.length;
+
+    // Apply pagination
+    const paginatedEntries = filteredEntries.slice(skip, skip + limit);
+
+    // Format the response data
+    const formattedEntries = paginatedEntries.map(entry => {
+      const insight = insightsMap[entry._id.toString()];
+      const sentiment = insight?.sentiment || {};
+      
+      // Find the specific theme in the insights
+      const matchedTheme = insight?.themes_topics?.find(t => 
+        t.theme.toLowerCase().includes(theme.toLowerCase())
+      );
+
+      return {
+        id: entry._id,
+        content: entry.content,
+        entry_date: entry.entry_date,
+        word_count: entry.word_count,
+        sentiment: {
+          overall: sentiment.overall || 'neutral',
+          score: sentiment.score || 0,
+          emotions: sentiment.emotions || []
+        },
+        matched_theme: matchedTheme,
+        all_themes: insight?.themes_topics || [],
+        summary: insight?.summary || '',
+        key_learnings: insight?.key_learnings_reflections || []
+      };
+    });
+
+    const totalPages = Math.ceil(totalEntries / limit);
+    const hasNextPage = page < totalPages;
+    const hasPrevPage = page > 1;
+
+    return res.status(200).json({
+      entries: formattedEntries,
+      theme,
+      period: period || 'all',
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalEntries,
+        hasNextPage,
+        hasPrevPage,
+        limit
+      },
+      dateRange: startDate && endDate ? {
+        start: startDate,
+        end: endDate
+      } : null
     });
   } catch (error) {
     logger.error(error);

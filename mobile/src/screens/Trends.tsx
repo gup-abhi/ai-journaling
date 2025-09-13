@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, FlatList } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, FlatList, RefreshControl } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { Feather } from '@expo/vector-icons'
 import { useThemeColors } from '../theme/colors'
@@ -24,6 +24,7 @@ export default function Trends() {
     fetchTopThemesData
   } = useAiInsightStore()
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'year'>('week')
+  const [refreshing, setRefreshing] = useState(false)
 
   useEffect(() => {
     getStreakData()
@@ -67,6 +68,21 @@ export default function Trends() {
     setSelectedPeriod(period)
     fetchSentimentSummary(period)
     fetchTopThemesData(period, 8)
+  }
+
+  const onRefresh = async () => {
+    setRefreshing(true)
+    try {
+      await Promise.all([
+        getStreakData(),
+        fetchSentimentSummary(selectedPeriod),
+        fetchTopThemesData(selectedPeriod, 8)
+      ])
+    } catch (error) {
+      console.error('Error refreshing trends data:', error)
+    } finally {
+      setRefreshing(false)
+    }
   }
 
 
@@ -253,14 +269,10 @@ export default function Trends() {
                       }
                     ]}
                     onPress={() => {
-                      const sentimentBreakdown = Object.entries(theme.sentiment_breakdown)
-                        .filter(([_, count]) => (count as number) > 0)
-                        .map(([sentiment, count]) => `${sentiment}: ${count}`)
-                        .join(', ')
-                      Toast.show(
-                        `${theme.theme}\nMentions: ${theme.frequency}\nSentiment: ${theme.dominant_sentiment}\nBreakdown: ${sentimentBreakdown}`, 
-                        Toast.LONG
-                      )
+                      navigation.navigate('ThemeDetail' as never, { 
+                        theme: theme.theme, 
+                        period: selectedPeriod 
+                      } as never)
                     }}
                     activeOpacity={0.7}
                   >
@@ -273,6 +285,9 @@ export default function Trends() {
                   </TouchableOpacity>
                 ))}
               </View>
+              <Text style={[styles.themesHint, { color: colors.muted }]}>
+                Tap on any theme to explore related journal entries
+              </Text>
             </View>
           </View>
         )
@@ -398,6 +413,14 @@ export default function Trends() {
         renderItem={renderTrendsItem}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.contentContainer, { marginTop: 20 }]}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.accent}
+            colors={[colors.accent]}
+          />
+        }
       />
     </View>
   )
@@ -549,5 +572,11 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 8,
     overflow: 'hidden',
+  },
+  themesHint: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 12,
+    fontStyle: 'italic',
   },
 })

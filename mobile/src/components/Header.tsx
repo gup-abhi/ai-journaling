@@ -2,6 +2,8 @@ import React from 'react'
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useThemeColors } from '../theme/colors'
+import { useNavigation } from '@react-navigation/native'
+import Logo from './Logo'
 
 interface HeaderProps {
   title?: string
@@ -27,6 +29,7 @@ export default function Header({
   variant = 'default'
 }: HeaderProps) {
   const colors = useThemeColors()
+  const navigation = useNavigation()
 
   const renderLeftContent = () => {
     if (variant === 'dashboard') {
@@ -37,7 +40,7 @@ export default function Header({
       return (
         <TouchableOpacity
           style={styles.backButton}
-          onPress={onBackPress}
+          onPress={onBackPress || (() => navigation.goBack())}
           accessibilityLabel="Go back"
         >
           <Feather name="arrow-left" size={24} color={colors.text} />

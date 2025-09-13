@@ -163,11 +163,17 @@ export const getSentimentTrends = async (req, res) => {
 
 export const getTrendsByJournalId = async (req, res) => {
     const { journal_id } = req.params;
+    const { _id: user_id } = req.user;
+    
     try {
-        const trend = await Insight.findOne({ journal_entry_id: journal_id });
+        const trend = await Insight.findOne({ 
+            journal_entry_id: journal_id,
+            user_id: user_id 
+        });
 
         if (!trend) {
-            throw new AppError("Trend not found", 404);
+            // Return null instead of throwing an error when no insights exist yet
+            return res.status(200).json(null);
         }
 
         return res.status(200).json(trend);

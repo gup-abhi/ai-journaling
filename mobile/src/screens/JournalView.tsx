@@ -30,6 +30,7 @@ export default function JournalView() {
   useEffect(() => {
     const load = async () => {
       setIsLoading(true)
+      
       const res = await safeRequest(api.get<JournalEntry>(`/journal/${id}`))
       if (res.ok) {
         setEntry(res.data)
@@ -43,9 +44,14 @@ export default function JournalView() {
           }
         }
       }
+      
       const t = await safeRequest(api.get(`/ai-insights/trends/journal/${id}`))
-      if (t.ok) setTrend(t.data as any)
-      else setNoInsights(true)
+      if (t.ok) {
+        setTrend(t.data as any)
+        setNoInsights(!t.data)
+      } else {
+        setNoInsights(true)
+      }
       setIsLoading(false)
     }
     load()
