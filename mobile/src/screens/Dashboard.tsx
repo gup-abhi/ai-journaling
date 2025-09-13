@@ -12,27 +12,6 @@ import { useThemeColors } from '../theme/colors'
 import Header from '../components/Header'
 import NudgeCard from '../components/NudgeCard'
 
-// Helper function to get first name from user data
-const getFirstName = (user: any): string => {
-  // Try display_name or full_name first
-  const name = user.display_name || user.full_name || user.email || '';
-
-  if (!name) return '';
-
-  // If it's an email, take everything before @
-  if (name.includes('@')) {
-    return name.split('@')[0];
-  }
-
-  // If it's a full name with spaces, take the first part
-  if (name.includes(' ')) {
-    return name.split(' ')[0];
-  }
-
-  // If it's a single word, use it as is
-  return name;
-};
-
 export default function Dashboard() {
   const { fetchTotalEntries, fetchMonthlyEntries, refreshDashboardEntries, totalEntries, monthlyEntries, dashboardEntries } = useJournalStore()
   const { fetchMoodTrends, moodTrends, fetchNudges, nudges, isNudgesLoading } = useAiInsightStore()
@@ -198,8 +177,10 @@ export default function Dashboard() {
 }
 
 function ActionButton({ label, onPress, variant, accent, accentBg, accentText }: { label: string; onPress: () => void; variant?: 'primary' | 'secondary'; accent?: string; accentBg?: string; accentText?: string }) {
+  const colors = useThemeColors()
   const bg = variant === 'secondary' ? (accentBg || '#e5f5ec') : (accent || '#2ecc71')
-  const color = variant === 'secondary' ? (accentText || '#0f5132') : '#fff'
+  // Use proper contrast color for secondary buttons - use the theme's foreground color for better visibility
+  const color = variant === 'secondary' ? colors.text : '#fff'
   return (
     <TouchableOpacity onPress={onPress} style={[styles.actionBtn, { backgroundColor: bg }]}> 
       <Text style={[styles.actionText, { color }]}>{label}</Text>

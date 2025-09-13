@@ -16,6 +16,13 @@ const NUDGE_TYPES = {
     priority: 'medium',
     action: 'plan_activity'
   },
+  NEW_USER_WELCOME: {
+    id: 'new_user_welcome',
+    title: 'Welcome to Your Journey!',
+    message: 'Start your journaling journey today! Take a few minutes to reflect and write your first entry.',
+    priority: 'high',
+    action: 'journal_now'
+  },
   MISSING_ENTRIES: {
     id: 'missing_entries',
     title: 'Keep Your Streak Going',
@@ -116,10 +123,11 @@ async function checkMissingEntries(userId) {
       { sort: { entry_date: -1 } }
     );
 
+    // If no entries exist, this is a new user
     if (!lastEntry) {
       return {
-        type: NUDGE_TYPES.MISSING_ENTRIES,
-        data: { days: 'many' }
+        type: NUDGE_TYPES.NEW_USER_WELCOME,
+        data: {}
       };
     }
 
