@@ -1,6 +1,6 @@
 import express from 'express';
 import { validateToken } from '../middlewares/authorization.js';
-import { getSentimentTrends, getSentimentTrendsByPeriod, getTrendsByJournalId, getOverallSentiment, getKeyThemesByPeriod, getEmotionDistribution, getEmotionIntensityHeatmap, getThematicSentiment, getThemeActionRadarData, getEntitySentimentTreemap, getCognitivePatternFrequency, getTemporalMoodFluctuation, getTopStressors, getSentimentSummary } from '../controllers/insight.controller.js';
+import { getSentimentTrends, getSentimentTrendsByPeriod, getTrendsByJournalId, getOverallSentiment, getKeyThemesByPeriod, getEmotionDistribution, getEmotionIntensityHeatmap, getThematicSentiment, getThemeActionRadarData, getEntitySentimentTreemap, getCognitivePatternFrequency, getTemporalMoodFluctuation, getTopStressors, getSentimentSummary, getNudges } from '../controllers/insight.controller.js';
 
 const router = express.Router();
 
@@ -18,5 +18,6 @@ router.get("/trends/cognitive-pattern-frequency/period/:period", validateToken, 
 router.get("/trends/temporal-mood-fluctuation/period/:period", validateToken, getTemporalMoodFluctuation);
 router.get("/trends/top-stressors", validateToken, getTopStressors);
 router.get("/sentiment-summary/period/:period", validateToken, getSentimentSummary);
+router.get("/nudges", validateToken, getNudges);
 
 export default router;

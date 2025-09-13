@@ -26,6 +26,15 @@ interface EmotionDistribution {
   count: number
 }
 
+interface Nudge {
+  id: string
+  title: string
+  message: string
+  priority: 'high' | 'medium' | 'low'
+  action: string
+  generatedAt: string
+}
+
 type AiInsightState = {
   moodTrends: number
   sentimentTrends: SentimentTrend[]
@@ -40,6 +49,7 @@ type AiInsightState = {
   // New sentiment summary and themes data
   sentimentSummaryData: SentimentSummaryData | null
   topThemesData: TopThemesData | null
+  nudges: Nudge[]
   isSentimentLoading: boolean
   isThemesLoading: boolean
   isEmotionDistributionLoading: boolean
@@ -52,6 +62,7 @@ type AiInsightState = {
   // New loading states
   isSentimentSummaryLoading: boolean
   isTopThemesDataLoading: boolean
+  isNudgesLoading: boolean
   fetchMoodTrends: (period?: string) => Promise<void>
   fetchSentimentTrends: (period: Period) => Promise<void>
   fetchTopThemes: (period: Period, limit: number) => Promise<void>
@@ -65,6 +76,7 @@ type AiInsightState = {
   // New functions for sentiment summary and top themes
   fetchSentimentSummary: (period: Period) => Promise<void>
   fetchTopThemesData: (period: Period, limit?: number) => Promise<void>
+  fetchNudges: () => Promise<void>
 }
 
 export const useAiInsightStore = create<AiInsightState>((set) => ({
@@ -85,6 +97,7 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
   // New data fields
   sentimentSummaryData: null,
   topThemesData: null,
+  nudges: [],
   isSentimentLoading: false,
   isThemesLoading: false,
   isEmotionDistributionLoading: false,
@@ -97,6 +110,7 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
   // New loading states
   isSentimentSummaryLoading: false,
   isTopThemesDataLoading: false,
+  isNudgesLoading: false,
 
   fetchMoodTrends: async (period?: string) => {
     const res = await safeRequest(api.get('/ai-insights/trends/overall'))
@@ -231,6 +245,22 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
     } catch (error) {
       console.error('Error fetching top themes data:', error)
       set({ topThemesData: null, isTopThemesDataLoading: false })
+    }
+  },
+
+  fetchNudges: async () => {
+    set({ isNudgesLoading: true })
+    try {
+      const result = await safeRequest(api.get('/ai-insights/nudges'))
+      if (result.ok) {
+        set({ nudges: result.data.nudges || [], isNudgesLoading: false })
+      } else if (isApiErr(result)) {
+        console.error('Failed to fetch nudges:', result.error)
+        set({ nudges: [], isNudgesLoading: false })
+      }
+    } catch (error) {
+      console.error('Error fetching nudges:', error)
+      set({ nudges: [], isNudgesLoading: false })
     }
   },
 }))

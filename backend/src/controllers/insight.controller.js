@@ -2,6 +2,7 @@ import Insight from '../models/Insights.model.js';
 import mongoose from 'mongoose';
 import AppError from "../util/AppError.js";
 import logger from '../lib/logger.js';
+import { generateNudges } from '../util/nudgeEngine.js';
 
 // Helper function to generate narrative summary
 const generateNarrativeSummary = ({ sentimentLabel, sentimentScore, percentageChange, period, sentimentDistribution, totalEntries }) => {
@@ -1179,6 +1180,26 @@ export const getSentimentSummary = async (req, res) => {
 
     } catch (error) {
         logger.error(`Error fetching sentiment summary: ${error}`);
+        throw new AppError("Internal Server Error", 500);
+    }
+};
+
+export const getNudges = async (req, res) => {
+    const { _id: user_id } = req.user;
+
+    try {
+        logger.info(`Fetching nudges for user: ${user_id}`);
+        
+        const nudges = await generateNudges(user_id);
+        
+        res.status(200).json({
+            user_id,
+            nudges,
+            generatedAt: new Date()
+        });
+
+    } catch (error) {
+        logger.error(`Error fetching nudges: ${error}`);
         throw new AppError("Internal Server Error", 500);
     }
 };

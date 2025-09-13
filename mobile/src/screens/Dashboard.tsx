@@ -10,6 +10,7 @@ import { useStreakStore } from '../stores/streak.store'
 import { useAuthStore } from '../stores/auth.store'
 import { useThemeColors } from '../theme/colors'
 import Header from '../components/Header'
+import NudgeCard from '../components/NudgeCard'
 
 // Helper function to get first name from user data
 const getFirstName = (user: any): string => {
@@ -34,7 +35,7 @@ const getFirstName = (user: any): string => {
 
 export default function Dashboard() {
   const { fetchTotalEntries, fetchMonthlyEntries, refreshDashboardEntries, totalEntries, monthlyEntries, dashboardEntries } = useJournalStore()
-  const { fetchMoodTrends, moodTrends } = useAiInsightStore()
+  const { fetchMoodTrends, moodTrends, fetchNudges, nudges, isNudgesLoading } = useAiInsightStore()
   const { getActiveGoals, activeGoals } = useGoalStore()
   const { getStreakData, streakData } = useStreakStore()
   const { user, getUser, isAuthenticated } = useAuthStore()
@@ -50,11 +51,12 @@ export default function Dashboard() {
       fetchMonthlyEntries(),
       refreshDashboardEntries(),
       fetchMoodTrends(),
+      fetchNudges(),
       getActiveGoals(),
       getStreakData(),
       getUser()
     ])
-  }, [fetchTotalEntries, fetchMonthlyEntries, refreshDashboardEntries, fetchMoodTrends, getActiveGoals, getStreakData])
+  }, [fetchTotalEntries, fetchMonthlyEntries, refreshDashboardEntries, fetchMoodTrends, fetchNudges, getActiveGoals, getStreakData])
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true)
@@ -104,6 +106,47 @@ export default function Dashboard() {
             <ActionButton label="Templates" variant="secondary" onPress={() => nav.navigate('JournalTemplates')} accentBg={colors.accentBg} accentText={colors.accentText} />
           </View>
         </View>
+
+        {/* Nudges */}
+        {nudges && nudges.length > 0 && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Insights & Suggestions</Text>
+            {isNudgesLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color={colors.accent} />
+                <Text style={[styles.loadingText, { color: colors.muted }]}>Loading insights...</Text>
+              </View>
+            ) : (
+              nudges.map((nudge) => (
+                <NudgeCard
+                  key={nudge.id}
+                  id={nudge.id}
+                  title={nudge.title}
+                  message={nudge.message}
+                  priority={nudge.priority}
+                  action={nudge.action}
+                  generatedAt={nudge.generatedAt}
+                  onPress={() => {
+                    // Handle nudge action based on action type
+                    switch (nudge.action) {
+                      case 'journal_now':
+                        nav.navigate('NewJournalEntry')
+                        break
+                      case 'plan_activity':
+                        nav.navigate('NewGoal')
+                        break
+                      case 'self_care':
+                        nav.navigate('Trends')
+                        break
+                      default:
+                        Toast.show('Nudge action: ' + nudge.action)
+                    }
+                  }}
+                />
+              ))
+            )}
+          </View>
+        )}
 
         {/* Stats */}
         <View style={styles.section}>
@@ -181,6 +224,16 @@ const styles = StyleSheet.create({
   cardText: { color: '#111827' },
   viewBtnAbsolute: { position: 'absolute', top: 8, right: 8, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 8, borderWidth: 1 },
   viewBtnText: { fontWeight: '700' },
+  loadingContainer: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    paddingVertical: 20 
+  },
+  loadingText: { 
+    marginLeft: 8, 
+    fontSize: 14 
+  },
 })
 
 
