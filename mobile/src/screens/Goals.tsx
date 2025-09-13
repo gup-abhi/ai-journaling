@@ -105,82 +105,88 @@ export default function Goals() {
   )
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.background }}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          colors={[colors.accent]}
-          tintColor={colors.accent}
-        />
-      }
-    >
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <Header
-          title="My Goals"
-          rightButton={{
-            icon: 'plus',
-            onPress: () => nav.navigate('NewGoal'),
-            accessibilityLabel: 'Add new goal'
-          }}
-        />
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.accent]}
+            tintColor={colors.accent}
+          />
+        }
+      >
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+          <Header title="My Goals" />
 
-        {/* Filter Buttons */}
-        <View style={[styles.filterContainer, { marginTop: 20 }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Filter by Status</Text>
-          <View style={styles.filterRow}>
-            {[
-              { key: "all", label: "All", value: "all" },
-              { key: "not-started", label: "Not Started", value: "not-started" },
-              { key: "in-progress", label: "In Progress", value: "in-progress" },
-              { key: "completed", label: "Completed", value: "completed" },
-              { key: "on-hold", label: "On Hold", value: "on-hold" }
-            ].map(({ key, label, value }) => (
-              <FilterButton 
-                key={key} 
-                label={label} 
-                value={value} 
-                isActive={currentFilter === value} 
-              />
-            ))}
-          </View>
-        </View>
-
-        {/* Goals Grid */}
-        {isLoading && !refreshing ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.accent} />
-            <Text style={[styles.loadingText, { color: colors.muted }]}>Loading goals...</Text>
-          </View>
-        ) : goals.length > 0 ? (
-          <View style={styles.goalsGrid}>
-            {goals
-              .filter((goal) => goal && goal._id && goal.name) // Filter out invalid goals
-              .map((goal) => (
-                <GoalCard
-                  key={goal._id}
-                  goal={goal}
-                  onDelete={handleDeleteGoal}
-                  onUpdate={() => nav.navigate('UpdateGoal', { goalId: goal._id })}
-                  colors={colors}
+          {/* Filter Buttons */}
+          <View style={[styles.filterContainer, { marginTop: 20 }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Filter by Status</Text>
+            <View style={styles.filterRow}>
+              {[
+                { key: "all", label: "All", value: "all" },
+                { key: "not-started", label: "Not Started", value: "not-started" },
+                { key: "in-progress", label: "In Progress", value: "in-progress" },
+                { key: "completed", label: "Completed", value: "completed" },
+                { key: "on-hold", label: "On Hold", value: "on-hold" }
+              ].map(({ key, label, value }) => (
+                <FilterButton 
+                  key={key} 
+                  label={label} 
+                  value={value} 
+                  isActive={currentFilter === value} 
                 />
               ))}
+            </View>
           </View>
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Feather name="target" size={48} color={colors.muted} />
-            <Text style={[styles.emptyTitle, { color: colors.text }]}>No goals found</Text>
-            <Text style={[styles.emptyText, { color: colors.muted }]}>
-              {currentFilter === "all"
-                ? "Get started by adding your first goal!"
-                : `No goals with status "${currentFilter}". Try changing the filter.`
-              }
-            </Text>
-          </View>
-        )}
-      </View>
-    </ScrollView>
+
+          {/* Goals Grid */}
+          {isLoading && !refreshing ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={colors.accent} />
+              <Text style={[styles.loadingText, { color: colors.muted }]}>Loading goals...</Text>
+            </View>
+          ) : goals.length > 0 ? (
+            <View style={styles.goalsGrid}>
+              {goals
+                .filter((goal) => goal && goal._id && goal.name) // Filter out invalid goals
+                .map((goal) => (
+                  <GoalCard
+                    key={goal._id}
+                    goal={goal}
+                    onDelete={handleDeleteGoal}
+                    onUpdate={() => nav.navigate('UpdateGoal', { goalId: goal._id })}
+                    colors={colors}
+                  />
+                ))}
+            </View>
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Feather name="target" size={48} color={colors.muted} />
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>No goals found</Text>
+              <Text style={[styles.emptyText, { color: colors.muted }]}>
+                {currentFilter === "all"
+                  ? "Get started by adding your first goal!"
+                  : `No goals with status "${currentFilter}". Try changing the filter.`
+                }
+              </Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        style={[styles.fab, { backgroundColor: colors.accent }]}
+        onPress={() => nav.navigate('NewGoal')}
+        activeOpacity={0.8}
+        accessibilityLabel="Add new goal"
+        accessibilityRole="button"
+      >
+        <Feather name="plus" size={24} color="#fff" />
+      </TouchableOpacity>
+    </View>
   )
 }
 
@@ -343,6 +349,25 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 22,
     maxWidth: 280,
+  },
+
+  fab: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
   },
 })
 
