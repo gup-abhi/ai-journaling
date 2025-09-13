@@ -63,20 +63,28 @@ export default function InsightCard({
       label: item.label || `${index + 1}`
     }))
     
+    // Determine if the overall trend is going up or down
+    const firstValue = chartData[0].value
+    const lastValue = chartData[chartData.length - 1].value
+    const isDownwardTrend = lastValue < firstValue
+    
+    // Use different colors for up vs down trends
+    const chartColor = isDownwardTrend ? '#EF4444' : '#10B981' // red for down, green for up
+    
     return (
       <View style={styles.trendChart}>
         <LineChart
           data={chartData}
           width={120}
           height={40}
-          color={getTrendColor()}
+          color={chartColor}
           thickness={2}
           hideDataPoints
           hideRules
           hideYAxisText
           hideAxesAndRules
-          startFillColor={getTrendColor()}
-          endFillColor={getTrendColor()}
+          startFillColor={chartColor}
+          endFillColor={chartColor}
           startOpacity={0.3}
           endOpacity={0.1}
           areaChart

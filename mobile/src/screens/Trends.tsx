@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, FlatList, RefreshControl } from 'react-native'
 import { useNavigation } from '@react-navigation/native'
 import { Feather } from '@expo/vector-icons'
@@ -81,6 +81,7 @@ export default function Trends() {
       ])
     } catch (error) {
       console.error('Error refreshing trends data:', error)
+      showToast('Failed to refresh trends data. Please try again.', 'error')
     } finally {
       setRefreshing(false)
     }
@@ -88,7 +89,7 @@ export default function Trends() {
 
 
 
-  const getMarkedDates = () => {
+  const markedDates = useMemo(() => {
     const marked: any = {}
     if (journalingDays) {
       // console.log('Mobile: Journaling days data:', Array.from(journalingDays.entries()))
@@ -105,15 +106,15 @@ export default function Trends() {
       })
     }
     return marked
-  }
+  }, [journalingDays, colors.accent, colors.background])
 
-  const getJournaledDaysCount = () => {
+  const journaledDaysCount = useMemo(() => {
     if (!journalingDays) return 0
     return Array.from(journalingDays.values()).filter(Boolean).length
-  }
+  }, [journalingDays])
 
-  // Create data for FlatList
-  const getTrendsData = () => {
+  // Create data for FlatList - memoized to prevent unnecessary re-renders
+  const trendsData = useMemo(() => {
     const data = []
     
     // Period Selector
@@ -153,7 +154,12 @@ export default function Trends() {
     data.push({ id: 'calendar', type: 'calendar' })
     
     return data
-  }
+  }, [
+    isSentimentSummaryLoading,
+    sentimentSummaryData,
+    isTopThemesDataLoading,
+    topThemesData
+  ])
 
   const renderCard = (title: string, children: React.ReactNode) => (
     <View style={[styles.card, { backgroundColor: colors.cardBg, borderColor: colors.border }]}>
@@ -187,7 +193,7 @@ export default function Trends() {
             <NarrativeSummary 
               summary={item.data}
               onPress={() => {
-                showToast('Narrative insights help you understand your emotional patterns!', 'info', 2000)
+                // Card click handled without toaster notification
               }}
             />
           </View>
@@ -223,7 +229,7 @@ export default function Trends() {
             <SentimentSummaryCard 
               data={item.data} 
               onPress={() => {
-                showToast('Sentiment details coming soon!', 'info', 2000)
+                // Card click handled without toaster notification
               }}
             />
           </View>
@@ -337,11 +343,11 @@ export default function Trends() {
       case 'calendar':
         return (
           <View style={styles.itemContainer}>
-            {renderCard(`Journaling Activity (${getJournaledDaysCount()} days)`, (
+            {renderCard(`Journaling Activity (${journaledDaysCount} days)`, (
               <View>
                 <Calendar
                   key={`calendar-${colors.background}-${colors.text}`}
-                  markedDates={getMarkedDates()}
+                  markedDates={markedDates}
                   theme={{
                     calendarBackground: colors.cardBg,
                     dayTextColor: colors.text,
@@ -468,7 +474,7 @@ export default function Trends() {
       <Header title="Trends & Insights" />
       
       <FlatList
-        data={getTrendsData()}
+        data={trendsData}
         keyExtractor={(item) => item.id}
         renderItem={renderTrendsItem}
         showsVerticalScrollIndicator={false}

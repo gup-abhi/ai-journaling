@@ -2,6 +2,7 @@ import { useColorScheme } from 'react-native'
 import { formatHex, oklch } from 'culori'
 import { theme as webTokens } from './tokens'
 import { useThemeStore } from '../stores/theme.store'
+import { useMemo } from 'react'
 
 type ThemeColors = {
   accent: string
@@ -30,7 +31,7 @@ export function useThemeColors(): ThemeColors {
     try { return formatHex(oklch(oklchStr)!) } catch { return '#000' }
   }
 
-  return {
+  return useMemo(() => ({
     accent: toHex(tokens.primary),
     accentBg: toHex(tokens.muted),
     accentText: toHex(tokens.primary),
@@ -41,7 +42,7 @@ export function useThemeColors(): ThemeColors {
     border: toHex(tokens.border),
     cardBg: isDark ? toHex('oklch(0.25 0.01 275)') : '#ffffff',
     background: toHex(tokens.background),
-  }
+  }), [isDark, tokens.primary, tokens.muted, tokens.primaryForeground, tokens.foreground, tokens.mutedForeground, tokens.border, tokens.background])
 }
 
 

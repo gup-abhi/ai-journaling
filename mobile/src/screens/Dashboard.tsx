@@ -54,8 +54,7 @@ export default function Dashboard() {
       fetchMoodTrends(),
       fetchNudges(),
       getActiveGoals(),
-      getStreakData(),
-      getUser()
+      getStreakData()
     ])
   }, [fetchTotalEntries, fetchMonthlyEntries, refreshDashboardEntries, fetchMoodTrends, fetchNudges, getActiveGoals, getStreakData])
 
@@ -140,7 +139,7 @@ export default function Dashboard() {
                         nav.navigate('Trends')
                         break
                       default:
-                        showToast('Nudge action: ' + nudge.action, 'info')
+                        // Nudge action handled without toaster notification
                     }
                   }}
                 />

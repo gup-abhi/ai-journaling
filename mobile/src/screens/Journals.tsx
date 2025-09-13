@@ -1,9 +1,10 @@
 import React, { useEffect, useCallback, useRef, useState } from 'react'
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Modal, Alert, ScrollView } from 'react-native'
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, Modal, ScrollView } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useThemeColors } from '../theme/colors'
 import { useJournalStore } from '../stores/journal.store'
 import { useNavigation, useFocusEffect } from '@react-navigation/native'
+import { useToast } from '../contexts/ToastContext'
 import Header from '../components/Header'
 
 export default function Journals() {
@@ -23,6 +24,7 @@ export default function Journals() {
     clearDateFilters
   } = useJournalStore()
   const nav = useNavigation<any>()
+  const { showToast } = useToast()
   const colors = useThemeColors()
   const flatListRef = useRef<FlatList>(null)
   const [showDatePicker, setShowDatePicker] = useState(false)
@@ -136,7 +138,7 @@ export default function Journals() {
       handleDateFilter(filters)
     } else {
       console.log('No valid filters selected')
-      Alert.alert('Invalid Filter', 'Please select appropriate filter values.')
+      showToast('Please select appropriate filter values.', 'error')
     }
   }
 

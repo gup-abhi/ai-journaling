@@ -12,6 +12,7 @@ import {
 import { useNavigation, useRoute } from '@react-navigation/native'
 import { Feather } from '@expo/vector-icons'
 import { useThemeColors } from '../theme/colors'
+import { useToast } from '../contexts/ToastContext'
 import Header from '../components/Header'
 import { api, safeRequest } from '../lib/api'
 
@@ -62,6 +63,7 @@ interface ThemeDetailData {
 
 export default function ThemeDetail() {
   const colors = useThemeColors()
+  const { showToast } = useToast()
   const navigation = useNavigation()
   const route = useRoute()
   const { theme, period = 'all' } = route.params as { theme: string; period?: string }
@@ -96,9 +98,11 @@ export default function ThemeDetail() {
         }
       } else {
         console.error('Failed to fetch theme entries:', result.error)
+        showToast('Failed to load theme entries. Please try again.', 'error')
       }
     } catch (error) {
       console.error('Error fetching theme entries:', error)
+      showToast('Failed to load theme entries. Please try again.', 'error')
     } finally {
       setLoading(false)
       setLoadingMore(false)

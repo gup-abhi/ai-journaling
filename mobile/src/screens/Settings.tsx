@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native'
 import { Feather } from '@expo/vector-icons'
 import { useAuthStore } from '../stores/auth.store'
 import { useThemeStore, ThemeMode } from '../stores/theme.store'
 import { useThemeColors } from '../theme/colors'
+import { useToast } from '../contexts/ToastContext'
 import Header from '../components/Header'
 
 export default function Settings() {
   const { user, getUser, signOut, isLoading } = useAuthStore()
   const { themeMode, setThemeMode } = useThemeStore()
+  const { showToast } = useToast()
   const colors = useThemeColors()
   const [loading, setLoading] = useState(false)
 
@@ -19,27 +21,22 @@ export default function Settings() {
   }, [user, getUser])
 
   const handleSignOut = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Sign Out', 
-          style: 'destructive',
-          onPress: async () => {
-            setLoading(true)
-            try {
-              await signOut()
-            } catch (error) {
-              console.error('Sign out error:', error)
-            } finally {
-              setLoading(false)
-            }
-          }
-        }
-      ]
-    )
+    // Show confirmation toast instead of alert
+    showToast('Signing out...', 'info', 2000)
+    
+    // Proceed with sign out after a brief delay to show the confirmation
+    setTimeout(async () => {
+      setLoading(true)
+      try {
+        await signOut()
+        showToast('Signed out successfully!', 'success')
+      } catch (error) {
+        console.error('Sign out error:', error)
+        showToast('Failed to sign out. Please try again.', 'error')
+      } finally {
+        setLoading(false)
+      }
+    }, 1000)
   }
 
   const handleThemeChange = (mode: ThemeMode) => {

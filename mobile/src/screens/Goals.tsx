@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   RefreshControl,
-  Alert,
   ActivityIndicator
 } from 'react-native'
 import { useToast } from '../contexts/ToastContext'
@@ -58,27 +57,20 @@ export default function Goals() {
   }
 
   const handleDeleteGoal = (goalId: string, goalName: string) => {
-    Alert.alert(
-      'Delete Goal',
-      `Are you sure you want to delete "${goalName}"?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteGoal(goalId)
-              // Refresh the goals list to ensure UI is in sync
-              await fetchGoals(filter)
-              showToast('Goal deleted successfully!', 'success')
-            } catch (error) {
-              showToast('Failed to delete goal. Please try again.', 'error')
-            }
-          }
-        }
-      ]
-    )
+    // Show confirmation toast instead of alert
+    showToast(`Deleting "${goalName}"...`, 'info', 2000)
+    
+    // Proceed with deletion after a brief delay to show the confirmation
+    setTimeout(async () => {
+      try {
+        await deleteGoal(goalId)
+        // Refresh the goals list to ensure UI is in sync
+        await fetchGoals(filter)
+        showToast('Goal deleted successfully!', 'success')
+      } catch (error) {
+        showToast('Failed to delete goal. Please try again.', 'error')
+      }
+    }, 1000)
   }
 
   const FilterButton = ({ label, value, isActive }: { label: string; value: string; isActive: boolean }) => (
