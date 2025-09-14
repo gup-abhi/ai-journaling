@@ -32,7 +32,33 @@ api.interceptors.request.use(async (config) => {
       refreshTokenPreview: refresh_token ? refresh_token.substring(0, 10) + "..." : 'none'
     })
 
+    // Check token expiration before sending
     if (access_token) {
+      try {
+        const parts = access_token.split('.');
+        if (parts.length === 3) {
+          // Use atob for base64 decoding in React Native
+          const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+          const payload = JSON.parse(atob(base64));
+          const expDate = new Date(payload.exp * 1000);
+          const now = new Date();
+          const timeDiff = expDate.getTime() - now.getTime();
+          
+          console.log('Token expiration check:', {
+            exp: expDate.toISOString(),
+            now: now.toISOString(),
+            timeUntilExpiry: timeDiff,
+            isExpired: timeDiff < 0
+          });
+          
+          if (timeDiff < 0) {
+            console.warn('⚠️  Access token is expired!');
+          }
+        }
+      } catch (decodeErr) {
+        console.warn('Could not decode access token:', decodeErr.message);
+      }
+      
       config.headers['Authorization'] = `Bearer ${access_token}`
       console.log('✅ Authorization header set')
     } else {
@@ -41,7 +67,7 @@ api.interceptors.request.use(async (config) => {
     
     if (refresh_token) {
       config.headers['Refresh'] = `Bearer ${refresh_token}`
-      console.log('✅ Refresh header set')
+      console.log('✅ Refresh header set:', `Bearer ${refresh_token.substring(0, 10)}...`)
     } else {
       console.log('⚠️  No refresh token available')
     }
@@ -126,6 +152,55 @@ api.interceptors.response.use(
         'x-new-refresh-token': error.response.headers['x-new-refresh-token'] ? '[REDACTED]' : 'not present',
         'x-clear-tokens': error.response.headers['x-clear-tokens'] || 'not present'
       })
+    }
+
+    // Handle token refresh in error response
+    if (error.response?.headers) {
+      const newAccessToken = error.response.headers['x-new-access-token']
+      const newRefreshToken = error.response.headers['x-new-refresh-token']
+      const shouldClearTokens = error.response.headers['x-clear-tokens']
+
+      if (shouldClearTokens === 'true') {
+        console.log('🔄 Backend requested token clearing in error response')
+        await removeAuthTokens()
+        const authStore = useAuthStore.getState()
+        authStore.setIsAuthenticated(false)
+        authStore.setIsLoading(false)
+        resetToSignIn()
+        return Promise.reject(error)
+      }
+
+      if (newAccessToken && newRefreshToken) {
+        console.log('🔄 Backend provided new tokens in error response, storing them...')
+        await setAuthTokens(newAccessToken, newRefreshToken)
+        console.log('✅ New tokens stored successfully')
+
+        // Retry the original request with new tokens (only if not already retried)
+        // Use a symbol to safely mark retried requests without TypeScript errors
+        const RETRY_MARK = Symbol.for('api_retry_mark')
+        if (!(config as any)[RETRY_MARK]) {
+          console.log('🔄 Retrying original request with new tokens...')
+          
+          // Clone the request config and update authorization header
+          const retryConfig = {
+            ...config,
+            headers: {
+              ...config.headers,
+              Authorization: `Bearer ${newAccessToken}`
+            }
+          }
+          ;(retryConfig as any)[RETRY_MARK] = true // Prevent infinite retry loops
+          
+          try {
+            return await api(retryConfig)
+          } catch (retryError) {
+            console.error('❌ Retry failed:', retryError)
+            return Promise.reject(retryError)
+          }
+        } else {
+          console.log('⚠️  Already retried this request, not retrying again')
+        }
+      }
     }
 
     if (status === 401) {

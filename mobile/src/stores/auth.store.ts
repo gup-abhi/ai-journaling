@@ -92,6 +92,13 @@ export const useAuthStore = create<AuthState>((set) => ({
         const access_token = anyRes.data?.access_token as string | undefined
         const refresh_token = anyRes.data?.refresh_token as string | undefined
         
+        console.log('🔐 Login response tokens:', {
+          hasAccessToken: !!access_token,
+          hasRefreshToken: !!refresh_token,
+          accessTokenPreview: access_token ? access_token.substring(0, 20) + '...' : 'none',
+          refreshTokenPreview: refresh_token ? refresh_token.substring(0, 10) + '...' : 'none'
+        })
+        
         await setAuthTokens(access_token, refresh_token)
         set({ error: null, isAuthenticated: true })
 
@@ -126,7 +133,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       set({ isLoading: true, error: null });
 
-      // console.log(`Setting Tokens - ${accessToken} ${refreshToken}`)
+      console.log('🔐 Google OAuth tokens received:', {
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+        accessTokenPreview: accessToken ? accessToken.substring(0, 20) + '...' : 'none',
+        refreshTokenPreview: refreshToken ? refreshToken.substring(0, 10) + '...' : 'none'
+      })
       
       // Store the access token
       await setAuthTokens(accessToken, refreshToken);
