@@ -116,9 +116,14 @@ export const loginUser = async (req, res) => {
 export const logoutUser = async (req, res) => {
   const token = req.cookies.access_token || req.headers["authorization"]?.split(" ")[1];
 
-  // Always clear cookies
-  res.clearCookie("access_token", cookieOptions());
-  res.clearCookie("refresh_token", cookieOptions());
+  // Clear cookies only for non-mobile requests
+  if (!isMobileRequest(req)) {
+    res.clearCookie("access_token", cookieOptions());
+    res.clearCookie("refresh_token", cookieOptions());
+    logger.info("Web request - cookies cleared");
+  } else {
+    logger.info("Mobile request - skipping cookie clearing");
+  }
 
   if (!token) {
     return res.status(200).json({ message: "Logged out." });
@@ -189,11 +194,11 @@ export const loginWithGoogle = async (req, res) => {
  */
 export const googleCallback = async (req, res) => {
   const { code } = req.query;
-  const userAgent = req.get('User-Agent') || '';
-  const isMobileApp = req.get('X-Mobile-App') === 'true' || req.query.mobile === 'true';
-  const isMobile = isMobileApp || userAgent.includes('Mobile') || userAgent.includes('Android') || userAgent.includes('iPhone') || userAgent.includes('ReactNative') || userAgent.includes('Expo');
+  
+  // Use consistent mobile detection logic
+  const isMobile = isMobileRequest(req);
 
-  logger.info(`Google callback code: ${code}, isMobile: ${isMobile}, isMobileApp: ${isMobileApp}, User-Agent: ${userAgent}`);
+  logger.info(`Google callback code: ${code}, isMobile: ${isMobile}, User-Agent: ${req.get('User-Agent') || ''}`);
 
   try {
     if (code) {
@@ -217,9 +222,14 @@ export const googleCallback = async (req, res) => {
           });
         }
 
-        // 2️⃣ Set cookies for access & refresh tokens
-        res.cookie("access_token", session.access_token, cookieOptions(60 * 1000));
-        res.cookie("refresh_token", session.refresh_token, cookieOptions(7 * 24 * 60 * 60 * 1000));
+        // 2️⃣ Set cookies for access & refresh tokens only for non-mobile requests
+        if (!isMobile) {
+          res.cookie("access_token", session.access_token, cookieOptions(60 * 60 * 1000)); // 1 hour
+          res.cookie("refresh_token", session.refresh_token, cookieOptions(7 * 24 * 60 * 60 * 1000)); // 7 days
+          logger.info("Web request - Google OAuth tokens set in cookies");
+        } else {
+          logger.info("Mobile request - skipping cookie storage for Google OAuth");
+        }
 
         // 3️⃣ Handle redirect based on client type
         if (isMobile) {

@@ -19,13 +19,18 @@
     "android": {
       "package": "com.ai_journaling.mobile",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo.svg",
+        "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ac45e837-018e-4925-b43c-1c02bf4b6939"
+      }
     }
   }
 }
