@@ -5,7 +5,7 @@
     "scheme": "ai-journaling",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo.svg",
+    "icon": "./assets/logo.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
@@ -31,6 +31,9 @@
       "eas": {
         "projectId": "ac45e837-018e-4925-b43c-1c02bf4b6939"
       }
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

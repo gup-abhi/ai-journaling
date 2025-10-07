@@ -4,7 +4,6 @@ import { View } from 'react-native'
 import AppNavigator from './navigation'
 import { useAuthStore } from './stores/auth.store'
 import { useThemeColors } from './theme/colors'
-import { getAuthTokens } from './lib/auth-tokens'
 import { ToastProvider } from './contexts/ToastContext'
 
 export default function App() {

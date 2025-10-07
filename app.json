@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "c2ec4c90-6771-4101-82ab-db77359548ff"
+      }
+    },
+    "android": {
+      "package": "com.zang2012.aijournaling"
+    }
+  }
+}

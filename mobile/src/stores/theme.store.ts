@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import * as SecureStore from 'expo-secure-store'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 export type ThemeMode = 'light' | 'dark' | 'system'
 
@@ -20,25 +20,25 @@ export const useThemeStore = create<ThemeState>()(
       storage: {
         getItem: async (name) => {
           try {
-            const value = await SecureStore.getItemAsync(name)
+            const value = await AsyncStorage.getItem(name)
             return value ? JSON.parse(value) : null
           } catch (error) {
-            console.error('Error getting theme from secure store:', error)
+            console.error('Error getting theme from async storage:', error)
             return null
           }
         },
         setItem: async (name, value) => {
           try {
-            await SecureStore.setItemAsync(name, JSON.stringify(value))
+            await AsyncStorage.setItem(name, JSON.stringify(value))
           } catch (error) {
-            console.error('Error setting theme in secure store:', error)
+            console.error('Error setting theme in async storage:', error)
           }
         },
         removeItem: async (name) => {
           try {
-            await SecureStore.deleteItemAsync(name)
+            await AsyncStorage.removeItem(name)
           } catch (error) {
-            console.error('Error removing theme from secure store:', error)
+            console.error('Error removing theme from async storage:', error)
           }
         },
       },

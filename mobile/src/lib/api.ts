@@ -1,14 +1,37 @@
 import axios, { type AxiosError, type AxiosResponse } from 'axios'
 import { ENV } from '../config/env'
 import { getAuthTokens, removeAuthTokens, setAuthTokens } from './auth-tokens'
-import { useAuthStore } from '../stores/auth.store'
-import { resetToSignIn } from './navigation-service'
 import { ApiOk, ApiErr, ApiResult, isApiErr } from '../types/Api.type'
 
 // Re-export for convenience
 export { isApiErr, ApiOk, ApiErr, ApiResult }
 
 const BASE_URL = ENV.API_BASE
+
+// Callback registry to avoid circular dependencies
+type AuthStateCallback = () => void
+const authStateCallbacks: AuthStateCallback[] = []
+
+export const registerAuthStateCallback = (callback: AuthStateCallback) => {
+  authStateCallbacks.push(callback)
+}
+
+export const unregisterAuthStateCallback = (callback: AuthStateCallback) => {
+  const index = authStateCallbacks.indexOf(callback)
+  if (index > -1) {
+    authStateCallbacks.splice(index, 1)
+  }
+}
+
+const notifyAuthStateChange = () => {
+  authStateCallbacks.forEach(callback => {
+    try {
+      callback()
+    } catch (error) {
+      console.error('Error in auth state callback:', error)
+    }
+  })
+}
 
 export const api = axios.create({
   baseURL: BASE_URL,
@@ -163,10 +186,7 @@ api.interceptors.response.use(
       if (shouldClearTokens === 'true') {
         console.log('🔄 Backend requested token clearing in error response')
         await removeAuthTokens()
-        const authStore = useAuthStore.getState()
-        authStore.setIsAuthenticated(false)
-        authStore.setIsLoading(false)
-        resetToSignIn()
+        notifyAuthStateChange()
         return Promise.reject(error)
       }
 
@@ -208,10 +228,7 @@ api.interceptors.response.use(
       
       try {
         await removeAuthTokens()
-        const authStore = useAuthStore.getState()
-        authStore.setIsAuthenticated(false)
-        authStore.setIsLoading(false)
-        resetToSignIn()
+        notifyAuthStateChange()
       } catch (cleanupError) {
         console.error('❌ Error during 401 cleanup:', cleanupError)
       }

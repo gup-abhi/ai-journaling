@@ -12,10 +12,17 @@ export function navigate(name: keyof RootStackParamList, params?: any) {
 
 export function resetToSignIn() {
   if (navigationRef.isReady()) {
-    navigationRef.reset({
-      index: 0,
-      routes: [{ name: 'SignIn' }],
-    });
+    try {
+      console.log('🔄 Resetting navigation to SignIn screen')
+      navigationRef.reset({
+        index: 0,
+        routes: [{ name: 'SignIn' }],
+      });
+    } catch (error) {
+      console.error('❌ Failed to reset navigation to SignIn:', error);
+    }
+  } else {
+    console.warn('⚠️ Navigation ref is not ready, cannot reset to SignIn');
   }
 }
 

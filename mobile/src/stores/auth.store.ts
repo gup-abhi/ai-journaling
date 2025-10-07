@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { api, safeRequest, type ApiErr, type ApiOk } from '../lib/api'
+import { api, safeRequest, type ApiErr, type ApiOk, registerAuthStateCallback } from '../lib/api'
 import { getAuthTokens, setAuthTokens, removeAuthTokens } from '../lib/auth-tokens'
 
 export type AuthUser = {
@@ -27,14 +27,34 @@ type AuthState = {
   getUser: () => Promise<void>
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  isLoading: true,
-  error: null,
-  isAuthenticated: false,
+export const useAuthStore = create<AuthState>((set, get) => {
+  // Register callback to handle auth state changes from API interceptor
+  const handleAuthStateChange = () => {
+    console.log('🔄 Auth state change callback triggered - setting unauthenticated')
+    set({ isAuthenticated: false, isLoading: false, user: null, error: null })
+    
+    // Small delay to ensure state is updated before navigation reset
+    setTimeout(() => {
+      try {
+        const { resetToSignIn } = require('../lib/navigation-service')
+        resetToSignIn()
+      } catch (error) {
+        console.error('Failed to reset navigation after auth state change:', error)
+      }
+    }, 50)
+  }
+  
+  // Register the callback when the store is created
+  registerAuthStateCallback(handleAuthStateChange)
 
-  setIsAuthenticated: (value) => set({ isAuthenticated: value }),
-  setIsLoading: (value) => set({ isLoading: value }),
+  return {
+    user: null,
+    isLoading: true,
+    error: null,
+    isAuthenticated: false,
+
+    setIsAuthenticated: (value) => set({ isAuthenticated: value }),
+    setIsLoading: (value) => set({ isLoading: value }),
 
   restore: async () => {
     try {
@@ -184,7 +204,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ user: null })
     }
   }
-}))
+  }
+})
 
 export const getAuthStore = () => useAuthStore.getState()
 
