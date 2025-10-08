@@ -48,6 +48,7 @@ export function NewJournalEntry() {
           });
           setPromptResponses(initialResponses);
         } catch (error) {
+          console.error("Error fetching template:", error);
           setTemplate(null);
         }
       }

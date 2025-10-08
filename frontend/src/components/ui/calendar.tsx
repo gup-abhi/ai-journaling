@@ -32,7 +32,7 @@ export function DateFilter({ onDateSelect, currentFilters }: DateFilterProps) {
   };
 
   const applyFilter = () => {
-    let filters: { month?: number; year?: number } = {};
+    const filters: { month?: number; year?: number } = {};
 
     if (filterType === 'month' && selectedMonth && selectedYear) {
       filters.month = selectedMonth;

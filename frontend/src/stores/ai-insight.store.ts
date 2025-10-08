@@ -71,6 +71,7 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
             const response = await api.get<{ overallSentiment: number }>('/ai-insights/trends/overall');
             set({ moodTrends: response.data.overallSentiment });
         } catch (error) {
+            console.error("Error fetching mood trends:", error);
             set({ moodTrends: 0 });
         }
     },
@@ -85,6 +86,7 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
             }));
             set({ sentimentTrends: formattedData, isSentimentLoading: false });
         } catch (error) {
+            console.error("Error fetching sentiment trends:", error);
             set({ sentimentTrends: [], isSentimentLoading: false });
         }
     },
@@ -95,6 +97,7 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
         const res = await api.get<TopThemeTrends>(`/ai-insights/trends/keyThemes/period/${period}?limit=${limit}`);
         set({ topThemesTrends: res.data, isThemesLoading: false });
       } catch (error) {
+        console.error("Error fetching top themes:", error);
         set({ topThemesTrends: { user_id: '', period: '', top_themes: [] }, isThemesLoading: false });
       }
     },
@@ -105,6 +108,7 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
         const res = await api.get<{ themeActionData: ThemeActionData[] }>(`/ai-insights/theme-action-radar/period/${period}`);
         set({ themeActionRadarData: res.data.themeActionData, isThemeActionLoading: false });
       } catch (error) {
+        console.error("Error fetching theme action radar data:", error);
         set({ themeActionRadarData: [], isThemeActionLoading: false });
       }
     },
@@ -115,6 +119,7 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
             const res = await api.get(`/ai-insights/treemap/entity-sentiment/period/${period}?limit=${limit}`);
             set({ entitySentimentTreemap: res.data.top_entities, isEntitySentimentLoading: false });
         } catch (error) {
+            console.error("Error fetching entity sentiment treemap:", error);
             set({ entitySentimentTreemap: [], isEntitySentimentLoading: false });
         }
       },
@@ -125,6 +130,7 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
             const res = await api.get(`/ai-insights/trends/cognitive-pattern-frequency/period/${period}?limit=${limit}`);
             set({ cognitivePatternFrequency: res.data.cognitive_patterns, isCognitivePatternLoading: false });
         } catch (error) {
+            console.error("Error fetching cognitive pattern frequency:", error);
             set({ cognitivePatternFrequency: [], isCognitivePatternLoading: false });
         }
     },
@@ -135,6 +141,7 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
             const res = await api.get(`/ai-insights/trends/top-stressors?period=${period}&limit=${limit}`);
             set({ topStressors: res.data.top_stressors, isTopStressorsLoading: false });
         } catch (error) {
+            console.error("Error fetching top stressors:", error);
             set({ topStressors: [], isTopStressorsLoading: false });
         }
     },
@@ -155,6 +162,7 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
             const res = await api.get(`/ai-insights/emotion-intensity-heatmap/period/${period}`);
             set({ emotionIntensityHeatmap: res.data.intensityMap, isEmotionIntensityHeatmapLoading: false });
         } catch (error) {
+            console.error("Error fetching emotion intensity heatmap:", error);
             set({ emotionIntensityHeatmap: [], isEmotionIntensityHeatmapLoading: false });
         }
     },

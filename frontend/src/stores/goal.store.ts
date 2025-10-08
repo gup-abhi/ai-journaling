@@ -32,6 +32,7 @@ export const useGoalStore = create<GoalStore>((set) => ({
       const response = await api.get<{ goals: Goal[] }>('/goal-tracking', params);
       set({ goals: response.data.goals, isLoading: false }); // Set loading to false on success
     } catch (error) {
+      console.error("Error fetching goals:", error);
       set({ goals: [], isLoading: false }); // Set loading to false on error
     }
   },
@@ -43,6 +44,7 @@ export const useGoalStore = create<GoalStore>((set) => ({
       toast.success(response.data.message || 'Goal added successfully');
       set((state) => ({ ...state, goals: [...state.goals, response.data], isLoading: false })); // Set loading to false on success
     } catch (error: any) {
+      console.error("Error adding goal:", error);
       toast.error(error.message || 'Failed to add goal');
       set({ isLoading: false }); // Set loading to false on error
     }
@@ -55,6 +57,7 @@ export const useGoalStore = create<GoalStore>((set) => ({
       toast.success(response.data.message);
       set((state) => ({ ...state, goals: state.goals.filter((goal) => goal._id !== goalId), isLoading: false })); // Set loading to false on success
     } catch (error: any) {
+      console.error("Error deleting goal:", error);
       toast.error(error.message || 'Failed to delete goal');
       set({ isLoading: false }); // Set loading to false on error
     }
@@ -68,6 +71,7 @@ export const useGoalStore = create<GoalStore>((set) => ({
       toast.success(response.data.message);
       set({ isLoading: false }); // Set loading to false on success
     } catch (error: any) {
+      console.error("Error updating goal:", error);
       toast.error(error.message || 'Failed to update goal');
       set({ isLoading: false }); // Set loading to false on error
     }
@@ -79,6 +83,7 @@ export const useGoalStore = create<GoalStore>((set) => ({
       const response = await api.get<{ goals: Goal[] }>('/goal-tracking/active-goals');
       set({ activeGoals: response.data.goals, isLoading: false }); // Set loading to false on success
     } catch (error) {
+      console.error("Error fetching active goals:", error);
       set({ activeGoals: [], isLoading: false }); // Set loading to false on error
     }
   }

@@ -45,6 +45,7 @@ export const useJournalStore = create<JournalStore>((set, get) => ({
         isLoading: false
       })
     } catch (error) {
+      console.error("Error fetching journal entries:", error);
       set({
         journalEntries: [],
         isLoading: false
@@ -96,6 +97,7 @@ export const useJournalStore = create<JournalStore>((set, get) => ({
       const response = await api.get<{ totalEntries: number }>('/journal/total-entries')
       set({ totalEntries: response.data.totalEntries });
     } catch (error) {
+        console.error("Error fetching total entries:", error);
         set({ totalEntries: 0 })
     }
   },
@@ -128,6 +130,7 @@ export const useJournalStore = create<JournalStore>((set, get) => ({
       toast.success('Journal entry added successfully')
       return response.data.entry
     } catch (error) {
+      console.error("Error adding journal entry:", error);
       toast.error('Failed to add journal entry')
       return null
     }
