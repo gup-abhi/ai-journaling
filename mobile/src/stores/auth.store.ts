@@ -1,6 +1,10 @@
 import { create } from 'zustand'
-import { api, safeRequest, type ApiErr, type ApiOk, registerAuthStateCallback } from '../lib/api'
-import { getAuthTokens, setAuthTokens, removeAuthTokens } from '../lib/auth-tokens'
+import { supabase } from '../lib/supabase'
+import { Session } from '@supabase/supabase-js'
+import * as WebBrowser from 'expo-web-browser'
+import { makeRedirectUri } from 'expo-auth-session'
+
+WebBrowser.maybeCompleteAuthSession()
 
 export type AuthUser = {
   display_name: string
@@ -13,6 +17,7 @@ export type AuthUser = {
 
 type AuthState = {
   user: AuthUser | null
+  session: Session | null
   isLoading: boolean
   error: string | null
   isAuthenticated: boolean
@@ -21,34 +26,23 @@ type AuthState = {
   signUp: (payload: { email: string; password: string; display_name: string }) => Promise<{ ok: boolean; message?: string }>
   signIn: (payload: { email: string; password: string }) => Promise<{ ok: boolean }>
   signInWithGoogle: () => Promise<{ ok: boolean }>
-  handleGoogleOAuthTokens: (accessToken: string, refreshToken?: string) => Promise<{ ok: boolean }>
   signOut: () => Promise<void>
-  restore: () => void
   getUser: () => Promise<void>
 }
 
 export const useAuthStore = create<AuthState>((set, get) => {
-  // Register callback to handle auth state changes from API interceptor
-  const handleAuthStateChange = () => {
-    console.log('🔄 Auth state change callback triggered - setting unauthenticated')
-    set({ isAuthenticated: false, isLoading: false, user: null, error: null })
-    
-    // Small delay to ensure state is updated before navigation reset
-    setTimeout(() => {
-      try {
-        const { resetToSignIn } = require('../lib/navigation-service')
-        resetToSignIn()
-      } catch (error) {
-        console.error('Failed to reset navigation after auth state change:', error)
-      }
-    }, 50)
-  }
-  
-  // Register the callback when the store is created
-  registerAuthStateCallback(handleAuthStateChange)
+  supabase.auth.onAuthStateChange((event, session) => {
+    console.log('onAuthStateChange', event, session)
+    set({ session })
+    const user = session?.user ?? null
+    set({ user: user as unknown as AuthUser })
+    set({ isAuthenticated: !!user })
+    set({ isLoading: false })
+  })
 
   return {
     user: null,
+    session: null,
     isLoading: true,
     error: null,
     isAuthenticated: false,
@@ -56,156 +50,148 @@ export const useAuthStore = create<AuthState>((set, get) => {
     setIsAuthenticated: (value) => set({ isAuthenticated: value }),
     setIsLoading: (value) => set({ isLoading: value }),
 
-  restore: async () => {
-    try {
+    signUp: async (payload) => {
       set({ isLoading: true, error: null })
-      
-      // Check if we have a stored token first
-      const { access_token, refresh_token } = await getAuthTokens()
-
-      // console.log('Restoring auth, checking token:', access_token, refresh_token)
-
-      // If no token, set unauthenticated state
-      if (!access_token && !refresh_token) {
-        set({ isLoading: false, isAuthenticated: false, user: null })
-        return
-      }
-
-      // Try to validate the token with the backend
-      const res = await safeRequest(api.get('/auth/check', { withCredentials: true }))
-      const valid = (res as any).ok;
-
-      // console.log('Token validation result:', res);
-      
-      if (valid) {
-        set({ isAuthenticated: true, isLoading: false })
-      }
-    } catch (error) {
-      console.error('Auth restore error:', error)
-      // Clear any stored token on error
-      await removeAuthTokens()
-      set({ isAuthenticated: false, user: null, error: 'Authentication failed' })
-    } finally {
-      set({ isLoading: false })
-    }
-  },
-
-  signUp: async (payload) => {
-    set({ isLoading: true, error: null })
-    const res = await safeRequest(api.post('/auth/signup', payload, { withCredentials: true }))
-    if ((res as ApiOk<any>).ok) {
-      set({ isLoading: false, error: null })
-      return { ok: true, message: 'Verification email sent. Please check your inbox.' }
-    } else {
-      set({ isLoading: false, error: (res as ApiErr).error || 'Sign up failed.' })
-      return { ok: false }
-    }
-  },
-
-  signIn: async (payload) => {
-    try {
-      set({ isLoading: true, error: null })
-      const res = await safeRequest(api.post('/auth/login', payload, { withCredentials: true }))
-      if ((res as ApiOk<any>).ok) {
-        // Store the access token from the response
-        const anyRes = res as any
-        const access_token = anyRes.data?.access_token as string | undefined
-        const refresh_token = anyRes.data?.refresh_token as string | undefined
-        
-        console.log('🔐 Login response tokens:', {
-          hasAccessToken: !!access_token,
-          hasRefreshToken: !!refresh_token,
-          accessTokenPreview: access_token ? access_token.substring(0, 20) + '...' : 'none',
-          refreshTokenPreview: refresh_token ? refresh_token.substring(0, 10) + '...' : 'none'
-        })
-        
-        await setAuthTokens(access_token, refresh_token)
-        set({ error: null, isAuthenticated: true })
-
-        return { ok: true }
-      } else {
-        set({ error: (res as ApiErr).error || 'Sign in failed.', isAuthenticated: false })
+      const { data, error } = await supabase.auth.signUp({
+        email: payload.email,
+        password: payload.password,
+        options: {
+          data: {
+            display_name: payload.display_name,
+          },
+        },
+      })
+      if (error) {
+        set({ isLoading: false, error: error.message || 'Sign up failed.' })
         return { ok: false }
       }
-    } catch (error) {
-      console.error('Sign in error:', error)
-      set({ isLoading: false, error: 'Sign in failed. Please try again.', isAuthenticated: false })
+      if (data) {
+        set({ isLoading: false, error: null })
+        return { ok: true, message: 'Verification email sent. Please check your inbox.' }
+      }
       return { ok: false }
-    } finally {
-      set({ isLoading: false })
-    }
-  },
+    },
 
-  signInWithGoogle: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      // Navigate to GoogleOAuth screen - the WebView will handle the OAuth flow
-      // We'll return success immediately as the navigation will handle the rest
-      set({ isLoading: false });
-      return { ok: true };
-    } catch (err: any) {
-      set({ isLoading: false, error: err.message || 'Google Sign-In failed' });
-      return { ok: false };
-    }
-  },
+    signIn: async (payload) => {
+      try {
+        set({ isLoading: true, error: null })
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: payload.email,
+          password: payload.password,
+        })
+        if (error) {
+          set({ error: error.message || 'Sign in failed.', isAuthenticated: false })
+          return { ok: false }
+        }
+        if (data) {
+          set({ error: null, isAuthenticated: true })
+          return { ok: true }
+        }
+        return { ok: false }
+      } catch (error) {
+        console.error('Sign in error:', error)
+        set({ isLoading: false, error: 'Sign in failed. Please try again.', isAuthenticated: false })
+        return { ok: false }
+      } finally {
+        set({ isLoading: false })
+      }
+    },
 
-  handleGoogleOAuthTokens: async (accessToken: string, refreshToken?: string) => {
-    try {
-      set({ isLoading: true, error: null });
+    signInWithGoogle: async () => {
+      set({ isLoading: true, error: null })
+      try {
+        const redirectUrl = makeRedirectUri({
+          path: '/auth/callback',
+          scheme: 'ai-journaling',
+        })
+        console.log('Redirect URL (App Deep Link):', redirectUrl)
 
-      console.log('🔐 Google OAuth tokens received:', {
-        hasAccessToken: !!accessToken,
-        hasRefreshToken: !!refreshToken,
-        accessTokenPreview: accessToken ? accessToken.substring(0, 20) + '...' : 'none',
-        refreshTokenPreview: refreshToken ? refreshToken.substring(0, 10) + '...' : 'none'
-      })
-      
-      // Store the access token
-      await setAuthTokens(accessToken, refreshToken);
-      
-      // Set authenticated state immediately
-      set({ isAuthenticated: true });
-      
-      return { ok: true };
-    } catch (error) {
-      console.error('Google OAuth token handling error:', error);
-      set({ isLoading: false, error: 'Failed to store OAuth tokens' });
-      return { ok: false };
-    } finally {
-      set({ isLoading: false })
-    }
-  },
+        // Use your backend's Google OAuth callback URL here
+        const backendCallbackUrl = 'https://ai-journaling.onrender.com/auth/google/callback'
+        console.log('Redirect URL (Backend Callback):', backendCallbackUrl)
 
-  signOut: async () => {
-    try {
-      await safeRequest(api.get('/auth/logout', { withCredentials: true }))
-      await removeAuthTokens();
-    } catch (error) {
-      console.error('Logout API error:', error)
-      // Continue with local cleanup even if API call fails
-    } finally {
-      // Always clear local state and token
-      set({ user: null, isAuthenticated: false, isLoading: false, error: null })
-    }
-  },
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: backendCallbackUrl, // Redirect to your backend
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+            },
+          },
+        })
+        console.log('Supabase signInWithOAuth data:', data)
+        console.log('Supabase signInWithOAuth error:', error)
 
-  getUser: async () => {
-    try {
-      const res = await safeRequest(api.get('/auth/user', { withCredentials: true }))
-      // console.log(`/auth/user response - ${JSON.stringify(res)}`)
-      if (res.ok) {
-        set({ user: res.data })
-      } else {
-        console.error('Failed to get user data:', (res as ApiErr).error)
+        if (error) {
+          throw error
+        }
+
+        if (data?.url) {
+          console.log('Opening WebBrowser with URL:', data.url)
+          // WebBrowser will open the Google OAuth flow, which will then redirect to backendCallbackUrl
+          // Your backend will then redirect to the app's deep link (redirectUrl)
+          const res = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl)
+          console.log('WebBrowser result:', res)
+
+          if (res.type === 'success' && res.url) {
+            const url = new URL(res.url)
+            const params = url.searchParams
+            const access_token = params.get('access_token')
+            const refresh_token = params.get('refresh_token')
+            const id_token = params.get('id_token')
+            console.log('Extracted tokens:', { access_token, refresh_token, id_token })
+
+            if (id_token) {
+              const { error: signInError } = await supabase.auth.signInWithIdToken({
+                provider: 'google',
+                token: id_token,
+              })
+              console.log('signInWithIdToken error:', signInError)
+              if (signInError) throw signInError
+              set({ error: null, isAuthenticated: true })
+              return { ok: true }
+            }
+          } else {
+            console.log('WebBrowser result type not success:', res.type)
+          }
+        }
+        set({ error: 'Google Sign-In failed: No session data', isAuthenticated: false })
+        return { ok: false }
+      } catch (error: any) {
+        console.error('Google Sign-In error:', error)
+        set({ isLoading: false, error: error.message || 'Google Sign-In failed.', isAuthenticated: false })
+        return { ok: false }
+      } finally {
+        set({ isLoading: false })
+      }
+    },
+
+    signOut: async () => {
+      try {
+        await supabase.auth.signOut()
+      } catch (error) {
+        console.error('Logout API error:', error)
+      } finally {
+        set({ user: null, isAuthenticated: false, isLoading: false, error: null, session: null })
+      }
+    },
+
+    getUser: async () => {
+      try {
+        const { data, error } = await supabase.auth.getUser()
+        if (error) {
+          console.error('Failed to get user data:', error)
+          set({ user: null })
+        } else {
+          set({ user: data.user as unknown as AuthUser })
+        }
+      } catch (error) {
+        console.error('Get user error:', error)
         set({ user: null })
       }
-    } catch (error) {
-      console.error('Get user error:', error)
-      set({ user: null })
-    }
-  }
+    },
   }
 })
 
 export const getAuthStore = () => useAuthStore.getState()
-

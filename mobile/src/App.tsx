@@ -7,12 +7,17 @@ import { useThemeColors } from './theme/colors'
 import { ToastProvider } from './contexts/ToastContext'
 
 export default function App() {
-  const { restore } = useAuthStore()
+  const { isAuthenticated, isLoading } = useAuthStore()
   const colors = useThemeColors()
+
+  useEffect(() => {
+    console.log('isAuthenticated', isAuthenticated)
+    console.log('isLoading', isLoading)
+  }, [isAuthenticated, isLoading])
 
   useEffect(() => { 
     // Initialize authentication state on app start
-    restore() 
+    // restore() 
   }, [])
   
   return (
@@ -25,4 +30,3 @@ export default function App() {
     </SafeAreaProvider>
   )
 }
-

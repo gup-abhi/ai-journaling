@@ -8,7 +8,7 @@ import { Feather } from '@expo/vector-icons'
 import Logo from '../components/Logo'
 
 export default function SignUp() {
-  const { signUp, isLoading, error } = useAuthStore()
+  const { signUp, signInWithGoogle, isLoading, error } = useAuthStore()
   const nav = useNavigation<any>()
   const colors = useThemeColors()
   const { showToast } = useToast()
@@ -45,8 +45,13 @@ export default function SignUp() {
     }
   }
 
-  const onGoogleSignUp = () => {
-    nav.navigate('GoogleOAuth' as never)
+  const onGoogleSignUp = async () => {
+    const res = await signInWithGoogle()
+    if (res.ok) {
+      showToast('Successfully logged in with Google!', 'success')
+    } else if (error) {
+      showToast(error, 'error')
+    }
   }
 
   return (

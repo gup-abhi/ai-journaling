@@ -1,6 +1,7 @@
 import axios, { type AxiosError, type AxiosResponse } from 'axios'
 import { ENV } from '../config/env'
-import { getAuthTokens, removeAuthTokens, setAuthTokens } from './auth-tokens'
+import { supabase } from '../lib/supabase'
+
 import { ApiOk, ApiErr, ApiResult, isApiErr } from '../types/Api.type'
 
 // Re-export for convenience
@@ -43,22 +44,20 @@ export const api = axios.create({
 
 api.interceptors.request.use(async (config) => {
   try {
-    const { access_token, refresh_token } = await getAuthTokens()
+    const { data: { session } } = await supabase.auth.getSession()
 
     console.log('=== API REQUEST ===')
     console.log('Request Details:', {
       url: `${config.baseURL}${config.url}`,
       method: config.method?.toUpperCase(),
-      hasAccessToken: !!access_token,
-      hasRefreshToken: !!refresh_token,
-      accessTokenPreview: access_token ? access_token.substring(0, 20) + "..." : 'none',
-      refreshTokenPreview: refresh_token ? refresh_token.substring(0, 10) + "..." : 'none'
+      hasAccessToken: !!session?.access_token,
+      accessTokenPreview: session?.access_token ? session.access_token.substring(0, 20) + "..." : 'none',
     })
 
     // Check token expiration before sending
-    if (access_token) {
+    if (session?.access_token) {
       try {
-        const parts = access_token.split('.');
+        const parts = session.access_token.split('.');
         if (parts.length === 3) {
           // Use atob for base64 decoding in React Native
           const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
@@ -82,17 +81,10 @@ api.interceptors.request.use(async (config) => {
         console.warn('Could not decode access token:', decodeErr.message);
       }
       
-      config.headers['Authorization'] = `Bearer ${access_token}`
+      config.headers['Authorization'] = `Bearer ${session.access_token}`
       console.log('✅ Authorization header set')
     } else {
       console.log('⚠️  No access token available')
-    }
-    
-    if (refresh_token) {
-      config.headers['Refresh'] = `Bearer ${refresh_token}`
-      console.log('✅ Refresh header set:', `Bearer ${refresh_token.substring(0, 10)}...`)
-    } else {
-      console.log('⚠️  No refresh token available')
     }
 
     config.headers['User-Agent'] = `AI-Journaling/1.0.0 (Mobile; Expo; ReactNative-Mobile-App)`
@@ -100,7 +92,6 @@ api.interceptors.request.use(async (config) => {
 
     console.log('Request Headers:', {
       'Authorization': config.headers['Authorization'] ? 'Bearer [REDACTED]' : 'not set',
-      'Refresh': config.headers['Refresh'] ? 'Bearer [REDACTED]' : 'not set',
       'User-Agent': config.headers['User-Agent'],
       'Content-Type': config.headers['Content-Type']
     })
@@ -119,38 +110,8 @@ api.interceptors.response.use(
       status: response.status,
       url: response.config.url,
       method: response.config.method?.toUpperCase(),
-      hasNewAccessToken: !!response.headers['x-new-access-token'],
-      hasNewRefreshToken: !!response.headers['x-new-refresh-token'],
-      shouldClearTokens: response.headers['x-clear-tokens']
     })
-    
-    try {
-      const newAccessToken = response.headers['x-new-access-token']
-      const newRefreshToken = response.headers['x-new-refresh-token']
-      const shouldClearTokens = response.headers['x-clear-tokens']
-
-      if (shouldClearTokens === 'true') {
-        console.log('🔄 Backend requested token clearing')
-        await removeAuthTokens()
-        return response
-      }
-
-      if (newAccessToken && newRefreshToken) {
-        console.log('🔄 Backend provided new tokens, storing them...')
-        await setAuthTokens(newAccessToken, newRefreshToken)
-        console.log('✅ New tokens stored successfully')
-      } else if (newAccessToken || newRefreshToken) {
-        console.warn('⚠️  Received partial token refresh:', {
-          hasNewAccessToken: !!newAccessToken,
-          hasNewRefreshToken: !!newRefreshToken
-        })
-      }
-
-      return response
-    } catch (error) {
-      console.error('❌ Error handling response tokens:', error)
-      return response
-    }
+    return response
   },
   async (error: AxiosError) => {
     const status = error.response?.status
@@ -168,66 +129,10 @@ api.interceptors.response.use(
       responseData: typeof responseData === 'string' ? responseData.substring(0, 200) + '...' : responseData
     })
 
-    // Log response headers that might contain token refresh info
-    if (error.response?.headers) {
-      console.log('Response Headers:', {
-        'x-new-access-token': error.response.headers['x-new-access-token'] ? '[REDACTED]' : 'not present',
-        'x-new-refresh-token': error.response.headers['x-new-refresh-token'] ? '[REDACTED]' : 'not present',
-        'x-clear-tokens': error.response.headers['x-clear-tokens'] || 'not present'
-      })
-    }
-
-    // Handle token refresh in error response
-    if (error.response?.headers) {
-      const newAccessToken = error.response.headers['x-new-access-token']
-      const newRefreshToken = error.response.headers['x-new-refresh-token']
-      const shouldClearTokens = error.response.headers['x-clear-tokens']
-
-      if (shouldClearTokens === 'true') {
-        console.log('🔄 Backend requested token clearing in error response')
-        await removeAuthTokens()
-        notifyAuthStateChange()
-        return Promise.reject(error)
-      }
-
-      if (newAccessToken && newRefreshToken) {
-        console.log('🔄 Backend provided new tokens in error response, storing them...')
-        await setAuthTokens(newAccessToken, newRefreshToken)
-        console.log('✅ New tokens stored successfully')
-
-        // Retry the original request with new tokens (only if not already retried)
-        // Use a symbol to safely mark retried requests without TypeScript errors
-        const RETRY_MARK = Symbol.for('api_retry_mark')
-        if (!(config as any)[RETRY_MARK]) {
-          console.log('🔄 Retrying original request with new tokens...')
-          
-          // Clone the request config and update authorization header
-          const retryConfig = {
-            ...config,
-            headers: {
-              ...config.headers,
-              Authorization: `Bearer ${newAccessToken}`
-            }
-          }
-          ;(retryConfig as any)[RETRY_MARK] = true // Prevent infinite retry loops
-          
-          try {
-            return await api(retryConfig)
-          } catch (retryError) {
-            console.error('❌ Retry failed:', retryError)
-            return Promise.reject(retryError)
-          }
-        } else {
-          console.log('⚠️  Already retried this request, not retrying again')
-        }
-      }
-    }
-
     if (status === 401) {
       console.log('🚨 Received 401 - Authentication failed')
       
       try {
-        await removeAuthTokens()
         notifyAuthStateChange()
       } catch (cleanupError) {
         console.error('❌ Error during 401 cleanup:', cleanupError)

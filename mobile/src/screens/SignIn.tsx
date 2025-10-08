@@ -10,7 +10,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import type { RootStackParamList } from '../navigation'
 
 export default function SignIn() {
-  const { signIn, isLoading, error } = useAuthStore()
+  const { signIn, signInWithGoogle, isLoading, error } = useAuthStore()
   const nav = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
   const colors = useThemeColors()
   const { showToast } = useToast()
@@ -33,8 +33,13 @@ export default function SignIn() {
     }
   }
 
-  const onGoogleSignIn = () => {
-    nav.navigate('GoogleOAuth' as never)
+  const onGoogleSignIn = async () => {
+    const res = await signInWithGoogle()
+    if (res.ok) {
+      showToast('Successfully logged in with Google!', 'success')
+    } else if (error) {
+      showToast(error, 'error')
+    }
   }
 
   return (
@@ -121,7 +126,7 @@ export default function SignIn() {
             <View style={[styles.divider, { backgroundColor: colors.border }]} />
           </View>
 
-          <TouchableOpacity 
+          {/* <TouchableOpacity 
             style={[
               styles.googleButton, 
               { backgroundColor: colors.cardBg, borderColor: colors.border },
@@ -138,7 +143,7 @@ export default function SignIn() {
                 Continue with Google
               </Text>
             </View>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <TouchableOpacity 
             onPress={() => nav.navigate('SignUp')}
