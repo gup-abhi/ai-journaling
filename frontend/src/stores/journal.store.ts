@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { api, safeRequest } from '@/lib/api'
+import { api } from '@/lib/api'
 import type { JournalEntry, PaginationMeta, PaginatedJournalResponse } from '@/types/JournalEntry.type'
 import toast from 'react-hot-toast'
 import type { JournalTemplate } from '@/types/JournalTemplate.type'
@@ -38,13 +38,13 @@ export const useJournalStore = create<JournalStore>((set, get) => ({
 
   fetchJournalEntries: async (page = 1, limit = 10) => {
     set({ isLoading: true })
-    const response = await safeRequest(api.get<{ entries: JournalEntry[] }>(`/journal?page=${page}&limit=${limit}`))
-    if (response.ok) {
+    try {
+      const response = await api.get<{ entries: JournalEntry[] }>(`/journal?page=${page}&limit=${limit}`)
       set({
         journalEntries: response.data.entries,
         isLoading: false
       })
-    } else {
+    } catch (error) {
       set({
         journalEntries: [],
         isLoading: false
@@ -73,16 +73,16 @@ export const useJournalStore = create<JournalStore>((set, get) => ({
     const url = `/journal/paginated?${params.toString()}`
     console.log('Fetching journals from:', url, 'with dateFilters:', dateFilters)
 
-    const response = await safeRequest(api.get<PaginatedJournalResponse>(url))
-    if (response.ok) {
+    try {
+      const response = await api.get<PaginatedJournalResponse>(url)
       console.log('Successfully fetched', response.data.entries.length, 'journal entries')
       set({
         journalEntries: response.data.entries,
         pagination: response.data.pagination,
         isLoading: false
       })
-    } else {
-      console.error('Failed to fetch journals:', response.error)
+    } catch (error) {
+      console.error('Failed to fetch journals:', error)
       set({
         journalEntries: [],
         pagination: null,
@@ -92,42 +92,42 @@ export const useJournalStore = create<JournalStore>((set, get) => ({
   },
 
   fetchTotalEntries: async () => {
-    const response = await safeRequest(api.get<{ totalEntries: number }>('/journal/total-entries'))
-    if (response.ok) {
+    try {
+      const response = await api.get<{ totalEntries: number }>('/journal/total-entries')
       set({ totalEntries: response.data.totalEntries });
-    } else {
+    } catch (error) {
         set({ totalEntries: 0 })
     }
   },
 
   fetchMonthlyEntries: async () => {
-    const response = await safeRequest(api.get<{ totalMonthlyEntries: number }>('/journal/total-monthly-entries'))
-    if (response.ok) {
+    try {
+      const response = await api.get<{ totalMonthlyEntries: number }>('/journal/total-monthly-entries')
       set({ monthlyEntries: response.data.totalMonthlyEntries })
-    } else {
+    } catch (error) {
       set({ monthlyEntries: 0 })
     }
   },
 
   fetchJournalTemplates: async () => {
-    const response = await safeRequest(api.get<JournalTemplate[]>('/journal-template'));
-    if (response.ok && Array.isArray(response.data)) {
+    try {
+      const response = await api.get<JournalTemplate[]>('/journal-template');
       set({ journalTemplates: response.data });
-    } else {
+    } catch (error) {
       set({ journalTemplates: [] });
     }
   },
 
   addJournalEntry: async (newEntry: { content: string, template_id: string | null }) => {
-    const response = await safeRequest(api.post<{ entry: JournalEntry }>('/journal', {
-      content: newEntry.content,
-      entry_date: new Date().toISOString(),
-      template_id: newEntry.template_id
-    }))
-    if (response.ok) {
+    try {
+      const response = await api.post<{ entry: JournalEntry }>('/journal', {
+        content: newEntry.content,
+        entry_date: new Date().toISOString(),
+        template_id: newEntry.template_id
+      })
       toast.success('Journal entry added successfully')
       return response.data.entry
-    } else {
+    } catch (error) {
       toast.error('Failed to add journal entry')
       return null
     }

@@ -12,14 +12,11 @@ import { useAuthStore } from '@/stores/auth.store'
 
 export function SignIn() {
   const navigate = useNavigate()
-  const { signIn, isLoading, error, restore, signInWithGoogle } = useAuthStore()
+  const { signIn, isLoading, error, signInWithGoogle } = useAuthStore()
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  useEffect(() => {
-    restore()
-  }, [restore])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target

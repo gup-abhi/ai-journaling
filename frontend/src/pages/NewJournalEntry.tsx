@@ -10,7 +10,7 @@ import moment from 'moment'
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'
 import { Mic, MicOff, RotateCcw } from 'lucide-react'
 import type { JournalTemplate } from '@/types/JournalTemplate.type'
-import { api, safeRequest } from '@/lib/api'
+import { api } from '@/lib/api'
 
 export function NewJournalEntry() {
   const [content, setContent] = useState('')
@@ -38,8 +38,8 @@ export function NewJournalEntry() {
   useEffect(() => {
     const fetchTemplate = async () => {
       if (templateId) {
-        const response = await safeRequest(api.get<JournalTemplate>(`/journal-template/${templateId}`));
-        if (response.ok) {
+        try {
+          const response = await api.get<JournalTemplate>(`/journal-template/${templateId}`);
           setTemplate(response.data);
           // Initialize prompt responses for each prompt
           const initialResponses: {[key: number]: string} = {};
@@ -47,7 +47,7 @@ export function NewJournalEntry() {
             initialResponses[index] = '';
           });
           setPromptResponses(initialResponses);
-        } else {
+        } catch (error) {
           setTemplate(null);
         }
       }

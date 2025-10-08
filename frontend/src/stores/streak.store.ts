@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { api, safeRequest } from '@/lib/api';
+import { api } from '@/lib/api';
+import { AxiosError } from 'axios';
 
 export type StreakData = {
     currentStreak: number;
@@ -24,14 +25,13 @@ export const useStreakStore = create<StreakState>((set) => ({
 
   getStreakData: async () => {
     set({ isLoading: true, error: null });
-    const res = await safeRequest(api.get(`/user/streak`, { withCredentials: true }));
-
-    console.log('Streak data response:', res);
-
-    if (res.ok) {
+    try {
+      const res = await api.get(`/user/streak`, { withCredentials: true });
+      console.log('Streak data response:', res);
       set({ streakData: res.data.streakData, journalingDays: new Map(Object.entries(res.data.journalingDays)), isLoading: false });
-    } else {
-      set({ error: res.error, isLoading: false });
+    } catch (error) {
+      const errorMessage = error instanceof AxiosError ? error.response?.data?.message : 'An unexpected error occurred';
+      set({ error: errorMessage, isLoading: false });
     }
   },
 }));

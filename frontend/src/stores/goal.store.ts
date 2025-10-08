@@ -1,6 +1,6 @@
 
 import { create } from 'zustand';
-import { api, safeRequest } from '@/lib/api';
+import { api } from '@/lib/api';
 import type { Goal } from '@/types/Goal.type';
 import toast from 'react-hot-toast';
 
@@ -28,35 +28,34 @@ export const useGoalStore = create<GoalStore>((set) => ({
       params.params["progress"] = filter as string;
     }
 
-    const response = await safeRequest(api.get<{ goals: Goal[] }>('/goal-tracking', params));
-    console.log(response);
-    if (response.ok) {
+    try {
+      const response = await api.get<{ goals: Goal[] }>('/goal-tracking', params);
       set({ goals: response.data.goals, isLoading: false }); // Set loading to false on success
-    } else {
+    } catch (error) {
       set({ goals: [], isLoading: false }); // Set loading to false on error
     }
   },
 
   addGoal: async (newGoal: { name: string; description?: string; progress: string }) => {
     set({ isLoading: true }); // Set loading to true
-    const response = await safeRequest(api.post('/goal-tracking', newGoal));
-    if (response.ok) {
+    try {
+      const response = await api.post('/goal-tracking', newGoal);
       toast.success(response.data.message || 'Goal added successfully');
       set((state) => ({ ...state, goals: [...state.goals, response.data], isLoading: false })); // Set loading to false on success
-    } else {
-      toast.error(response.error || 'Failed to add goal');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to add goal');
       set({ isLoading: false }); // Set loading to false on error
     }
   },
 
   deleteGoal: async (goalId: string) => {
     set({ isLoading: true }); // Set loading to true
-    const response = await safeRequest(api.delete(`/goal-tracking/${goalId}`));
-    if (response.ok) {
+    try {
+      const response = await api.delete(`/goal-tracking/${goalId}`);
       toast.success(response.data.message);
       set((state) => ({ ...state, goals: state.goals.filter((goal) => goal._id !== goalId), isLoading: false })); // Set loading to false on success
-    } else {
-      toast.error(response.error || 'Failed to delete goal');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to delete goal');
       set({ isLoading: false }); // Set loading to false on error
     }
   },
@@ -64,22 +63,22 @@ export const useGoalStore = create<GoalStore>((set) => ({
 
   updateGoal: async (goalId: string, progress: string) => {
     set({ isLoading: true }); // Set loading to true
-    const response = await safeRequest(api.put(`/goal-tracking/${goalId}`, { progress }));
-    if (response.ok) {
+    try {
+      const response = await api.put(`/goal-tracking/${goalId}`, { progress });
       toast.success(response.data.message);
       set({ isLoading: false }); // Set loading to false on success
-    } else {
-      toast.error(response.error || 'Failed to update goal');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update goal');
       set({ isLoading: false }); // Set loading to false on error
     }
   }, 
 
   getActiveGoals: async () => {
     set({ isLoading: true }); // Set loading to true
-    const response = await safeRequest(api.get<{ goals: Goal[] }>('/goal-tracking/active-goals'));
-    if (response.ok) {
+    try {
+      const response = await api.get<{ goals: Goal[] }>('/goal-tracking/active-goals');
       set({ activeGoals: response.data.goals, isLoading: false }); // Set loading to false on success
-    } else {
+    } catch (error) {
       set({ activeGoals: [], isLoading: false }); // Set loading to false on error
     }
   }

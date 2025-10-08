@@ -48,7 +48,7 @@ export function Header() {
                 <span className="text-xl font-bold text-foreground">AI Journal</span>
                 {isAuthenticated ? (
                   <p className="text-xs text-muted-foreground">
-                    Welcome, {user?.display_name || user?.full_name}!
+                    Welcome, { user?.user_metadata.display_name || user?.user_metadata.full_name }!
                   </p>
                 ) : (
                   <Badge variant="outline" className="ml-2 text-xs">
@@ -73,7 +73,7 @@ export function Header() {
                 <span className="text-xl font-bold text-foreground">AI Journal</span>
                 {isAuthenticated ? (
                   <p className="text-xs text-muted-foreground">
-                    Welcome, {user?.display_name || user?.full_name}!
+                    Welcome, {user?.user_metadata.display_name || user?.user_metadata.full_name}!
                   </p>
                 ) : (
                   <Badge variant="outline" className="ml-2 text-xs">

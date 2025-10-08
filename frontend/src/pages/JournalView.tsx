@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { api, safeRequest } from '@/lib/api'
+import { api } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Calendar, Smile, Frown, Meh, CheckCircle, Hourglass, XCircle, PauseCircle } from 'lucide-react'
@@ -40,13 +40,8 @@ export function JournalView() {
 
   const fetchJournalSentiment = async (journalId: string) => {
     try {
-      const response = await safeRequest(api.get<Trend>(`/ai-insights/trends/journal/${journalId}`));
-
-      if (response.ok && response.data) {
-        setTrend(response.data)
-      } else {
-        setNoInsights(true);
-      }
+      const response = await api.get<Trend>(`/ai-insights/trends/journal/${journalId}`);
+      setTrend(response.data)
     } catch (error) {
       console.error("Error fetching journal sentiment:", error);
       setNoInsights(true);
@@ -57,20 +52,20 @@ export function JournalView() {
     const fetchEntry = async () => {
       if (!id) return
       setIsLoading(true)
-      const res = await safeRequest(api.get<JournalEntry>(`/journal/${id}`))
-      if (res.ok) {
+      try {
+        const res = await api.get<JournalEntry>(`/journal/${id}`)
         setEntry(res.data)
         fetchJournalSentiment(id)
         if (res.data.template_id) {
-          const templateRes = await safeRequest(api.get<JournalTemplate>(`/journal-template/${res.data.template_id}`))
-          if (templateRes.ok) {
+          try {
+            const templateRes = await api.get<JournalTemplate>(`/journal-template/${res.data.template_id}`)
             setTemplate(templateRes.data)
-          } else {
+          } catch (error) {
             setTemplate(null)
           }
         }
-      } else {
-        setError(res.error)
+      } catch (error: any) {
+        setError(error.message)
       }
       setIsLoading(false)
     }

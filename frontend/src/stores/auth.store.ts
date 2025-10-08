@@ -1,132 +1,125 @@
 import { create } from 'zustand'
-import { api, safeRequest } from '@/lib/api'
+import { supabase } from '@/lib/supabase-client'
 import toast from 'react-hot-toast'
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
-export type AuthUser = {
-  display_name: string,
-  full_name: string,
-  email: string,
-  email_verified: boolean,
-  phone_verified: boolean,
-  sub: string
-}
+// Define a custom User type that includes user_metadata
+export type AuthUser = SupabaseUser & {
+  user_metadata: {
+    display_name?: string;
+    full_name?: string;
+    name?: string;
+    email?: string;
+    [key: string]: any; // Allow for arbitrary properties
+  };
+};
 
 type AuthState = {
   user: AuthUser | null
   isLoading: boolean
   error: string | null
   isAuthenticated: boolean
-  setIsAuthenticated: (value: boolean) => void
+  accessToken: string | null
   signUp: (payload: { email: string; password: string; display_name: string }) => Promise<{ ok: boolean; message?: string }>
   signIn: (payload: { email: string; password: string }) => Promise<{ ok: boolean }>
   signInWithGoogle: () => Promise<{ ok: boolean }>
   signOut: () => Promise<void>
-  restore: () => void
-  getUser: () => Promise<void>
 }
-
-const channel = new BroadcastChannel('auth-channel');
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isLoading: false,
   error: null,
   isAuthenticated: false,
-
-  setIsAuthenticated: (value) => {
-    set({ isAuthenticated: value })
-    channel.postMessage({ isAuthenticated: value })
-  },
-
-  restore: async () => {
-    set({ isLoading: true })
-
-    const res = await safeRequest(api.get('/auth/check', { withCredentials: true }))
-    console.log('Auth check response:', res)
-    set({  isLoading: false, isAuthenticated: res.ok })
-    if (res.ok) {
-      useAuthStore.getState().getUser()
-    }
-    channel.postMessage({ isAuthenticated: res.ok })
-  },
-
+  accessToken: null,
 
   signUp: async (payload) => {
     set({ isLoading: true, error: null })
-    const res = await safeRequest(api.post('/auth/signup', payload, { withCredentials: true }))
-    set({ isLoading: false, error: res.ok ? null : res.error })
-    if (res.ok) {
-      toast.success('Verification email sent. Please check your inbox.')
-      return { ok: true, message: 'Verification email sent. Please check your inbox.' }
-    } else {
-      toast.error(res.error || 'Sign up failed')
+    const { data, error } = await supabase.auth.signUp({
+      email: payload.email,
+      password: payload.password,
+      options: {
+        data: {
+          display_name: payload.display_name
+        }
+      }
+    })
+    set({ isLoading: false })
+    if (error) {
+      toast.error(error.message)
       return { ok: false }
     }
+    if (data.user) {
+      toast.success('Verification email sent. Please check your inbox.')
+      return { ok: true, message: 'Verification email sent. Please check your inbox.' }
+    }
+    return { ok: false }
   },
 
   signIn: async (payload) => {
-    set({ isLoading: true, error: null })
-    const res = await safeRequest(api.post('/auth/login', payload, { withCredentials: true }))
-    if (res.ok) {
-      // Backend sets cookie → we consider user authenticated
-      set({ isLoading: false, isAuthenticated: true })
-      channel.postMessage({ isAuthenticated: true })
-      useAuthStore.getState().getUser()
-      toast.success('Signed in successfully!')
-      return { ok: true }
-    } else {
-      set({ isLoading: false, error: res.error, isAuthenticated: false })
-      channel.postMessage({ isAuthenticated: false })
-      toast.error(res.error || 'Sign in failed')
+    set({ user: null, isAuthenticated: false, error: null, isLoading: true }); // Clear state before new sign-in
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: payload.email,
+      password: payload.password,
+    })
+
+    console.log(`data - ${JSON.stringify(data)}`);
+    set({ isLoading: false, user: data.user as AuthUser })
+    if (error) {
+      toast.error(error.message)
       return { ok: false }
     }
+    toast.success('Signed in successfully!')
+    return { ok: true }
   },
 
   signInWithGoogle: async () => {
-    set({ isLoading: true, error: null });
-    try {
-      // Redirect to backend for Google OAuth initiation
-      window.location.href = '/api/v1/auth/google/login';
-      return { ok: true };
-    } catch (err: any) {
-      set({ isLoading: false, error: err.message, isAuthenticated: false });
-      channel.postMessage({ isAuthenticated: false })
-      toast.error(err.message || 'Google Sign-In failed');
-      return { ok: false };
+    set({ user: null, isAuthenticated: false, error: null, isLoading: true }); // Clear state before new sign-in
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: import.meta.env.VITE_FRONTEND_URL,
+      },
+    });
+    set({ isLoading: false })
+    if (error) {
+      toast.error(error.message)
+      return { ok: false }
     }
+    return { ok: true };
   },
 
   signOut: async () => {
-    await safeRequest(api.get('/auth/logout', { withCredentials: true }))
+    await supabase.auth.signOut()
     set({ user: null, isAuthenticated: false })
-    sessionStorage.removeItem('isAuthenticated');
-    channel.postMessage({ isAuthenticated: false })
     toast.success('Signed out successfully!')
   },
-
-
-  getUser: async () => {
-    const res = await safeRequest(api.get('/auth/user', { withCredentials: true }))
-    if (res.ok) {
-      set({ user: res.data })
-    } else {
-      set({ user: null })
-    }
-  }
 }))
 
-channel.onmessage = (event) => {
-  if (event.data.isAuthenticated !== useAuthStore.getState().isAuthenticated) {
-    useAuthStore.setState({ isAuthenticated: event.data.isAuthenticated })
-    if (event.data.isAuthenticated) {
-      useAuthStore.getState().getUser()
-    } else {
-      useAuthStore.setState({ user: null })
-    }
+supabase.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_IN') {
+    useAuthStore.setState({
+      user: session?.user as AuthUser ?? null,
+      isAuthenticated: true,
+      isLoading: false,
+      accessToken: session?.access_token ?? null,
+    })
+  } else if (event === 'SIGNED_OUT') {
+    useAuthStore.setState({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+      accessToken: null,
+    })
   }
-};
+});
 
 // Initial check on load
-useAuthStore.getState().restore()
+(async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    useAuthStore.setState({ user: session.user as AuthUser, isAuthenticated: true });
+  }
+})();
 
 export const getAuthStore = () => useAuthStore.getState()

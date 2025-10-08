@@ -9,7 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import axios from "axios";
+import { api } from '@/lib/api'
 import toast from "react-hot-toast";
 import { Loader } from "@/components/Loader"; // Assuming Loader is in the same directory or a sibling directory
 import {
@@ -44,8 +44,8 @@ const EmotionIntensityHeatmap = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get(
-          `/api/v1/ai-insights/emotion-intensity-heatmap/period/${period}`
+        const response = await api.get(
+          `/ai-insights/emotion-intensity-heatmap/period/${period}`
         );
         const rawData: HeatmapDataPoint[] = response.data.intensityMap;
 
