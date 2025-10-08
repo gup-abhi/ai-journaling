@@ -19,7 +19,6 @@ type AuthState = {
   isLoading: boolean
   error: string | null
   isAuthenticated: boolean
-  accessToken: string | null
   signUp: (payload: { email: string; password: string; display_name: string }) => Promise<{ ok: boolean; message?: string }>
   signIn: (payload: { email: string; password: string }) => Promise<{ ok: boolean }>
   signInWithGoogle: () => Promise<{ ok: boolean }>
@@ -31,7 +30,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: false,
   error: null,
   isAuthenticated: false,
-  accessToken: null,
 
   signUp: async (payload) => {
     set({ isLoading: true, error: null })
@@ -101,15 +99,13 @@ supabase.auth.onAuthStateChange((event, session) => {
     useAuthStore.setState({
       user: session?.user as AuthUser ?? null,
       isAuthenticated: true,
-      isLoading: false,
-      accessToken: session?.access_token ?? null,
+      isLoading: false
     })
   } else if (event === 'SIGNED_OUT') {
     useAuthStore.setState({
       user: null,
       isAuthenticated: false,
-      isLoading: false,
-      accessToken: null,
+      isLoading: false
     })
   }
 });

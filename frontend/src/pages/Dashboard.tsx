@@ -25,7 +25,7 @@ export function Dashboard() {
     const fetchData = async () => {
       setIsLoading(true)
       try {
-        await Promise.all([
+        await Promise.allSettled([
           fetchTotalEntries(),
           fetchMonthlyEntries(),
           fetchJournalEntries(),
