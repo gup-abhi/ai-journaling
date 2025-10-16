@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from './ui/card';
 import { Button } from './ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Feather, AlertCircle, Info, CheckCircle, Edit3, Calendar, Heart, Star, Clock, ArrowRight } from 'lucide-react';
+import { AlertCircle, Info, CheckCircle, Edit3, Calendar, Heart, Star, Clock, ArrowRight } from 'lucide-react';
 import type { Nudge } from '@/types/Nudge.type';
 
 interface NudgeCardProps {

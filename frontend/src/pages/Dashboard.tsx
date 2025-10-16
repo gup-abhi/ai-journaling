@@ -61,9 +61,6 @@ export function Dashboard() {
     { label: 'Active Goals', value: activeGoals.length, icon: Brain, color: 'text-purple-500' },
   ];
 
-  const statsRow1 = quickStats.slice(0, 3);
-  const statsRow2 = quickStats.slice(3, 6);
-
   if (isLoading) {
     return <Loader />;
   }
@@ -99,25 +96,8 @@ export function Dashboard() {
         {/* Stats Grid */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-foreground mb-4">Your Progress</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
-            {statsRow1.map((stat, index) => (
-              <Card key={index} className="group hover:shadow-md transition-all duration-300 cursor-pointer" onClick={() => stat.label === 'Active Goals' ? navigate('/goals?filter=in-progress') : null}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">{stat.label}</p>
-                      <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-                    </div>
-                    <div className={`rounded-lg bg-primary/10 p-3 group-hover:bg-primary/20 transition-colors`}>
-                      <stat.icon className={`h-6 w-6 ${stat.color}`} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {statsRow2.map((stat, index) => (
+            {quickStats.map((stat, index) => (
               <Card key={index} className="group hover:shadow-md transition-all duration-300 cursor-pointer" onClick={() => stat.label === 'Active Goals' ? navigate('/goals?filter=in-progress') : null}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
