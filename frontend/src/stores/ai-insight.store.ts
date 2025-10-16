@@ -3,6 +3,8 @@ import { api } from '@/lib/api'
 import type { SentimentTrend } from '@/types/SentimentTrends.type'
 import type { TopThemeTrends } from '@/types/TopThemeTrends.type'
 import type { Period } from '@/types/Period.type'
+import type { SentimentSummaryData } from '@/types/SentimentSummary.type'
+import type { TopThemesData } from '@/types/ThematicSentiment.type'
 
 interface ThemeActionData {
   theme: string;
@@ -20,6 +22,9 @@ type AiInsightState = {
     emotionDistribution: any[];
     emotionIntensityHeatmap: any[];
     thematicSentiment: any[];
+    // New sentiment summary and themes data
+    sentimentSummaryData: SentimentSummaryData | null;
+    topThemesData: TopThemesData | null;
     isSentimentLoading: boolean;
     isThemesLoading: boolean;
     isThemeActionLoading: boolean;
@@ -29,6 +34,9 @@ type AiInsightState = {
     isEmotionDistributionLoading: boolean;
     isEmotionIntensityHeatmapLoading: boolean;
     isThematicSentimentLoading: boolean;
+    // New loading states
+    isSentimentSummaryLoading: boolean;
+    isTopThemesDataLoading: boolean;
     fetchMoodTrends: () => Promise<void>;
     fetchSentimentTrends: (period: 'week' | 'month' | 'year') => Promise<void>;
     fetchTopThemes: (period: 'week' | 'month' | 'year', limit: number) => Promise<void>;
@@ -39,6 +47,9 @@ type AiInsightState = {
     fetchEmotionDistribution: (period: Period) => Promise<void>;
     fetchEmotionIntensityHeatmap: (period: Period) => Promise<void>;
     fetchThematicSentiment: (period: Period) => Promise<void>;
+    // New functions for sentiment summary and top themes
+    fetchSentimentSummary: (period: Period) => Promise<void>;
+    fetchTopThemesData: (period: Period, limit?: number) => Promise<void>;
 }
 
 export const useAiInsightStore = create<AiInsightState>((set) => ({
@@ -56,6 +67,9 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
     emotionDistribution: [],
     emotionIntensityHeatmap: [],
     thematicSentiment: [],
+    // New data fields
+    sentimentSummaryData: null,
+    topThemesData: null,
     isSentimentLoading: false,
     isThemesLoading: false,
     isThemeActionLoading: false,
@@ -65,6 +79,9 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
     isEmotionDistributionLoading: false,
     isEmotionIntensityHeatmapLoading: false,
     isThematicSentimentLoading: false,
+    // New loading states
+    isSentimentSummaryLoading: false,
+    isTopThemesDataLoading: false,
 
     fetchMoodTrends: async () => {
         try {
@@ -174,6 +191,29 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
             set({ thematicSentiment: res.data.thematicSentiment, isThematicSentimentLoading: false });
         } catch (error) {
             set({ thematicSentiment: [], isThematicSentimentLoading: false });
+        }
+    },
+
+    // New functions for sentiment summary and top themes
+    fetchSentimentSummary: async (period: Period) => {
+        set({ isSentimentSummaryLoading: true });
+        try {
+            const response = await api.get<SentimentSummaryData>(`/ai-insights/sentiment-summary/period/${period}`);
+            set({ sentimentSummaryData: response.data, isSentimentSummaryLoading: false });
+        } catch (error) {
+            console.error('Error fetching sentiment summary:', error);
+            set({ sentimentSummaryData: null, isSentimentSummaryLoading: false });
+        }
+    },
+
+    fetchTopThemesData: async (period: Period, limit: number = 10) => {
+        set({ isTopThemesDataLoading: true });
+        try {
+            const response = await api.get<TopThemesData>(`/ai-insights/trends/keyThemes/period/${period}?limit=${limit}`);
+            set({ topThemesData: response.data, isTopThemesDataLoading: false });
+        } catch (error) {
+            console.error('Error fetching top themes data:', error);
+            set({ topThemesData: null, isTopThemesDataLoading: false });
         }
     },
 }));

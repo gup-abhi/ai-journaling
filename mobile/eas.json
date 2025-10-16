@@ -11,7 +11,7 @@
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_BASE": "https://joournal.abhishek-gupta.tech",
+        "EXPO_PUBLIC_API_BASE": "https://journal.abhishek-gupta.tech/api/v1",
         "EXPO_PUBLIC_SUPABASE_URL": "https://sclftjddhmcnrtnbdkkg.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_e01ZKNK4sLxC5SVi2n2FKA_tsZMzWu2",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "87925239909-bu3dgsttoha44fajenanbl7i5u6f45dp.apps.googleusercontent.com"
@@ -21,7 +21,13 @@
       }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_BASE": "YOUR_PRODUCTION_API_BASE_URL",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://sclftjddhmcnrtnbdkkg.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_e01ZKNK4sLxC5SVi2n2FKA_tsZMzWu2",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "87925239909-bu3dgsttoha44fajenanbl7i5u6f45dp.apps.googleusercontent.com"
+      }
     }
   },
   "submit": {

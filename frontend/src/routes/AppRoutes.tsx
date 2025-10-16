@@ -10,6 +10,8 @@ import { NewJournalEntry } from '../pages/NewJournalEntry'
 import { JournalView } from '../pages/JournalView'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { Trends } from '../pages/Trends'
+import { TimelinePage } from '../pages/Timeline'
+import { ThemeDetail } from '../pages/ThemeDetail'
 import JournalTemplates from '../pages/JournalTemplates'
 import { NewGoal } from '../pages/NewGoal'
 import { Goals } from '../pages/Goals'
@@ -72,6 +74,16 @@ export function AppRoutes() {
           <Route path="/trends" element={
             <ProtectedRoute>
               <motion.div {...pageTransition}><Trends /></motion.div>
+            </ProtectedRoute>
+          } />
+          <Route path="/timeline" element={
+            <ProtectedRoute>
+              <motion.div {...pageTransition}><TimelinePage /></motion.div>
+            </ProtectedRoute>
+          } />
+          <Route path="/theme/:theme/:period?" element={
+            <ProtectedRoute>
+              <motion.div {...pageTransition}><ThemeDetail /></motion.div>
             </ProtectedRoute>
           } />
           <Route path="/goals/new" element={
