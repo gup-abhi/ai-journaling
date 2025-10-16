@@ -138,7 +138,7 @@ export function JournalView() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Button variant="outline" onClick={() => navigate("/journals")} className="mb-6">
+        <Button variant="outline" onClick={() => navigate(-1)} className="mb-6">
           Go Back
         </Button>
 
