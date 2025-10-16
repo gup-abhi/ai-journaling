@@ -1,10 +1,11 @@
-import { create } from 'zustand'
-import { api } from '@/lib/api'
-import type { SentimentTrend } from '@/types/SentimentTrends.type'
-import type { TopThemeTrends } from '@/types/TopThemeTrends.type'
-import type { Period } from '@/types/Period.type'
-import type { SentimentSummaryData } from '@/types/SentimentSummary.type'
-import type { TopThemesData } from '@/types/ThematicSentiment.type'
+import { create } from 'zustand';
+import { api } from '@/lib/api';
+import type { SentimentTrend } from '@/types/SentimentTrends.type';
+import type { TopThemeTrends } from '@/types/TopThemeTrends.type';
+import type { Period } from '@/types/Period.type';
+import type { SentimentSummaryData } from '@/types/SentimentSummary.type';
+import type { TopThemesData } from '@/types/ThematicSentiment.type';
+import type { Nudge } from '@/types/Nudge.type';
 
 interface ThemeActionData {
   theme: string;
@@ -22,6 +23,8 @@ type AiInsightState = {
     emotionDistribution: any[];
     emotionIntensityHeatmap: any[];
     thematicSentiment: any[];
+    nudges: Nudge[];
+    isNudgesLoading: boolean;
     // New sentiment summary and themes data
     sentimentSummaryData: SentimentSummaryData | null;
     topThemesData: TopThemesData | null;
@@ -47,6 +50,7 @@ type AiInsightState = {
     fetchEmotionDistribution: (period: Period) => Promise<void>;
     fetchEmotionIntensityHeatmap: (period: Period) => Promise<void>;
     fetchThematicSentiment: (period: Period) => Promise<void>;
+    fetchNudges: () => Promise<void>;
     // New functions for sentiment summary and top themes
     fetchSentimentSummary: (period: Period) => Promise<void>;
     fetchTopThemesData: (period: Period, limit?: number) => Promise<void>;
@@ -67,6 +71,8 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
     emotionDistribution: [],
     emotionIntensityHeatmap: [],
     thematicSentiment: [],
+    nudges: [],
+    isNudgesLoading: false,
     // New data fields
     sentimentSummaryData: null,
     topThemesData: null,
@@ -191,6 +197,17 @@ export const useAiInsightStore = create<AiInsightState>((set) => ({
             set({ thematicSentiment: res.data.thematicSentiment, isThematicSentimentLoading: false });
         } catch (error) {
             set({ thematicSentiment: [], isThematicSentimentLoading: false });
+        }
+    },
+
+    fetchNudges: async () => {
+        set({ isNudgesLoading: true });
+        try {
+            const response = await api.get<{ nudges: Nudge[] }>('/ai-insights/nudges');
+            set({ nudges: response.data.nudges, isNudgesLoading: false });
+        } catch (error) {
+            console.error("Error fetching nudges:", error);
+            set({ nudges: [], isNudgesLoading: false });
         }
     },
 
