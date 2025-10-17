@@ -1,6 +1,6 @@
 # AI Journaling App
 
-A comprehensive multi-platform journaling application that leverages AI to provide deep insights into your thoughts, emotions, and personal growth. Features a modern web interface, mobile app, and powerful backend with advanced AI analysis powered by Google Gemini.
+A comprehensive multi-platform journaling application that leverages AI to provide deep insights into your thoughts, emotions, and personal growth. Features a modern web interface, mobile app, and a powerful backend with advanced AI analysis.
 
 ## 🌟 Features
 
@@ -35,7 +35,6 @@ A comprehensive multi-platform journaling application that leverages AI to provi
 *   **Routing:** React Router v7
 *   **HTTP Client:** Axios
 *   **Charts:** Recharts
-*   **Animations:** Framer Motion
 
 ### Mobile App
 *   **Framework:** React Native with Expo
