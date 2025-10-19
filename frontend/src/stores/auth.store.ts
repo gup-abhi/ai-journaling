@@ -10,7 +10,7 @@ export type AuthUser = SupabaseUser & {
     full_name?: string;
     name?: string;
     email?: string;
-    [key: string]: any; // Allow for arbitrary properties
+    [key: string]: unknown; // Allow for arbitrary properties
   };
 };
 
@@ -23,6 +23,7 @@ type AuthState = {
   signIn: (payload: { email: string; password: string }) => Promise<{ ok: boolean }>
   signInWithGoogle: () => Promise<{ ok: boolean }>
   signOut: () => Promise<void>
+  sendPasswordResetEmail: (email: string) => Promise<{ ok: boolean; message?: string }>
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -85,6 +86,20 @@ export const useAuthStore = create<AuthState>((set) => ({
       return { ok: false }
     }
     return { ok: true };
+  },
+
+  sendPasswordResetEmail: async (email) => {
+    set({ isLoading: true, error: null });
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${import.meta.env.VITE_FRONTEND_URL}/reset-password`,
+    });
+    set({ isLoading: false });
+    if (error) {
+      toast.error(error.message);
+      return { ok: false, message: error.message };
+    }
+    toast.success('Password reset email sent. Please check your inbox.');
+    return { ok: true, message: 'Password reset email sent. Please check your inbox.' };
   },
 
   signOut: async () => {

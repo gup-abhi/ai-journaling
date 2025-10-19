@@ -3,6 +3,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { LandingPage } from '../pages/LandingPage'
 import { SignUp } from '../pages/SignUp'
 import { SignIn } from '../pages/SignIn'
+import { ForgotPassword } from '../pages/ForgotPassword'
+import { ResetPassword } from '../pages/ResetPassword'
 import { Dashboard } from '../pages/Dashboard'
 import { ProtectedRoute } from '../components/ProtectedRoute'
 import { Journals } from '../pages/Journals'
@@ -45,6 +47,14 @@ export function AppRoutes() {
           <Route
             path="/sign-in"
             element={user ? <Navigate to="/dashboard" /> : <motion.div {...pageTransition}><SignIn /></motion.div>}
+          />
+          <Route
+            path="/forgot-password"
+            element={user ? <Navigate to="/dashboard" /> : <motion.div {...pageTransition}><ForgotPassword /></motion.div>}
+          />
+          <Route
+            path="/reset-password"
+            element={<motion.div {...pageTransition}><ResetPassword /></motion.div>}
           />
           <Route path="/dashboard" element={
             <ProtectedRoute>

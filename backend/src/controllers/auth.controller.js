@@ -1,5 +1,6 @@
 import User from '../models/Users.model.js';
 import supabase from "../lib/supabase-client.js";
+import supabaseAdmin from "../lib/supabase-admin-client.js";
 import cookieOptions from '../util/cookiesOptions.js';
 import { FRONTEND_URL, BACKEND_URL } from '../config/index.js';
 import AppError from '../util/AppError.js'; // Import AppError
@@ -340,5 +341,44 @@ export const refreshTokenMobile = async (req, res, next) => {
     } else {
       next(new AppError("Internal server error", 500));
     }
+  }
+};
+
+/**
+ * Get user provider
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>}
+ */
+export const getUserProvider = async (req, res) => {
+  const { email } = req.query;
+
+  if (!email) {
+    throw new AppError("Email is required.", 400);
+  }
+
+  try {
+    const { data: { users }, error } = await supabaseAdmin.auth.admin.listUsers();
+
+    if (error) {
+      throw new AppError(error.message, 404);
+    }
+
+    const user = users.find(user => user.email === email);
+
+    if (!user) {
+      throw new AppError("User not found.", 404);
+    }
+
+    let isGoogleUser = false;
+    if (user.app_metadata.provider) {
+      const providers = user.app_metadata.provider.split(',');
+      isGoogleUser = providers.includes('google');
+    }
+
+    return res.status(200).json({ isGoogleUser });
+  } catch (error) {
+    console.log(error);
+    throw new AppError(error.message, 500);
   }
 };
