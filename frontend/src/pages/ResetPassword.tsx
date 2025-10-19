@@ -10,11 +10,17 @@ import { Lock, Shield } from 'lucide-react'
 
 export function ResetPassword() {
   const navigate = useNavigate()
-  const { isLoading, error } = useAuthStore()
+  const { isLoading, error, isAuthenticated } = useAuthStore()
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [message, setMessage] = useState('')
   const [token, setToken] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard')
+    }
+  }, [isAuthenticated, navigate])
 
   useEffect(() => {
     const hash = window.location.hash;
